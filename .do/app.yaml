@@ -1,0 +1,88 @@
+name: space-coast-studios
+region: nyc
+
+services:
+  # ── FastAPI Backend ───────────────────────────────────────────────────────
+  - name: api
+    source_dir: backend
+    github:
+      branch: main
+      deploy_on_push: true
+    run_command: uvicorn app.main:app --host 0.0.0.0 --port 8080
+    build_command: pip install -r requirements.txt
+    environment_slug: python
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    http_port: 8080
+    routes:
+      - path: /
+    envs:
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+      - key: SECRET_KEY
+        type: SECRET
+      - key: JWT_SECRET_KEY
+        type: SECRET
+      - key: ANTHROPIC_API_KEY
+        type: SECRET
+      - key: SENDGRID_API_KEY
+        type: SECRET
+      - key: SENDGRID_FROM_EMAIL
+        value: noreply@spacecoaststudios.com
+      - key: FROM_NAME
+        value: Space Coast Studios
+      - key: LLM_MODEL
+        value: claude-sonnet-4-5
+      - key: BASE_URL
+        value: https://api.spacecoaststudios.com
+      - key: ALLOWED_ORIGINS
+        value: https://dashboard.spacecoaststudios.com,https://spacecoaststudios.com
+      - key: CONTACT_AUTO_RESPOND
+        value: "true"
+
+  # ── React Dashboard (static site) ────────────────────────────────────────
+  - name: dashboard
+    source_dir: frontend/dashboard
+    github:
+      branch: main
+      deploy_on_push: true
+    build_command: npm install && npm run build
+    output_dir: dist
+    environment_slug: node-js
+    routes:
+      - path: /
+    envs:
+      - key: VITE_API_URL
+        value: https://api.spacecoaststudios.com
+
+  # ── Marketing Site (static site) ─────────────────────────────────────────
+  - name: marketing
+    source_dir: marketing-site
+    github:
+      branch: main
+      deploy_on_push: true
+    output_dir: /
+    routes:
+      - path: /
+
+databases:
+  - name: db
+    engine: PG
+    version: "16"
+    size: db-s-1vcpu-1gb   # ~$15/month — upgrade as you grow
+
+domains:
+  - domain: api.spacecoaststudios.com
+    type: PRIMARY
+    zone: spacecoaststudios.com
+    component_name: api
+  - domain: dashboard.spacecoaststudios.com
+    type: PRIMARY
+    zone: spacecoaststudios.com
+    component_name: dashboard
+  - domain: spacecoaststudios.com
+    type: PRIMARY
+    zone: spacecoaststudios.com
+    component_name: marketing

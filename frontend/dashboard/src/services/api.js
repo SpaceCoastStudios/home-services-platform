@@ -1,0 +1,149 @@
+/**
+ * API client — handles all backend communication with JWT auth.
+ * All scoped endpoints accept an optional businessId parameter.
+ * Platform admins pass it explicitly; business admins omit it
+ * (the backend resolves it from their token automatically).
+ */
+
+// In development, Vite proxies /api → localhost:8000 (see vite.config.js).
+// In production, VITE_API_URL is set to the live backend (e.g. https://api.spacecoaststudios.com).
+const API_ROOT = import.meta.env.VITE_API_URL || ''
+const BASE = `${API_ROOT}/api`
+
+function getToken() {
+  return localStorage.getItem('access_token')
+}
+
+async function request(path, options = {}) {
+  const token = getToken()
+  const headers = { 'Content-Type': 'application/json', ...options.headers }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const res = await fetch(path.startsWith('/') ? path : `${BASE}/${path}`, {
+    ...options,
+    headers,
+  })
+
+  if (res.status === 401) {
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    window.location.href = '/login'
+    throw new Error('Unauthorized')
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }))
+    throw new Error(err.detail || 'Request failed')
+  }
+
+  if (res.status === 204) return null
+  return res.json()
+}
+
+/** Build a query string, omitting null/undefined values. */
+function qs(params) {
+  const filtered = Object.entries(params).filter(([, v]) => v != null && v !== '')
+  if (!filtered.length) return ''
+  return '?' + new URLSearchParams(filtered).toString()
+}
+
+const api = {
+  get: (path) => request(path),
+  post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }),
+  put: (path, body) => request(path, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: (path) => request(path, { method: 'DELETE' }),
+}
+
+// ── Auth ────────────────────────────────────────────────────
+export const login = (username, password) =>
+  request('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) })
+
+// ── Businesses (platform admin only) ────────────────────────
+export const getBusinesses = () => api.get('businesses')
+export const getBusiness = (id) => api.get(`businesses/${id}`)
+export const createBusiness = (data) => api.post('businesses', data)
+export const updateBusiness = (id, data) => api.put(`businesses/${id}`, data)
+
+// ── Customers ────────────────────────────────────────────────
+export const getCustomers = (search = '', businessId = null) =>
+  api.get(`customers${qs({ search: search || null, business_id: businessId })}`)
+export const getCustomer = (id, businessId = null) =>
+  api.get(`customers/${id}${qs({ business_id: businessId })}`)
+export const createCustomer = (data, businessId = null) =>
+  api.post(`customers${qs({ business_id: businessId })}`, data)
+export const updateCustomer = (id, data, businessId = null) =>
+  api.put(`customers/${id}${qs({ business_id: businessId })}`, data)
+
+// ── Services ─────────────────────────────────────────────────
+export const getServices = (businessId, activeOnly = false) =>
+  api.get(`services${qs({ business_id: businessId, active_only: activeOnly })}`)
+export const createService = (data, businessId = null) =>
+  api.post(`services${qs({ business_id: businessId })}`, data)
+export const updateService = (id, data, businessId = null) =>
+  api.put(`services/${id}${qs({ business_id: businessId })}`, data)
+export const deleteService = (id, businessId = null) =>
+  api.delete(`services/${id}${qs({ business_id: businessId })}`)
+
+// ── Technicians ───────────────────────────────────────────────
+export const getTechnicians = (businessId = null, activeOnly = false) =>
+  api.get(`technicians${qs({ business_id: businessId, active_only: activeOnly })}`)
+export const createTechnician = (data, businessId = null) =>
+  api.post(`technicians${qs({ business_id: businessId })}`, data)
+export const updateTechnician = (id, data, businessId = null) =>
+  api.put(`technicians/${id}${qs({ business_id: businessId })}`, data)
+
+// ── Appointments ─────────────────────────────────────────────
+export const getAppointments = (params = {}, businessId = null) => {
+  const allParams = { ...params, business_id: businessId }
+  return api.get(`appointments${qs(allParams)}`)
+}
+export const getAppointment = (id, businessId = null) =>
+  api.get(`appointments/${id}${qs({ business_id: businessId })}`)
+export const createAppointment = (data, businessId = null) =>
+  api.post(`appointments${qs({ business_id: businessId })}`, data)
+export const updateAppointment = (id, data, businessId = null) =>
+  api.put(`appointments/${id}${qs({ business_id: businessId })}`, data)
+export const cancelAppointment = (id, businessId = null) =>
+  api.post(`appointments/${id}/cancel${qs({ business_id: businessId })}`, {})
+
+// ── Availability ─────────────────────────────────────────────
+export const getAvailability = (serviceTypeId, startDate, endDate, techId = null, businessId = null) => {
+  const url = `/api/availability${qs({
+    service_type_id: serviceTypeId,
+    start_date: startDate,
+    end_date: endDate,
+    technician_id: techId,
+    business_id: businessId,
+  })}`
+  return request(url)
+}
+
+// ── Business Hours & Settings ─────────────────────────────────
+export const getBusinessHours = (businessId = null) =>
+  api.get(`business-hours${qs({ business_id: businessId })}`)
+export const updateBusinessHours = (hours, businessId = null) =>
+  api.put(`business-hours${qs({ business_id: businessId })}`, { hours })
+export const getBlockedTimes = (businessId = null) =>
+  api.get(`blocked-times${qs({ business_id: businessId })}`)
+export const createBlockedTime = (data, businessId = null) =>
+  api.post(`blocked-times${qs({ business_id: businessId })}`, data)
+export const deleteBlockedTime = (id, businessId = null) =>
+  api.delete(`blocked-times/${id}${qs({ business_id: businessId })}`)
+export const getSettings = (businessId = null) =>
+  api.get(`settings${qs({ business_id: businessId })}`)
+export const updateSetting = (key, value, businessId = null) =>
+  api.put(`settings/${key}${qs({ business_id: businessId })}`, { value })
+
+// ── Contact Submissions ───────────────────────────────────────
+export const getContactSubmissions = (status = null, businessId = null) =>
+  api.get(`contact-submissions${qs({ status, business_id: businessId })}`)
+export const getContactSubmission = (id, businessId = null) =>
+  api.get(`contact-submissions/${id}${qs({ business_id: businessId })}`)
+export const updateContactSubmission = (id, data, businessId = null) =>
+  api.put(`contact-submissions/${id}${qs({ business_id: businessId })}`, data)
+export const triggerAiResponse = (id, businessId = null) =>
+  api.post(`contact-submissions/${id}/respond${qs({ business_id: businessId })}`)
+export const sendManualResponse = (id, data, businessId = null) =>
+  api.post(`contact-submissions/${id}/manual-response${qs({ business_id: businessId })}`, data)
+
+export default api

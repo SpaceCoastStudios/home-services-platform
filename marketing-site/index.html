@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space Coast Studios — AI-Powered Platforms for Home Service Businesses</title>
+  <meta name="description" content="Space Coast Studios builds smart booking platforms for HVAC, landscaping, roofing, and other home service businesses. AI that responds to every lead — 24/7." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0f172a;
+      --navy2:  #1e293b;
+      --orange: #f97316;
+      --orange2:#ea6c0a;
+      --slate:  #64748b;
+      --light:  #f8fafc;
+      --white:  #ffffff;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--navy);
+      background: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%; height: 68px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 1.1rem; color: var(--navy);
+      text-decoration: none;
+    }
+    .nav-logo .dot { color: var(--orange); }
+    .nav-logo svg { width: 32px; height: 32px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      font-size: 0.9rem; font-weight: 500; color: var(--slate);
+      text-decoration: none; transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--navy); }
+    .btn-nav {
+      background: var(--orange); color: white;
+      padding: 9px 20px; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 600;
+      text-decoration: none; transition: background .2s;
+    }
+    .btn-nav:hover { background: var(--orange2); color: white; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 100px 5% 80px;
+      background: linear-gradient(160deg, #f8fafc 0%, #ffffff 60%, #fff7ed 100%);
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto; width: 100%;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #fff7ed; color: var(--orange2);
+      border: 1px solid #fed7aa;
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 0.8rem; font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .hero-badge span { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; display: inline-block; }
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+      margin-bottom: 24px;
+    }
+    h1 em { font-style: normal; color: var(--orange); }
+    .hero-sub {
+      font-size: 1.15rem; color: var(--slate);
+      line-height: 1.7; margin-bottom: 40px;
+      max-width: 480px;
+    }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--orange); color: white;
+      padding: 14px 28px; border-radius: 10px;
+      font-size: 1rem; font-weight: 700;
+      text-decoration: none; transition: all .2s;
+      box-shadow: 0 4px 14px rgba(249,115,22,0.35);
+    }
+    .btn-primary:hover { background: var(--orange2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,0.4); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: white; color: var(--navy);
+      border: 1.5px solid var(--border);
+      padding: 14px 28px; border-radius: 10px;
+      font-size: 1rem; font-weight: 600;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-secondary:hover { border-color: #94a3b8; background: var(--light); }
+    .hero-trust {
+      margin-top: 48px;
+      display: flex; align-items: center; gap: 16px;
+      font-size: 0.85rem; color: var(--slate);
+    }
+    .hero-trust .avatars { display: flex; }
+    .hero-trust .avatars span {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: white;
+      margin-left: -8px;
+    }
+    .hero-trust .avatars span:first-child { margin-left: 0; }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+    }
+    .dashboard-mock {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 25px 60px rgba(15,23,42,0.15), 0 0 0 1px rgba(15,23,42,0.06);
+      overflow: hidden;
+    }
+    .mock-topbar {
+      background: var(--navy); padding: 12px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mock-topbar-title {
+      margin-left: auto; color: rgba(255,255,255,0.5);
+      font-size: 0.75rem; font-weight: 500;
+    }
+    .mock-body { padding: 20px; }
+    .mock-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .mock-stat {
+      background: var(--light); border-radius: 8px; padding: 12px;
+    }
+    .mock-stat-label { font-size: 0.65rem; color: var(--slate); font-weight: 500; margin-bottom: 4px; }
+    .mock-stat-val { font-size: 1.2rem; font-weight: 800; color: var(--navy); }
+    .mock-stat-val.orange { color: var(--orange); }
+    .mock-card { background: var(--light); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+    .mock-card-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .mock-card-name { font-size: 0.8rem; font-weight: 700; color: var(--navy); }
+    .mock-badge {
+      font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+    }
+    .badge-green { background: #dcfce7; color: #16a34a; }
+    .badge-orange { background: #fff7ed; color: var(--orange2); }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .mock-card-sub { font-size: 0.72rem; color: var(--slate); }
+    .ai-bubble {
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
+      padding: 10px 12px; margin-top: 10px;
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .ai-icon {
+      width: 20px; height: 20px; background: var(--navy); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .ai-bubble p { font-size: 0.7rem; color: #1e40af; line-height: 1.5; }
+    .ai-bubble strong { display: block; font-size: 0.65rem; color: #3b82f6; font-weight: 600; margin-bottom: 2px; }
+    .float-badge {
+      position: absolute;
+      background: white; border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+      padding: 10px 14px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.78rem; font-weight: 600; color: var(--navy);
+    }
+    .float-badge .icon { font-size: 1.1rem; }
+    .float-1 { bottom: -20px; left: -30px; }
+    .float-2 { top: 30px; right: -30px; }
+
+    /* ── Section shared ── */
+    section { padding: 96px 5%; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      display: inline-block;
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--orange);
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: clamp(1.8rem, 3.5vw, 2.75rem);
+      font-weight: 800; line-height: 1.15;
+      letter-spacing: -0.02em; color: var(--navy);
+      margin-bottom: 20px;
+    }
+    h2 em { font-style: normal; color: var(--orange); }
+    .section-sub {
+      font-size: 1.05rem; color: var(--slate);
+      max-width: 560px; line-height: 1.7;
+    }
+
+    /* ── Pain section ── */
+    .pain { background: var(--navy); }
+    .pain h2 { color: white; }
+    .pain .section-sub { color: #94a3b8; }
+    .pain-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px; margin-top: 56px;
+    }
+    .pain-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius); padding: 28px;
+      transition: background .2s;
+    }
+    .pain-card:hover { background: rgba(255,255,255,0.08); }
+    .pain-icon { font-size: 1.8rem; margin-bottom: 16px; }
+    .pain-card h3 { font-size: 1.05rem; font-weight: 700; color: white; margin-bottom: 10px; }
+    .pain-card p { font-size: 0.9rem; color: #94a3b8; line-height: 1.6; }
+
+    /* ── Features ── */
+    .features { background: var(--light); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px; margin-top: 56px;
+    }
+    .feature-card {
+      background: white; border-radius: var(--radius);
+      border: 1px solid var(--border); padding: 32px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .feature-card:hover { box-shadow: 0 12px 32px rgba(15,23,42,0.08); transform: translateY(-2px); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+    .feature-card p { font-size: 0.9rem; color: var(--slate); line-height: 1.65; }
+
+    /* ── How it works ── */
+    .how { background: white; }
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0; margin-top: 64px; position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute; top: 28px; left: 10%; right: 10%;
+      height: 2px; background: var(--border);
+      z-index: 0;
+    }
+    .step { text-align: center; padding: 0 24px; position: relative; z-index: 1; }
+    .step-num {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--orange); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; font-weight: 800;
+      margin: 0 auto 24px; position: relative;
+      box-shadow: 0 4px 12px rgba(249,115,22,0.35);
+    }
+    .step h3 { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+    .step p { font-size: 0.9rem; color: var(--slate); line-height: 1.6; }
+
+    /* ── Industries ── */
+    .industries { background: var(--light); }
+    .industry-pills {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px;
+    }
+    .industry-pill {
+      display: flex; align-items: center; gap: 10px;
+      background: white; border: 1px solid var(--border);
+      border-radius: 100px; padding: 10px 20px;
+      font-size: 0.9rem; font-weight: 600; color: var(--navy);
+      transition: all .2s; cursor: default;
+    }
+    .industry-pill:hover { border-color: var(--orange); color: var(--orange); }
+    .industry-pill span { font-size: 1.2rem; }
+    .industries-cta { margin-top: 48px; }
+    .industries-cta p { color: var(--slate); margin-bottom: 20px; font-size: 0.95rem; }
+
+    /* ── Pricing ── */
+    .pricing { background: white; }
+    .pricing-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 28px; margin-top: 56px; max-width: 800px;
+    }
+    .pricing-card {
+      border-radius: var(--radius); padding: 36px;
+      border: 1.5px solid var(--border);
+      transition: box-shadow .2s;
+    }
+    .pricing-card:hover { box-shadow: 0 12px 32px rgba(15,23,42,0.08); }
+    .pricing-card.featured {
+      border-color: var(--orange);
+      box-shadow: 0 8px 32px rgba(249,115,22,0.15);
+    }
+    .featured-label {
+      display: inline-block;
+      background: var(--orange); color: white;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px;
+      margin-bottom: 16px; letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .pricing-card h3 { font-size: 1.2rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+    .pricing-card .price {
+      font-size: 2.4rem; font-weight: 900; color: var(--navy);
+      letter-spacing: -0.03em; margin: 16px 0 4px;
+    }
+    .pricing-card .price span { font-size: 1rem; font-weight: 500; color: var(--slate); }
+    .pricing-card .price-note { font-size: 0.82rem; color: var(--slate); margin-bottom: 28px; }
+    .pricing-features { list-style: none; margin-bottom: 32px; }
+    .pricing-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 7px 0; font-size: 0.9rem; color: var(--navy);
+      border-bottom: 1px solid var(--light);
+    }
+    .pricing-features li:last-child { border-bottom: none; }
+    .check { color: #16a34a; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+    .btn-pricing {
+      display: block; text-align: center;
+      padding: 13px 0; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 700;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-pricing-primary { background: var(--orange); color: white; }
+    .btn-pricing-primary:hover { background: var(--orange2); }
+    .btn-pricing-outline { border: 1.5px solid var(--border); color: var(--navy); }
+    .btn-pricing-outline:hover { border-color: #94a3b8; background: var(--light); }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: var(--navy);
+      text-align: center; padding: 100px 5%;
+    }
+    .cta-section h2 { color: white; max-width: 640px; margin: 0 auto 20px; }
+    .cta-section p { color: #94a3b8; font-size: 1.05rem; margin-bottom: 40px; }
+    .cta-btns { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .btn-cta-light {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.1); color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 14px 28px; border-radius: 10px;
+      font-size: 1rem; font-weight: 600;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-cta-light:hover { background: rgba(255,255,255,0.15); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy2); padding: 40px 5%;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-logo {
+      font-weight: 800; font-size: 1rem; color: white;
+    }
+    .footer-logo .dot { color: var(--orange); }
+    footer p { font-size: 0.82rem; color: #64748b; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 0.82rem; color: #64748b; text-decoration: none; transition: color .2s; }
+    .footer-links a:hover { color: #94a3b8; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+      .hero-visual { display: none; }
+      .nav-links { display: none; }
+      .steps::before { display: none; }
+      .step { margin-bottom: 40px; }
+      footer { flex-direction: column; text-align: center; }
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp .6s ease forwards; }
+    .fade-up-delay-1 { animation-delay: .1s; opacity: 0; }
+    .fade-up-delay-2 { animation-delay: .2s; opacity: 0; }
+    .fade-up-delay-3 { animation-delay: .3s; opacity: 0; }
+
+    /* Contact form */
+    .contact-form {
+      max-width: 560px; margin: 48px auto 0;
+      background: white; border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(15,23,42,0.07);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 0.9rem; font-family: inherit; color: var(--navy);
+      background: white; outline: none; transition: border-color .2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--orange);
+    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-submit {
+      width: 100%; padding: 14px;
+      background: var(--orange); color: white;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: background .2s;
+    }
+    .form-submit:hover { background: var(--orange2); }
+    .form-note { text-align: center; font-size: 0.8rem; color: var(--slate); margin-top: 14px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="8" fill="#0f172a"/>
+      <path d="M8 22 L16 8 L24 22" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M11 18 L21 18" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+    Space Coast Studios<span class="dot">.</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact" class="btn-nav">Get a Demo</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge fade-up">
+        <span></span> Built for Florida's Home Service Pros
+      </div>
+      <h1 class="fade-up fade-up-delay-1">
+        Stop Losing Leads<br /><em>After Hours.</em>
+      </h1>
+      <p class="hero-sub fade-up fade-up-delay-2">
+        Space Coast Studios builds AI-powered booking platforms for HVAC, landscaping, roofing, and other home service businesses. Every inquiry gets a fast, professional response — even at midnight.
+      </p>
+      <div class="hero-ctas fade-up fade-up-delay-3">
+        <a href="#contact" class="btn-primary">
+          Schedule a Free Demo
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#how-it-works" class="btn-secondary">See How It Works</a>
+      </div>
+      <div class="hero-trust fade-up fade-up-delay-3">
+        <div class="avatars">
+          <span style="background:#e85d04;">BK</span>
+          <span style="background:#0f766e;">SM</span>
+          <span style="background:#1d4ed8;">DO</span>
+          <span style="background:#7c3aed;">AT</span>
+        </div>
+        <span>Trusted by service businesses on the Space Coast</span>
+      </div>
+    </div>
+
+    <!-- Dashboard mockup -->
+    <div class="hero-visual">
+      <div class="dashboard-mock">
+        <div class="mock-topbar">
+          <div class="mock-dot" style="background:#ef4444;"></div>
+          <div class="mock-dot" style="background:#f59e0b;"></div>
+          <div class="mock-dot" style="background:#22c55e;"></div>
+          <span class="mock-topbar-title">Peak HVAC Services — Dashboard</span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-stat-row">
+            <div class="mock-stat">
+              <div class="mock-stat-label">Today's Jobs</div>
+              <div class="mock-stat-val">7</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-label">New Leads</div>
+              <div class="mock-stat-val orange">4</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-label">AI Replied</div>
+              <div class="mock-stat-val" style="color:#16a34a;">12</div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-name">Tom Bradshaw</span>
+              <span class="mock-badge badge-green">AI Responded</span>
+            </div>
+            <div class="mock-card-sub">AC Repair · Merritt Island · 2 min ago</div>
+            <div class="ai-bubble">
+              <div class="ai-icon">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="#f97316" stroke-width="1.2"/><path d="M5 3v2.5L6.5 7" stroke="#f97316" stroke-width="1.2" stroke-linecap="round"/></svg>
+              </div>
+              <div>
+                <strong>Max · Peak HVAC AI</strong>
+                Hi Tom! Thanks for reaching out — we have openings Thursday at 9 AM and Friday at 11 AM. Would either of those work?
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-row">
+              <span class="mock-card-name">Linda Ferreira</span>
+              <span class="mock-badge badge-orange">Pending</span>
+            </div>
+            <div class="mock-card-sub">Duct Cleaning · Cocoa Beach · 18 min ago</div>
+          </div>
+
+          <div class="mock-card" style="margin-bottom:0;">
+            <div class="mock-card-row">
+              <span class="mock-card-name">Carlos Ibáñez</span>
+              <span class="mock-badge badge-blue">Booked</span>
+            </div>
+            <div class="mock-card-sub">Smart Thermostat · Cape Canaveral · Tomorrow 10 AM</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="float-badge float-1">
+        <span class="icon">⚡</span>
+        AI replied in 4 seconds
+      </div>
+      <div class="float-badge float-2">
+        <span class="icon">📅</span>
+        3 bookings today
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pain Section ── -->
+<section class="pain" id="problem">
+  <div class="section-inner">
+    <div class="section-label" style="color:#fb923c;">Sound familiar?</div>
+    <h2>Running a great business shouldn't mean being chained to your phone.</h2>
+    <p class="section-sub" style="color:#94a3b8;">
+      Most home service owners are out in the field doing the work — and losing new customers to competitors who answer faster.
+    </p>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-icon">📵</div>
+        <h3>Missed calls cost you jobs</h3>
+        <p>When you're under a crawlspace or on a roof, you can't pick up. That caller moves on to the next Google result.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">⏳</div>
+        <h3>Leads go cold overnight</h3>
+        <p>Someone submits a form at 9pm looking for emergency HVAC service. By the time you see it at 8am, they've already booked someone else.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">📋</div>
+        <h3>Scheduling is a second job</h3>
+        <p>Back-and-forth texts to find a time that works. Manual calendar entries. Double bookings. It eats hours every week.</p>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon">😤</div>
+        <h3>Software tools don't set themselves up</h3>
+        <p>Big platforms give you a login and a 200-page manual. You still have to configure everything, train your team, and fix it when something breaks — on top of running your business.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-label">What you get</div>
+    <h2>A complete platform, built and <em>managed for you.</em></h2>
+    <p class="section-sub">
+      We handle everything — design, setup, and ongoing support. You get a professional booking system without hiring a developer.
+    </p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fff7ed;">🤖</div>
+        <h3>AI Contact Responder</h3>
+        <p>Every inquiry from your website gets a personalized, professional reply within seconds — day or night. The AI knows your services, your pricing, and can suggest real appointment times.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f0fdf4;">📅</div>
+        <h3>Smart Online Booking</h3>
+        <p>Customers pick a time that works for them directly from your site. Jobs auto-assign to the right technician based on availability — no phone calls, no spreadsheets.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#eff6ff;">📊</div>
+        <h3>Business Dashboard</h3>
+        <p>One clean view of your appointments, customers, technicians, and leads. See what's on the schedule today, who's been responded to, and what needs your attention.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fdf4ff;">📬</div>
+        <h3>Automated Confirmations</h3>
+        <p>Appointment confirmations go out automatically by email and text — with calendar links for Google, Apple, and Outlook. Fewer no-shows, happier customers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fff7ed;">🎨</div>
+        <h3>Fully Branded</h3>
+        <p>Your logo, your colors, your business name. The AI even responds under a custom persona — customers feel like they're talking to a member of your team.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f0fdf4;">🔧</div>
+        <h3>We Handle Setup & Support</h3>
+        <p>No IT department required. We build it, configure it for your business, and keep it running. Something breaks? We fix it — that's what the retainer is for.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ── -->
+<section class="how" id="how-it-works">
+  <div class="section-inner">
+    <div style="text-align:center;">
+      <div class="section-label">The process</div>
+      <h2>Up and running in <em>days, not months.</em></h2>
+      <p class="section-sub" style="margin: 0 auto;">
+        We've done this before. Our setup process is fast and painless — no long contracts or complicated onboarding.
+      </p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>We talk about your business</h3>
+        <p>A quick call to understand your services, schedule, team size, and what's slipping through the cracks right now.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>We build your platform</h3>
+        <p>We configure everything — your services, technicians, AI persona, branding, and booking rules. Usually done within a week.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>You go live</h3>
+        <p>Add a link or embed to your website. From that point on, every lead gets responded to and your schedule fills itself.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Industries ── -->
+<section class="industries">
+  <div class="section-inner">
+    <div class="section-label">Who it's for</div>
+    <h2>Built for the trades that keep <em>Florida running.</em></h2>
+    <p class="section-sub">
+      If you run a home service business and you're tired of losing leads to competitors who are faster to respond — this is for you.
+    </p>
+    <div class="industry-pills">
+      <div class="industry-pill"><span>❄️</span> HVAC & Air Conditioning</div>
+      <div class="industry-pill"><span>🌿</span> Lawn & Landscaping</div>
+      <div class="industry-pill"><span>🏠</span> Roofing</div>
+      <div class="industry-pill"><span>🔧</span> Plumbing</div>
+      <div class="industry-pill"><span>⚡</span> Electrical</div>
+      <div class="industry-pill"><span>🐛</span> Pest Control</div>
+      <div class="industry-pill"><span>🏊</span> Pool Service</div>
+      <div class="industry-pill"><span>🪟</span> Windows & Gutters</div>
+      <div class="industry-pill"><span>🔒</span> Home Security</div>
+      <div class="industry-pill"><span>🧹</span> Cleaning Services</div>
+    </div>
+    <div class="industries-cta">
+      <p>Don't see your trade? If you take appointments, we can build it.</p>
+      <a href="#contact" class="btn-secondary" style="display:inline-flex; align-items:center; gap:8px;">
+        Let's talk
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ── -->
+<section class="pricing" id="pricing">
+  <div class="section-inner">
+    <div class="section-label">Pricing</div>
+    <h2>Simple, flat pricing. <em>No surprises.</em></h2>
+    <p class="section-sub">
+      One setup fee to build your platform, then a monthly retainer so we keep it running, updated, and supported.
+    </p>
+    <div class="pricing-cards">
+      <div class="pricing-card">
+        <h3>Starter</h3>
+        <p style="font-size:0.9rem; color:var(--slate); margin-bottom:0;">One-time setup</p>
+        <div class="price">$997</div>
+        <p class="price-note">+ $149 / month</p>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> AI contact form responder</li>
+          <li><span class="check">✓</span> Online booking widget</li>
+          <li><span class="check">✓</span> Up to 3 service types</li>
+          <li><span class="check">✓</span> Up to 2 technicians</li>
+          <li><span class="check">✓</span> Email confirmations</li>
+          <li><span class="check">✓</span> Admin dashboard</li>
+          <li><span class="check">✓</span> Ongoing support</li>
+        </ul>
+        <a href="#contact" class="btn-pricing btn-pricing-outline">Get Started</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="featured-label">Most Popular</div>
+        <h3>Professional</h3>
+        <p style="font-size:0.9rem; color:var(--slate); margin-bottom:0;">One-time setup</p>
+        <div class="price">$1,997</div>
+        <p class="price-note">+ $249 / month</p>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Everything in Starter</li>
+          <li><span class="check">✓</span> Unlimited service types</li>
+          <li><span class="check">✓</span> Unlimited technicians</li>
+          <li><span class="check">✓</span> SMS confirmations & reminders</li>
+          <li><span class="check">✓</span> Custom AI persona & branding</li>
+          <li><span class="check">✓</span> Priority support</li>
+          <li><span class="check">✓</span> Monthly performance review</li>
+        </ul>
+        <a href="#contact" class="btn-pricing btn-pricing-primary">Get Started</a>
+      </div>
+    </div>
+    <p style="margin-top:32px; font-size:0.85rem; color:var(--slate);">
+      Not sure which plan fits? <a href="#contact" style="color:var(--orange); font-weight:600; text-decoration:none;">Book a free 20-minute call</a> and we'll figure it out together.
+    </p>
+  </div>
+</section>
+
+<!-- ── Contact / Demo ── -->
+<section style="background:var(--light); padding: 96px 5%;" id="contact">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-label">Get in touch</div>
+    <h2>Ready to stop missing leads?</h2>
+    <p class="section-sub" style="margin:0 auto;">
+      Fill out the form and we'll reach out within one business day to schedule a free demo — no commitment, no pressure.
+    </p>
+    <div class="contact-form">
+      <div id="form-error" style="display:none; background:#fef2f2; border:1px solid #fecaca; color:#dc2626; border-radius:8px; padding:10px 14px; font-size:0.85rem; margin-bottom:16px;"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input id="f-first" type="text" placeholder="John" />
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input id="f-last" type="text" placeholder="Smith" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Business Name</label>
+        <input id="f-business" type="text" placeholder="Smith Roofing LLC" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input id="f-email" type="email" placeholder="john@smithroofing.com" />
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input id="f-phone" type="tel" placeholder="(321) 555-0100" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Industry</label>
+        <select id="f-industry">
+          <option value="">Select your trade...</option>
+          <option>HVAC & Air Conditioning</option>
+          <option>Lawn & Landscaping</option>
+          <option>Roofing</option>
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>Pest Control</option>
+          <option>Pool Service</option>
+          <option>Cleaning Services</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>What's your biggest challenge right now? <span style="font-weight:400; color:var(--slate);">(optional)</span></label>
+        <textarea id="f-challenge" placeholder="e.g. I miss calls while I'm on jobs, or I'm spending too much time on scheduling..."></textarea>
+      </div>
+      <button class="form-submit">Request My Free Demo →</button>
+      <p class="form-note">We'll reach out within 1 business day. No spam, ever.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Final CTA ── -->
+<section class="cta-section">
+  <div class="section-inner">
+    <h2>Your next customer is searching right now.<br />Will you answer?</h2>
+    <p>Join the home service businesses on the Space Coast that never miss a lead.</p>
+    <div class="cta-btns">
+      <a href="#contact" class="btn-primary">Schedule a Free Demo</a>
+      <a href="tel:+13215550100" class="btn-cta-light">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 11.5c0 .3-.07.6-.22.88a2.92 2.92 0 0 1-.6.82c-.38.38-.8.58-1.25.58-.33 0-.68-.08-1.07-.25a10.6 10.6 0 0 1-1.07-.62 16.8 16.8 0 0 1-1.03-.85 16.5 16.5 0 0 1-.85-1.02 10.6 10.6 0 0 1-.62-1.07C7.08 9.6 7 9.25 7 8.93c0-.33.07-.65.2-.93.14-.29.35-.55.63-.78.33-.27.7-.4 1.08-.4.15 0 .3.03.43.1.14.06.26.16.36.3l1.2 1.7c.1.13.17.25.22.37.05.11.08.22.08.32 0 .13-.04.26-.11.38-.07.13-.17.26-.3.39l-.4.42c-.06.06-.09.13-.09.2 0 .04.01.07.02.11.02.04.04.07.05.1.1.18.27.42.52.7.25.28.52.57.8.85.3.28.58.54.87.78.28.24.51.4.7.5l.1.04c.03.01.06.02.1.02.08 0 .15-.03.21-.1l.4-.4c.14-.13.27-.23.4-.3.12-.07.25-.1.38-.1.1 0 .2.02.32.07.12.05.24.12.37.22l1.72 1.22c.14.1.24.22.3.36.05.14.08.28.08.44z" stroke="white" stroke-width="1.2"/></svg>
+        Call Us
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">Space Coast Studios<span class="dot">.</span></div>
+  <p>© 2026 Space Coast Studios LLC · Merritt Island, FL</p>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contact">Contact</a>
+    <a href="mailto:ryan@spacecoaststudios.com">Email Us</a>
+  </div>
+</footer>
+
+<script>
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Nav shadow on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    nav.style.boxShadow = window.scrollY > 20 ? '0 2px 20px rgba(15,23,42,0.08)' : 'none';
+  });
+
+  // Demo request form — submits to Space Coast Studios backend (business_id=1)
+  // In production this file is served from spacecoaststudios.com and the API
+  // lives at api.spacecoaststudios.com — swap the URL below after deployment.
+  const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://api.spacecoaststudios.com';
+
+  document.querySelector('.form-submit').addEventListener('click', async function() {
+    const form = document.querySelector('.contact-form');
+    const firstName   = form.querySelector('#f-first').value.trim();
+    const lastName    = form.querySelector('#f-last').value.trim();
+    const businessName= form.querySelector('#f-business').value.trim();
+    const email       = form.querySelector('#f-email').value.trim();
+    const phone       = form.querySelector('#f-phone').value.trim();
+    const industry    = form.querySelector('#f-industry').value;
+    const challenge   = form.querySelector('#f-challenge').value.trim();
+
+    if (!firstName || !email) {
+      form.querySelector('#form-error').textContent = 'Please fill in at least your name and email.';
+      form.querySelector('#form-error').style.display = 'block';
+      return;
+    }
+    form.querySelector('#form-error').style.display = 'none';
+
+    const name = [firstName, lastName].filter(Boolean).join(' ');
+    const message = [
+      businessName ? `Business: ${businessName}` : '',
+      industry     ? `Industry: ${industry}` : '',
+      challenge    ? `\nWhat they need help with:\n${challenge}` : '',
+    ].filter(Boolean).join('\n');
+
+    this.textContent = 'Sending…';
+    this.disabled = true;
+
+    try {
+      const res = await fetch(`${API_URL}/contact/submit?business_id=1`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: phone || null,
+          service_requested: industry || 'Demo Request',
+          message: message || 'Requested a demo.',
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+      // Success state
+      form.innerHTML = `
+        <div style="text-align:center; padding: 40px 0;">
+          <div style="font-size:3rem; margin-bottom:16px;">✅</div>
+          <h3 style="font-size:1.3rem; font-weight:800; color:#0f172a; margin-bottom:12px;">You're on our radar!</h3>
+          <p style="color:#64748b; line-height:1.7;">
+            Thanks, ${firstName}! We'll reach out to <strong>${email}</strong> within one business day
+            to schedule your free demo.<br><br>
+            Keep an eye on your inbox — you should also receive a confirmation from us shortly.
+          </p>
+        </div>`;
+    } catch (err) {
+      this.textContent = 'Request My Free Demo →';
+      this.disabled = false;
+      form.querySelector('#form-error').textContent = 'Something went wrong — please try again or email us directly at ryan@spacecoaststudios.com';
+      form.querySelector('#form-error').style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>
