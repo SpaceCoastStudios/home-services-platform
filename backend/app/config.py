@@ -68,11 +68,13 @@ class Settings(BaseSettings):
     @property
     def database_url_fixed(self) -> str:
         """Return a SQLAlchemy-compatible database URL.
-        DigitalOcean managed PostgreSQL gives a URL starting with 'postgres://'
-        but SQLAlchemy 2.x requires 'postgresql+psycopg2://'."""
+        DigitalOcean may give 'postgres://' or 'postgresql://' —
+        SQLAlchemy 2.x needs 'postgresql+psycopg2://' for psycopg2 driver."""
         url = self.DATABASE_URL
         if url.startswith("postgres://"):
             url = "postgresql+psycopg2://" + url[len("postgres://"):]
+        elif url.startswith("postgresql://"):
+            url = "postgresql+psycopg2://" + url[len("postgresql://"):]
         return url
 
     @property
