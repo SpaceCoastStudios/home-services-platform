@@ -14,6 +14,7 @@ from datetime import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from sqlalchemy import text
 from app.config import settings
 from app.database import init_db, SessionLocal
 from app.models.admin_user import AdminUser
@@ -33,7 +34,9 @@ from app.routers import (
     contact,
     calendar_links,
     businesses,
+    recurring,
 )
+from app.services.scheduler import start_scheduler, stop_scheduler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -120,6 +123,20 @@ def seed_defaults(db):
     db.commit()
 
 
+def run_migrations(db):
+    """Apply any schema changes not handled by create_all (additive only — never destructive)."""
+    # Add recurring_schedule_id to appointments if it doesn't exist yet
+    try:
+        db.execute(text(
+            "ALTER TABLE appointments ADD COLUMN recurring_schedule_id INTEGER "
+            "REFERENCES recurring_schedules(id)"
+        ))
+        db.commit()
+        logger.info("Migration: added recurring_schedule_id to appointments")
+    except Exception:
+        db.rollback()  # Column already exists — safe to ignore
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
@@ -128,11 +145,16 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
+        run_migrations(db)
         seed_defaults(db)
     finally:
         db.close()
 
+    start_scheduler()
+
     yield
+
+    stop_scheduler()
     logger.info("Shutting down")
 
 
@@ -162,6 +184,7 @@ app.include_router(availability.router)
 app.include_router(business_hours.router)
 app.include_router(contact.router)
 app.include_router(calendar_links.router)
+app.include_router(recurring.router)
 
 
 @app.get("/")

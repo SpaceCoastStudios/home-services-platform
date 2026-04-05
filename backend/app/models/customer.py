@@ -34,6 +34,7 @@ class Customer(Base):
     appointments = relationship("Appointment", back_populates="customer")
     inquiries = relationship("InquiryLog", back_populates="customer")
     contact_submissions = relationship("ContactSubmission", back_populates="customer")
+    recurring_schedules = relationship("RecurringSchedule", back_populates="customer")
 
     @property
     def full_name(self) -> str:

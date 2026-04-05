@@ -22,3 +22,4 @@ class Technician(Base):
     business = relationship("Business", back_populates="technicians")
     appointments = relationship("Appointment", back_populates="technician")
     blocked_times = relationship("BlockedTime", back_populates="technician")
+    recurring_schedules = relationship("RecurringSchedule", back_populates="technician")

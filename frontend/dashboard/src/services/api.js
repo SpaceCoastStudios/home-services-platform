@@ -134,6 +134,20 @@ export const getSettings = (businessId = null) =>
 export const updateSetting = (key, value, businessId = null) =>
   api.put(`settings/${key}${qs({ business_id: businessId })}`, { value })
 
+// ── Recurring Schedules ───────────────────────────────────────
+export const getRecurringSchedules = (params = {}, businessId = null) =>
+  api.get(`recurring${qs({ ...params, business_id: businessId })}`)
+export const getRecurringSchedule = (id, businessId = null) =>
+  api.get(`recurring/${id}${qs({ business_id: businessId })}`)
+export const createRecurringSchedule = (data, businessId = null) =>
+  api.post(`recurring${qs({ business_id: businessId })}`, data)
+export const updateRecurringSchedule = (id, data, businessId = null) =>
+  api.put(`recurring/${id}${qs({ business_id: businessId })}`, data)
+export const deactivateRecurringSchedule = (id, businessId = null) =>
+  api.delete(`recurring/${id}${qs({ business_id: businessId })}`)
+export const generateRecurringAppointments = (id, businessId = null) =>
+  api.post(`recurring/${id}/generate${qs({ business_id: businessId })}`, {})
+
 // ── Contact Submissions ───────────────────────────────────────
 export const getContactSubmissions = (status = null, businessId = null) =>
   api.get(`contact-submissions${qs({ status, business_id: businessId })}`)

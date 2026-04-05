@@ -22,3 +22,4 @@ class ServiceType(Base):
     # Relationships
     business = relationship("Business", back_populates="service_types")
     appointments = relationship("Appointment", back_populates="service_type")
+    recurring_schedules = relationship("RecurringSchedule", back_populates="service_type")

@@ -23,6 +23,9 @@ class Appointment(Base):
     service_type_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("service_types.id"), nullable=False
     )
+    recurring_schedule_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("recurring_schedules.id"), nullable=True, index=True
+    )
     scheduled_start: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     scheduled_end: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
@@ -49,3 +52,4 @@ class Appointment(Base):
     technician = relationship("Technician", back_populates="appointments")
     service_type = relationship("ServiceType", back_populates="appointments")
     notifications = relationship("NotificationLog", back_populates="appointment")
+    recurring_schedule = relationship("RecurringSchedule", back_populates="appointments")

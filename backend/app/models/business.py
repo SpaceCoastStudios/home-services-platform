@@ -67,3 +67,4 @@ class Business(Base):
     inquiry_logs = relationship("InquiryLog", back_populates="business")
     contact_submissions = relationship("ContactSubmission", back_populates="business")
     settings = relationship("SystemSetting", back_populates="business")
+    recurring_schedules = relationship("RecurringSchedule", back_populates="business")

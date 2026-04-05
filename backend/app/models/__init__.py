@@ -12,6 +12,7 @@ from app.models.contact_submission import ContactSubmission
 from app.models.notification import NotificationLog
 from app.models.admin_user import AdminUser
 from app.models.system_settings import SystemSetting
+from app.models.recurring_schedule import RecurringSchedule
 
 __all__ = [
     "Business",
@@ -20,6 +21,7 @@ __all__ = [
     "Technician",
     "BusinessHours",
     "BlockedTime",
+    "RecurringSchedule",
     "Appointment",
     "InquiryLog",
     "ContactSubmission",
