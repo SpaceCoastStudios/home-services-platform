@@ -349,6 +349,26 @@
     .btn-pricing-primary:hover { background: var(--orange2); }
     .btn-pricing-outline { border: 1.5px solid var(--border); color: var(--navy); }
     .btn-pricing-outline:hover { border-color: #94a3b8; background: var(--light); }
+    .promo-banner {
+      margin-top: 40px; padding: 24px 32px;
+      background: linear-gradient(135deg, #fff7ed, #ffedd5);
+      border: 1.5px solid #fed7aa; border-radius: var(--radius);
+      max-width: 800px;
+    }
+    .promo-banner strong { color: var(--orange); }
+    .promo-banner p { font-size: 0.92rem; color: var(--navy); margin: 0; line-height: 1.7; }
+    .promo-tag {
+      display: inline-block;
+      background: var(--orange); color: white;
+      font-size: 0.7rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px;
+      margin-bottom: 12px; letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .price-strikethrough {
+      font-size: 1rem; font-weight: 500; color: #94a3b8;
+      text-decoration: line-through; margin-right: 6px;
+    }
 
     /* ── CTA ── */
     .cta-section {
@@ -706,8 +726,8 @@
       <div class="pricing-card">
         <h3>Starter</h3>
         <p style="font-size:0.9rem; color:var(--slate); margin-bottom:0;">One-time setup</p>
-        <div class="price">$997</div>
-        <p class="price-note">+ $149 / month</p>
+        <div class="price">$1,497</div>
+        <p class="price-note">+ $199 / month</p>
         <ul class="pricing-features">
           <li><span class="check">✓</span> AI contact form responder</li>
           <li><span class="check">✓</span> Online booking widget</li>
@@ -723,8 +743,8 @@
         <div class="featured-label">Most Popular</div>
         <h3>Professional</h3>
         <p style="font-size:0.9rem; color:var(--slate); margin-bottom:0;">One-time setup</p>
-        <div class="price">$1,997</div>
-        <p class="price-note">+ $249 / month</p>
+        <div class="price">$2,497</div>
+        <p class="price-note">+ $349 / month</p>
         <ul class="pricing-features">
           <li><span class="check">✓</span> Everything in Starter</li>
           <li><span class="check">✓</span> Unlimited service types</li>
@@ -738,7 +758,19 @@
         <a href="#contact" class="btn-pricing btn-pricing-primary">Get Started</a>
       </div>
     </div>
-    <p style="margin-top:32px; font-size:0.85rem; color:var(--slate);">
+
+    <!-- Introductory promo banner -->
+    <div class="promo-banner">
+      <div class="promo-tag">Limited Time — Founding Client Offer</div>
+      <p>
+        We're onboarding our first clients at a special introductory rate.
+        <strong>Starter:</strong> <span class="price-strikethrough">$1,497</span><strong>$497 setup</strong> + $99/mo for your first 3 months. &nbsp;
+        <strong>Professional:</strong> <span class="price-strikethrough">$2,497</span><strong>$997 setup</strong> + $174/mo for your first 3 months.
+        <br>Mention this offer when you reach out.
+      </p>
+    </div>
+
+    <p style="margin-top:24px; font-size:0.85rem; color:var(--slate);">
       Not sure which plan fits? <a href="#contact" style="color:var(--orange); font-weight:600; text-decoration:none;">Book a free 20-minute call</a> and we'll figure it out together.
     </p>
   </div>
