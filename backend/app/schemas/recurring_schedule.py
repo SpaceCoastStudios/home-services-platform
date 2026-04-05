@@ -15,7 +15,7 @@ class RecurringScheduleCreate(BaseModel):
     preferred_time: time
     start_date: date
     end_date: Optional[date] = None
-    lookahead_days: int = 30
+    lookahead_days: int = 60
     address: Optional[str] = None
     notes: Optional[str] = None
 

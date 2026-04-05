@@ -44,7 +44,7 @@ class RecurringSchedule(Base):
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     # How many days ahead to pre-generate appointments
-    lookahead_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
+    lookahead_days: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
 
     # Optional job details that apply to every appointment in the series
     address: Mapped[str | None] = mapped_column(Text, nullable=True)

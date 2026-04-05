@@ -286,7 +286,7 @@ def deactivate_recurring_schedule(
 @router.post("/{schedule_id}/generate", status_code=200)
 def manually_generate_appointments(
     schedule_id: int,
-    lookahead_days: int = Query(30, ge=1, le=365),
+    lookahead_days: int = Query(60, ge=1, le=365),
     business_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(get_current_user),
