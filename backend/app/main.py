@@ -136,6 +136,24 @@ def run_migrations(db):
     except Exception:
         db.rollback()  # Column already exists — safe to ignore
 
+    # Create notification_logs table if it doesn't exist yet
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS notification_logs (
+                id          SERIAL PRIMARY KEY,
+                appointment_id INTEGER NOT NULL REFERENCES appointments(id),
+                type        VARCHAR(10) NOT NULL,
+                event       VARCHAR(30) NOT NULL,
+                sent_at     TIMESTAMP NOT NULL DEFAULT NOW(),
+                status      VARCHAR(20) NOT NULL
+            )
+        """))
+        db.commit()
+        logger.info("Migration: notification_logs table ready")
+    except Exception as e:
+        db.rollback()
+        logger.warning("Migration notification_logs skipped: %s", e)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
