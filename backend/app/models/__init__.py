@@ -13,6 +13,7 @@ from app.models.notification import NotificationLog
 from app.models.admin_user import AdminUser
 from app.models.system_settings import SystemSetting
 from app.models.recurring_schedule import RecurringSchedule
+from app.models.oncall import OnCallConfig, OnCallRotation, OnCallOverride
 
 __all__ = [
     "Business",
@@ -28,4 +29,7 @@ __all__ = [
     "NotificationLog",
     "AdminUser",
     "SystemSetting",
+    "OnCallConfig",
+    "OnCallRotation",
+    "OnCallOverride",
 ]

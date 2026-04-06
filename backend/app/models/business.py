@@ -68,3 +68,4 @@ class Business(Base):
     contact_submissions = relationship("ContactSubmission", back_populates="business")
     settings = relationship("SystemSetting", back_populates="business")
     recurring_schedules = relationship("RecurringSchedule", back_populates="business")
+    oncall_config       = relationship("OnCallConfig", back_populates="business", uselist=False)

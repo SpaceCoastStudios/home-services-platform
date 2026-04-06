@@ -11,6 +11,7 @@ import TechniciansPage from './pages/TechniciansPage'
 import ContactsPage from './pages/ContactsPage'
 import SettingsPage from './pages/SettingsPage'
 import BusinessesPage from './pages/BusinessesPage'
+import OnCallPage from './pages/OnCallPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="services" element={<ServicesPage />} />
         <Route path="technicians" element={<TechniciansPage />} />
         <Route path="contacts" element={<ContactsPage />} />
+        <Route path="oncall" element={<OnCallPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route
           path="businesses"

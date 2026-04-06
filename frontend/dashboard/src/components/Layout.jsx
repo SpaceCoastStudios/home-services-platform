@@ -12,6 +12,7 @@ import {
   LogOut,
   Building2,
   ChevronDown,
+  PhoneCall,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -22,6 +23,7 @@ const businessNav = [
   { to: '/services', icon: Wrench, label: 'Services' },
   { to: '/technicians', icon: HardHat, label: 'Technicians' },
   { to: '/contacts', icon: MessageSquare, label: 'Contact Queue' },
+  { to: '/oncall', icon: PhoneCall, label: 'On-Call' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 

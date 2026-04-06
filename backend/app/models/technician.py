@@ -23,3 +23,5 @@ class Technician(Base):
     appointments = relationship("Appointment", back_populates="technician")
     blocked_times = relationship("BlockedTime", back_populates="technician")
     recurring_schedules = relationship("RecurringSchedule", back_populates="technician")
+    oncall_rotations    = relationship("OnCallRotation", back_populates="technician")
+    oncall_overrides    = relationship("OnCallOverride", back_populates="technician")

@@ -35,6 +35,7 @@ from app.routers import (
     calendar_links,
     businesses,
     recurring,
+    oncall,
 )
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -154,6 +155,52 @@ def run_migrations(db):
         db.rollback()
         logger.warning("Migration notification_logs skipped: %s", e)
 
+    # Create on-call tables if they don't exist yet
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS oncall_configs (
+                id                       SERIAL PRIMARY KEY,
+                business_id              INTEGER NOT NULL UNIQUE REFERENCES businesses(id),
+                is_enabled               BOOLEAN NOT NULL DEFAULT FALSE,
+                after_hours_start        TIME NOT NULL DEFAULT '18:00',
+                after_hours_end          TIME NOT NULL DEFAULT '08:00',
+                emergency_window_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                emergency_window_start   TIME,
+                emergency_window_end     TIME,
+                rotation_type            VARCHAR(20) NOT NULL DEFAULT 'day_of_week',
+                rolling_start_date       DATE,
+                fallback_phone           VARCHAR(20),
+                fallback_name            VARCHAR(100),
+                created_at               TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at               TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS oncall_rotations (
+                id             SERIAL PRIMARY KEY,
+                config_id      INTEGER NOT NULL REFERENCES oncall_configs(id) ON DELETE CASCADE,
+                technician_id  INTEGER NOT NULL REFERENCES technicians(id),
+                day_of_week    INTEGER,
+                position       INTEGER,
+                created_at     TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS oncall_overrides (
+                id             SERIAL PRIMARY KEY,
+                config_id      INTEGER NOT NULL REFERENCES oncall_configs(id) ON DELETE CASCADE,
+                technician_id  INTEGER NOT NULL REFERENCES technicians(id),
+                note           TEXT,
+                expires_at     TIMESTAMP NOT NULL,
+                created_at     TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        db.commit()
+        logger.info("Migration: on-call tables ready")
+    except Exception as e:
+        db.rollback()
+        logger.warning("Migration on-call tables skipped: %s", e)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -203,6 +250,7 @@ app.include_router(business_hours.router)
 app.include_router(contact.router)
 app.include_router(calendar_links.router)
 app.include_router(recurring.router)
+app.include_router(oncall.router)
 
 
 @app.get("/")

@@ -148,6 +148,24 @@ export const deactivateRecurringSchedule = (id, businessId = null) =>
 export const generateRecurringAppointments = (id, businessId = null) =>
   api.post(`recurring/${id}/generate${qs({ business_id: businessId })}`, {})
 
+// ── On-Call Routing ───────────────────────────────────────────
+export const getOnCallConfig = (businessId = null) =>
+  api.get(`oncall/config${qs({ business_id: businessId })}`)
+export const updateOnCallConfig = (data, businessId = null) =>
+  api.put(`oncall/config${qs({ business_id: businessId })}`, data)
+export const addRotationEntry = (data, businessId = null) =>
+  api.post(`oncall/rotation${qs({ business_id: businessId })}`, data)
+export const deleteRotationEntry = (id, businessId = null) =>
+  api.delete(`oncall/rotation/${id}${qs({ business_id: businessId })}`)
+export const getOnCallOverride = (businessId = null) =>
+  api.get(`oncall/override${qs({ business_id: businessId })}`)
+export const setOnCallOverride = (data, businessId = null) =>
+  api.post(`oncall/override${qs({ business_id: businessId })}`, data)
+export const clearOnCallOverride = (businessId = null) =>
+  api.delete(`oncall/override${qs({ business_id: businessId })}`)
+export const getCurrentOnCall = (businessId = null) =>
+  api.get(`oncall/current${qs({ business_id: businessId })}`)
+
 // ── Contact Submissions ───────────────────────────────────────
 export const getContactSubmissions = (status = null, businessId = null) =>
   api.get(`contact-submissions${qs({ status, business_id: businessId })}`)
