@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.oncall import OnCallConfig, OnCallRotation, OnCallOverride
 from app.models.technician import Technician
-from app.routers.auth import get_current_user
+from app.utils.auth import get_current_user
 from app.models.admin_user import AdminUser
 
 logger = logging.getLogger(__name__)
