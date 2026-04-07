@@ -310,6 +310,7 @@
       border-radius: var(--radius); padding: 36px;
       border: 1.5px solid var(--border);
       transition: box-shadow .2s;
+      position: relative;
     }
     .pricing-card:hover { box-shadow: 0 12px 32px rgba(15,23,42,0.08); }
     .pricing-card.featured {
@@ -317,11 +318,12 @@
       box-shadow: 0 8px 32px rgba(249,115,22,0.15);
     }
     .featured-label {
-      display: inline-block;
+      position: absolute;
+      top: 16px; right: 16px;
       background: var(--orange); color: white;
       font-size: 0.72rem; font-weight: 700;
       padding: 3px 10px; border-radius: 100px;
-      margin-bottom: 16px; letter-spacing: 0.05em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
     .pricing-card h3 { font-size: 1.2rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
@@ -581,7 +583,6 @@
 <!-- ── Pain Section ── -->
 <section class="pain" id="problem">
   <div class="section-inner">
-    <div class="section-label" style="color:#fb923c;">Sound familiar?</div>
     <h2>Running a great business shouldn't mean being chained to your phone.</h2>
     <p class="section-sub" style="color:#94a3b8;">
       Most home service owners are out in the field doing the work — and losing new customers to competitors who answer faster.
@@ -594,8 +595,8 @@
       </div>
       <div class="pain-card">
         <div class="pain-icon">⏳</div>
-        <h3>Leads go cold overnight</h3>
-        <p>Someone submits a form at 9pm looking for emergency HVAC service. By the time you see it at 8am, they've already booked someone else.</p>
+        <h3>After-hours leads go cold</h3>
+        <p>Someone fills out your contact form at 9 PM asking for a quote on a new AC unit. By the time you see it at 8 AM, they've already booked someone who replied the same night.</p>
       </div>
       <div class="pain-card">
         <div class="pain-icon">📋</div>
@@ -730,12 +731,12 @@
         <p class="price-note">+ $199 / month</p>
         <ul class="pricing-features">
           <li><span class="check">✓</span> AI contact form responder</li>
-          <li><span class="check">✓</span> Online booking widget</li>
+          <li><span class="check">✓</span> Hosted online booking page</li>
           <li><span class="check">✓</span> Up to 3 service types</li>
           <li><span class="check">✓</span> Up to 5 technicians</li>
           <li><span class="check">✓</span> Email confirmations</li>
           <li><span class="check">✓</span> Admin dashboard</li>
-          <li><span class="check">✓</span> Ongoing support</li>
+          <li><span class="check">✓</span> Email support (2-business-day response)</li>
         </ul>
         <a href="#contact" class="btn-pricing btn-pricing-outline">Get Started</a>
       </div>
@@ -752,8 +753,8 @@
           <li><span class="check">✓</span> SMS confirmations & reminders</li>
           <li><span class="check">✓</span> Recurring appointment scheduling</li>
           <li><span class="check">✓</span> Custom AI persona & branding</li>
-          <li><span class="check">✓</span> Priority support</li>
-          <li><span class="check">✓</span> Monthly performance review</li>
+          <li><span class="check">✓</span> Priority support (next-business-day response)</li>
+          <li><span class="check">✓</span> Monthly check-in call (leads, bookings & optimizations)</li>
         </ul>
         <a href="#contact" class="btn-pricing btn-pricing-primary">Get Started</a>
       </div>
