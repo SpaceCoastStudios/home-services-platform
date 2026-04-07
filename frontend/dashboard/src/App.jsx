@@ -12,6 +12,7 @@ import ContactsPage from './pages/ContactsPage'
 import SettingsPage from './pages/SettingsPage'
 import BusinessesPage from './pages/BusinessesPage'
 import OnCallPage from './pages/OnCallPage'
+import OnboardingPage from './pages/OnboardingPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -53,6 +54,14 @@ export default function App() {
           element={
             <PlatformAdminRoute>
               <BusinessesPage />
+            </PlatformAdminRoute>
+          }
+        />
+        <Route
+          path="onboard"
+          element={
+            <PlatformAdminRoute>
+              <OnboardingPage />
             </PlatformAdminRoute>
           }
         />

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getBusinesses, createBusiness, updateBusiness } from '../services/api'
+import { useNavigate } from 'react-router-dom'
+import { getBusinesses, updateBusiness } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 import { Building2, Plus, X, Check, Users, Calendar, Globe, Wrench } from 'lucide-react'
 
@@ -243,8 +244,9 @@ function PlanBadge({ plan }) {
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState(null) // null | 'new' | business object
+  const [modal, setModal] = useState(null) // null | business object (edit only)
   const { selectBusiness } = useBusinessContext()
+  const navigate = useNavigate()
 
   const load = () => {
     setLoading(true)
@@ -274,10 +276,10 @@ export default function BusinessesPage() {
           </p>
         </div>
         <button
-          onClick={() => setModal('new')}
+          onClick={() => navigate('/onboard')}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
         >
-          <Plus size={16} /> Add Business
+          <Plus size={16} /> Onboard New Client
         </button>
       </div>
 
@@ -368,7 +370,7 @@ export default function BusinessesPage() {
 
       {modal && (
         <BusinessModal
-          business={modal === 'new' ? null : modal}
+          business={modal}
           onClose={() => setModal(null)}
           onSaved={handleSaved}
         />
