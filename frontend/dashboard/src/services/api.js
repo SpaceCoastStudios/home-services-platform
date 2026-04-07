@@ -6,8 +6,9 @@
  */
 
 // In development, Vite proxies /api → localhost:8000 (see vite.config.js).
-// In production, VITE_API_URL is set to the live backend (e.g. https://api.spacecoaststudios.com).
-const API_ROOT = import.meta.env.VITE_API_URL || ''
+// In production, falls back to the live API if VITE_API_URL is not injected.
+const API_ROOT = import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '' : 'https://api.spacecoaststudios.com')
 const BASE = `${API_ROOT}/api`
 
 function getToken() {
