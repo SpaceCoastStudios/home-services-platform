@@ -5,10 +5,11 @@
  * (the backend resolves it from their token automatically).
  */
 
-// In development, Vite proxies /api → localhost:8000 (see vite.config.js).
-// In production, falls back to the live API if VITE_API_URL is not injected.
-const API_ROOT = import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? '' : 'https://api.spacecoaststudios.com')
+// In development (localhost), Vite proxies /api → localhost:8000.
+// In production, route directly to the API subdomain.
+const isLocalhost = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+const API_ROOT = isLocalhost ? '' : 'https://api.spacecoaststudios.com'
 const BASE = `${API_ROOT}/api`
 
 function getToken() {
