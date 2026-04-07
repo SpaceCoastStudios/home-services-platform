@@ -21,7 +21,7 @@ async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(path.startsWith('/') ? path : `${BASE}/${path}`, {
+  const res = await fetch(path.startsWith('/') ? `${API_ROOT}${path}` : `${BASE}/${path}`, {
     ...options,
     headers,
   })
