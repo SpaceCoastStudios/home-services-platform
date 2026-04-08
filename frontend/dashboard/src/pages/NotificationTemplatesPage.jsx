@@ -11,6 +11,7 @@ import {
   saveNotificationTemplates,
   resetNotificationTemplates,
 } from '../services/api'
+import { useBusinessContext } from '../hooks/useBusinessContext'
 import { CheckCircle, AlertCircle, RotateCcw, Save, MessageSquare, Mail } from 'lucide-react'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -187,6 +188,9 @@ function TemplateCard({ template, tokens, onChange, isSaving }) {
 // ── Main page ──────────────────────────────────────────────────────────────────
 
 export default function NotificationTemplatesPage() {
+  const { activeBusiness } = useBusinessContext()
+  const businessId = activeBusiness?.id ?? null
+
   const [templates, setTemplates] = useState([])
   const [tokens, setTokens] = useState({ all: [], confirmation: [] })
   const [loading, setLoading] = useState(true)
@@ -199,9 +203,10 @@ export default function NotificationTemplatesPage() {
   }, [])
 
   const load = useCallback(async () => {
+    if (!businessId) return
     setLoading(true)
     try {
-      const data = await getNotificationTemplates()
+      const data = await getNotificationTemplates(businessId)
       setTemplates(data.templates.map(t => ({ ...t, _dirty: false })))
       setTokens(data.tokens || { all: [], confirmation: [] })
     } catch (e) {
@@ -209,7 +214,7 @@ export default function NotificationTemplatesPage() {
     } finally {
       setLoading(false)
     }
-  }, [showToast])
+  }, [businessId, showToast])
 
   useEffect(() => { load() }, [load])
 
@@ -231,7 +236,7 @@ export default function NotificationTemplatesPage() {
     setIsSaving(true)
     try {
       const payload = dirtyTemplates.map(({ _dirty, is_default, ...t }) => t)
-      const data = await saveNotificationTemplates(payload)
+      const data = await saveNotificationTemplates(payload, businessId)
       setTemplates(data.templates.map(t => ({ ...t, _dirty: false })))
       setTokens(data.tokens || tokens)
       showToast('success', `${dirtyTemplates.length} template${dirtyTemplates.length > 1 ? 's' : ''} saved.`)
@@ -246,7 +251,7 @@ export default function NotificationTemplatesPage() {
     if (!window.confirm('Reset all templates to platform defaults? Any customizations will be deleted.')) return
     setIsSaving(true)
     try {
-      const data = await resetNotificationTemplates()
+      const data = await resetNotificationTemplates(businessId)
       setTemplates(data.templates.map(t => ({ ...t, _dirty: false })))
       setTokens(data.tokens || tokens)
       showToast('success', 'Templates reset to defaults.')
@@ -309,7 +314,9 @@ export default function NotificationTemplatesPage() {
         </div>
       )}
 
-      {loading ? (
+      {!businessId ? (
+        <div className="text-center py-16 text-gray-400">Select a business to view its templates.</div>
+      ) : loading ? (
         <div className="text-center py-16 text-gray-400">Loading templates…</div>
       ) : (
         <div className="space-y-8">
@@ -339,7 +346,7 @@ export default function NotificationTemplatesPage() {
       )}
 
       {/* Token reference legend */}
-      {!loading && (
+      {businessId && !loading && (
         <div className="mt-8 bg-gray-50 rounded-lg border border-gray-200 p-4">
           <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">
             Available Tokens
