@@ -14,7 +14,7 @@ from app.utils.ics_generator import get_all_calendar_links
 logger = logging.getLogger(__name__)
 
 
-def _send_sms(to: str, message: str) -> bool:
+def _send_sms(to: str, message: str, from_number: str | None = None) -> bool:
     """Send an SMS via Twilio. Returns True on success."""
     if not settings.TWILIO_ACCOUNT_SID:
         logger.warning("Twilio not configured — skipping SMS to %s", to)
@@ -26,7 +26,7 @@ def _send_sms(to: str, message: str) -> bool:
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
         client.messages.create(
             body=message,
-            from_=settings.TWILIO_PHONE_NUMBER,
+            from_=from_number or settings.TWILIO_PHONE_NUMBER,
             to=to,
         )
         return True
@@ -61,27 +61,24 @@ def _send_email(to: str, subject: str, html_body: str) -> bool:
 
 
 def send_appointment_confirmation(db: Session, appointment: Appointment):
-    """Send confirmation SMS + email with calendar links."""
+    """Send confirmation SMS + email using per-business templates."""
+    from app.services.template_renderer import render_sms, render_email
+
     customer = appointment.customer
-    service_name = appointment.service_type.name if appointment.service_type else "Appointment"
-    tech_name = appointment.technician.name if appointment.technician else "a technician"
-    date_str = appointment.scheduled_start.strftime("%A, %B %d at %I:%M %p")
-    cal_links = get_all_calendar_links(appointment.calendar_token)
+    business = appointment.business
+
+    # Use business-specific Twilio number if configured
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
 
     # SMS
     if customer.phone:
-        sms_text = (
-            f"Hi {customer.first_name}! Your {service_name} appointment is confirmed "
-            f"for {date_str} with {tech_name}. "
-            f"Add to calendar: {cal_links['landing_page']}"
-        )
-        sms_ok = _send_sms(customer.phone, sms_text)
+        sms_text = render_sms("confirmation", db, business, appointment)
+        sms_ok = _send_sms(customer.phone, sms_text, from_number=twilio_from)
         _log_notification(db, appointment.id, "sms", "confirmation", sms_ok)
 
     # Email
     if customer.email:
-        subject = f"Your {service_name} Appointment is Confirmed - {appointment.scheduled_start.strftime('%B %d')}"
-        html = _build_confirmation_email(appointment, cal_links)
+        subject, plain, html = render_email("confirmation", db, business, appointment)
         email_ok = _send_email(customer.email, subject, html)
         _log_notification(db, appointment.id, "email", "confirmation", email_ok)
 

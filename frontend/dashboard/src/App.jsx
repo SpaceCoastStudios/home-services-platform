@@ -14,6 +14,7 @@ import BusinessesPage from './pages/BusinessesPage'
 import OnCallPage from './pages/OnCallPage'
 import OnboardingPage from './pages/OnboardingPage'
 import SMSConversationsPage from './pages/SMSConversationsPage'
+import NotificationTemplatesPage from './pages/NotificationTemplatesPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="technicians" element={<TechniciansPage />} />
         <Route path="contacts" element={<ContactsPage />} />
         <Route path="sms" element={<SMSConversationsPage />} />
+        <Route path="notification-templates" element={<NotificationTemplatesPage />} />
         <Route path="oncall" element={<OnCallPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route

@@ -14,6 +14,7 @@ import {
   Building2,
   ChevronDown,
   PhoneCall,
+  Bell,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -25,6 +26,7 @@ const businessNav = [
   { to: '/technicians', icon: HardHat, label: 'Technicians' },
   { to: '/contacts', icon: MessageSquare, label: 'Contact Queue' },
   { to: '/sms', icon: MessageCircle, label: 'SMS Conversations' },
+  { to: '/notification-templates', icon: Bell, label: 'Notifications' },
   { to: '/oncall', icon: PhoneCall, label: 'On-Call' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]

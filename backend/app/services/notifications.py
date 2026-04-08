@@ -85,28 +85,25 @@ def _format_appointment_time(dt: datetime) -> str:
 def send_reminder(db, appointment) -> dict:
     """
     Send a 24-hour reminder for a single appointment via SMS and/or email.
+    Uses per-business notification templates with fallback to defaults.
 
     Logs each attempt to notification_logs and returns a summary dict:
         {"sms": "sent"|"failed"|"skipped", "email": "sent"|"failed"|"skipped"}
     """
     from app.models.notification import NotificationLog
+    from app.services.template_renderer import render_sms, render_email
 
     customer = appointment.customer
     business = appointment.business
-    service  = appointment.service_type
-
-    appt_time_str = _format_appointment_time(appointment.scheduled_start)
-
     results = {}
+
+    # Use business-specific Twilio number if configured
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
 
     # ── SMS ────────────────────────────────────────────────────────────────────
     if customer.phone:
-        sms_body = (
-            f"Reminder: Your {service.name} appointment with {business.name} "
-            f"is scheduled for {appt_time_str}. "
-            f"Reply STOP to opt out."
-        )
-        sms_ok = send_sms(customer.phone, sms_body)
+        sms_body = render_sms("reminder_24h", db, business, appointment)
+        sms_ok = send_sms(customer.phone, sms_body, from_number=twilio_from)
         sms_status = "sent" if sms_ok else "failed"
         results["sms"] = sms_status
 
@@ -122,44 +119,7 @@ def send_reminder(db, appointment) -> dict:
 
     # ── Email ──────────────────────────────────────────────────────────────────
     if customer.email:
-        subject = f"Appointment reminder — {appt_time_str}"
-
-        plain = (
-            f"Hi {customer.first_name},\n\n"
-            f"This is a reminder that your {service.name} appointment with "
-            f"{business.name} is scheduled for {appt_time_str}.\n\n"
-            f"If you need to reschedule or have questions, please reply to this "
-            f"email or call us.\n\n"
-            f"Thank you,\n{business.name}"
-        )
-
-        html = f"""
-        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1e293b;">
-          <div style="background:#f97316;padding:24px 32px;border-radius:8px 8px 0 0;">
-            <h2 style="margin:0;color:#ffffff;font-size:1.3rem;">Appointment Reminder</h2>
-          </div>
-          <div style="padding:32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">
-            <p style="margin:0 0 16px;">Hi {customer.first_name},</p>
-            <p style="margin:0 0 16px;">
-              This is a friendly reminder about your upcoming appointment:
-            </p>
-            <div style="background:#f8fafc;border-left:4px solid #f97316;
-                        padding:16px 20px;border-radius:4px;margin:0 0 24px;">
-              <strong style="font-size:1.1rem;">{service.name}</strong><br>
-              <span style="color:#64748b;font-size:0.95rem;">{appt_time_str}</span><br>
-              <span style="color:#64748b;font-size:0.95rem;">{business.name}</span>
-              {"<br><span style='color:#64748b;font-size:0.95rem;'>" + appointment.address + "</span>" if appointment.address else ""}
-            </div>
-            <p style="margin:0 0 16px;font-size:0.9rem;color:#64748b;">
-              Need to reschedule or have questions? Reply to this email or give us a call.
-            </p>
-            <p style="margin:0;font-size:0.9rem;">
-              Thank you,<br><strong>{business.name}</strong>
-            </p>
-          </div>
-        </div>
-        """
-
+        subject, plain, html = render_email("reminder_24h", db, business, appointment)
         email_ok = send_email(customer.email, subject, html, plain)
         email_status = "sent" if email_ok else "failed"
         results["email"] = email_status

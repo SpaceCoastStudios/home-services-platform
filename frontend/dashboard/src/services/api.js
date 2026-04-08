@@ -190,4 +190,12 @@ export const closeSmsConversation = (id, businessId = null) =>
 export const sendManualSms = (id, message, businessId = null) =>
   api.post(`sms-conversations/${id}/send${qs({ business_id: businessId })}`, { message })
 
+// ── Notification Templates ────────────────────────────────────
+export const getNotificationTemplates = (businessId = null) =>
+  api.get(`notification-templates${qs({ business_id: businessId })}`)
+export const saveNotificationTemplates = (templates, businessId = null) =>
+  api.put(`notification-templates${qs({ business_id: businessId })}`, { templates })
+export const resetNotificationTemplates = (businessId = null) =>
+  api.post(`notification-templates/reset${qs({ business_id: businessId })}`, {})
+
 export default api

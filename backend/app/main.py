@@ -37,6 +37,7 @@ from app.routers import (
     recurring,
     oncall,
     sms_webhook,
+    notification_templates,
 )
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -232,6 +233,31 @@ def run_migrations(db):
         db.rollback()
         logger.warning("Migration sms_conversations skipped: %s", e)
 
+    # Create notification_templates table for per-business editable templates
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS notification_templates (
+                id           SERIAL PRIMARY KEY,
+                business_id  INTEGER NOT NULL REFERENCES businesses(id),
+                event_type   VARCHAR(30) NOT NULL,
+                channel      VARCHAR(10) NOT NULL,
+                subject      VARCHAR(300),
+                body         TEXT NOT NULL,
+                is_active    BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at   TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at   TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        db.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_notification_templates_business_id "
+            "ON notification_templates (business_id)"
+        ))
+        db.commit()
+        logger.info("Migration: notification_templates table ready")
+    except Exception as e:
+        db.rollback()
+        logger.warning("Migration notification_templates skipped: %s", e)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -283,6 +309,7 @@ app.include_router(calendar_links.router)
 app.include_router(recurring.router)
 app.include_router(oncall.router)
 app.include_router(sms_webhook.router)
+app.include_router(notification_templates.router)
 
 
 @app.get("/")
