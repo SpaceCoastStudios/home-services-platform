@@ -36,6 +36,7 @@ from app.routers import (
     businesses,
     recurring,
     oncall,
+    sms_webhook,
 )
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -201,6 +202,36 @@ def run_migrations(db):
         db.rollback()
         logger.warning("Migration on-call tables skipped: %s", e)
 
+    # Create sms_conversations table for inbound SMS AI agent
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS sms_conversations (
+                id               SERIAL PRIMARY KEY,
+                business_id      INTEGER NOT NULL REFERENCES businesses(id),
+                customer_phone   VARCHAR(20) NOT NULL,
+                customer_name    VARCHAR(200),
+                messages         JSON NOT NULL DEFAULT '[]',
+                status           VARCHAR(20) NOT NULL DEFAULT 'active',
+                appointment_id   INTEGER REFERENCES appointments(id),
+                last_message_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+                created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at       TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        db.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_sms_conversations_business_id "
+            "ON sms_conversations (business_id)"
+        ))
+        db.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_sms_conversations_customer_phone "
+            "ON sms_conversations (customer_phone)"
+        ))
+        db.commit()
+        logger.info("Migration: sms_conversations table ready")
+    except Exception as e:
+        db.rollback()
+        logger.warning("Migration sms_conversations skipped: %s", e)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -251,6 +282,7 @@ app.include_router(contact.router)
 app.include_router(calendar_links.router)
 app.include_router(recurring.router)
 app.include_router(oncall.router)
+app.include_router(sms_webhook.router)
 
 
 @app.get("/")

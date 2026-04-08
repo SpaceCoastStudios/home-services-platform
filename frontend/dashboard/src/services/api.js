@@ -180,4 +180,14 @@ export const triggerAiResponse = (id, businessId = null) =>
 export const sendManualResponse = (id, data, businessId = null) =>
   api.post(`contact-submissions/${id}/manual-response${qs({ business_id: businessId })}`, data)
 
+// ── SMS Conversations ─────────────────────────────────────────
+export const getSmsConversations = (status = null, businessId = null) =>
+  api.get(`sms-conversations${qs({ status, business_id: businessId })}`)
+export const getSmsConversation = (id, businessId = null) =>
+  api.get(`sms-conversations/${id}${qs({ business_id: businessId })}`)
+export const closeSmsConversation = (id, businessId = null) =>
+  api.post(`sms-conversations/${id}/close${qs({ business_id: businessId })}`, {})
+export const sendManualSms = (id, message, businessId = null) =>
+  api.post(`sms-conversations/${id}/send${qs({ business_id: businessId })}`, { message })
+
 export default api

@@ -9,6 +9,7 @@ import {
   HardHat,
   Settings,
   MessageSquare,
+  MessageCircle,
   LogOut,
   Building2,
   ChevronDown,
@@ -23,6 +24,7 @@ const businessNav = [
   { to: '/services', icon: Wrench, label: 'Services' },
   { to: '/technicians', icon: HardHat, label: 'Technicians' },
   { to: '/contacts', icon: MessageSquare, label: 'Contact Queue' },
+  { to: '/sms', icon: MessageCircle, label: 'SMS Conversations' },
   { to: '/oncall', icon: PhoneCall, label: 'On-Call' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
