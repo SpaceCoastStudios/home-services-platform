@@ -1,0 +1,40 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # 2:00 AM ET (UTC-4 summer / UTC-5 winter) — adjust if needed
+  workflow_dispatch:        # Allow manual runs from the GitHub Actions tab
+
+jobs:
+  backup:
+    name: pg_dump → Backblaze B2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: pip install boto3 twilio
+
+      - name: Run backup
+        env:
+          DATABASE_URL:          ${{ secrets.DATABASE_URL }}
+          B2_KEY_ID:             ${{ secrets.B2_KEY_ID }}
+          B2_APPLICATION_KEY:    ${{ secrets.B2_APPLICATION_KEY }}
+          B2_BUCKET_NAME:        ${{ secrets.B2_BUCKET_NAME }}
+          B2_ENDPOINT_URL:       ${{ secrets.B2_ENDPOINT_URL }}
+          BACKUP_RETENTION_DAYS: '30'
+          ALERT_PHONE_NUMBER:    ${{ secrets.ALERT_PHONE_NUMBER }}
+          TWILIO_ACCOUNT_SID:    ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN:     ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_PHONE_NUMBER:   ${{ secrets.TWILIO_PHONE_NUMBER }}
+        run: python3 backend/scripts/backup_db.py

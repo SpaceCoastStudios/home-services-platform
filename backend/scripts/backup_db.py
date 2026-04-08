@@ -42,13 +42,17 @@ from botocore.exceptions import ClientError
 
 # ── Logging ────────────────────────────────────────────────────────────────────
 
+_handlers = [logging.StreamHandler(sys.stdout)]
+_log_file = os.getenv("BACKUP_LOG_FILE", "/var/log/db_backup.log")
+try:
+    _handlers.append(logging.FileHandler(_log_file))
+except OSError:
+    pass  # Running in an environment where the log path isn't writable (e.g. GitHub Actions)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler("/var/log/db_backup.log"),
-    ],
+    handlers=_handlers,
 )
 log = logging.getLogger("backup_db")
 
