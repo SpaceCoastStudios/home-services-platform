@@ -38,6 +38,7 @@ from app.routers import (
     oncall,
     sms_webhook,
     notification_templates,
+    embed,
 )
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -258,6 +259,16 @@ def run_migrations(db):
         db.rollback()
         logger.warning("Migration notification_templates skipped: %s", e)
 
+    # Add preferred_contact_method to contact_submissions if it doesn't exist
+    try:
+        db.execute(text(
+            "ALTER TABLE contact_submissions ADD COLUMN preferred_contact_method VARCHAR(20)"
+        ))
+        db.commit()
+        logger.info("Migration: added preferred_contact_method to contact_submissions")
+    except Exception:
+        db.rollback()  # Column already exists — safe to ignore
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -310,6 +321,7 @@ app.include_router(recurring.router)
 app.include_router(oncall.router)
 app.include_router(sms_webhook.router)
 app.include_router(notification_templates.router)
+app.include_router(embed.router)
 
 
 @app.get("/")

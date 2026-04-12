@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Save, Plus, Trash2 } from 'lucide-react'
+import { Save, Plus, Trash2, Copy, Check } from 'lucide-react'
 import {
   getBusinessHours, updateBusinessHours,
   getBlockedTimes, createBlockedTime, deleteBlockedTime,
@@ -7,10 +7,13 @@ import {
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 
+const API_BASE = 'https://api.spacecoaststudios.com'
+
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export default function SettingsPage() {
-  const { activeBusinessId } = useBusinessContext()
+  const { activeBusinessId, activeBusiness } = useBusinessContext()
+  const [copied, setCopied] = useState(false)
   const [hours, setHours] = useState([])
   const [blocked, setBlocked] = useState([])
   const [settings, setSettings] = useState([])
@@ -155,6 +158,46 @@ export default function SettingsPage() {
           </button>
         </form>
       </section>
+
+      {/* Embed Code */}
+      {activeBusiness?.slug && (
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Contact Form Embed</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Paste this snippet into any page on the client's website to embed the contact form.
+          </p>
+          <div className="relative">
+            <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap break-all">
+{`<iframe
+  src="${API_BASE}/embed/${activeBusiness.slug}/contact"
+  width="100%"
+  height="620"
+  frameborder="0"
+  style="border:none; border-radius:8px;"
+></iframe>`}
+            </pre>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `<iframe\n  src="${API_BASE}/embed/${activeBusiness.slug}/contact"\n  width="100%"\n  height="620"\n  frameborder="0"\n  style="border:none; border-radius:8px;"\n></iframe>`
+                )
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }}
+              className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium
+                         bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              {copied ? <><Check size={12} className="text-green-600" /> Copied</> : <><Copy size={12} /> Copy</>}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            Preview: <a href={`${API_BASE}/embed/${activeBusiness.slug}/contact`} target="_blank" rel="noreferrer"
+              className="text-blue-500 hover:underline">
+              {API_BASE}/embed/{activeBusiness.slug}/contact
+            </a>
+          </p>
+        </section>
+      )}
 
       {/* Scheduling Settings */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

@@ -11,6 +11,7 @@ class ContactFormSubmit(BaseModel):
     email: EmailStr
     phone: Optional[str] = None
     service_requested: Optional[str] = None
+    preferred_contact_method: Optional[str] = None  # call, text, email
     message: str
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None
@@ -23,6 +24,7 @@ class ContactSubmissionResponse(BaseModel):
     email: str
     phone: Optional[str] = None
     service_requested: Optional[str] = None
+    preferred_contact_method: Optional[str] = None
     message: str
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None

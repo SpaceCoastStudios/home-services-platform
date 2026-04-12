@@ -20,6 +20,7 @@ class ContactSubmission(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     service_requested: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    preferred_contact_method: Mapped[str | None] = mapped_column(String(20), nullable=True)  # call, text, email
     message: Mapped[str] = mapped_column(Text, nullable=False)
     preferred_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     preferred_time: Mapped[str | None] = mapped_column(String(20), nullable=True)
