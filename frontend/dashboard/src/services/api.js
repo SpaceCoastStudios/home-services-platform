@@ -177,6 +177,8 @@ export const updateContactSubmission = (id, data, businessId = null) =>
   api.put(`contact-submissions/${id}${qs({ business_id: businessId })}`, data)
 export const triggerAiResponse = (id, businessId = null) =>
   api.post(`contact-submissions/${id}/respond${qs({ business_id: businessId })}`)
+export const approveAiResponse = (id, businessId = null) =>
+  api.post(`contact-submissions/${id}/approve${qs({ business_id: businessId })}`, {})
 export const sendManualResponse = (id, data, businessId = null) =>
   api.post(`contact-submissions/${id}/manual-response${qs({ business_id: businessId })}`, data)
 

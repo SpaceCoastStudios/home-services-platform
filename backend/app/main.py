@@ -259,6 +259,28 @@ def run_migrations(db):
         db.rollback()
         logger.warning("Migration notification_templates skipped: %s", e)
 
+    # Add emergency fee fields to oncall_configs
+    for col_sql in [
+        "ALTER TABLE oncall_configs ADD COLUMN emergency_fee_enabled BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE oncall_configs ADD COLUMN emergency_fee NUMERIC(8,2)",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()
+    logger.info("Migration: oncall_configs emergency fee columns ready")
+
+    # Add ai_response_mode to businesses if it doesn't exist
+    try:
+        db.execute(text(
+            "ALTER TABLE businesses ADD COLUMN ai_response_mode VARCHAR(20) NOT NULL DEFAULT 'auto_send'"
+        ))
+        db.commit()
+        logger.info("Migration: added ai_response_mode to businesses")
+    except Exception:
+        db.rollback()  # Column already exists — safe to ignore
+
     # Add preferred_contact_method to contact_submissions if it doesn't exist
     try:
         db.execute(text(

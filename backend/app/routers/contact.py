@@ -162,6 +162,49 @@ def trigger_ai_response(
     return sub
 
 
+@router.post("/api/contact-submissions/{submission_id}/approve", response_model=ContactSubmissionResponse)
+def approve_ai_response(
+    submission_id: int,
+    business_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """
+    Approve and send a pending AI-drafted response.
+    Only valid when submission status is 'pending_approval'.
+    """
+    from datetime import datetime, timezone
+    from app.models.business import Business
+    from app.services.contact_responder import _send_reply_email, _send_reply_sms
+
+    bid = get_business_id_for_user(current_user, business_id)
+    sub = (
+        db.query(ContactSubmission)
+        .filter(ContactSubmission.id == submission_id, ContactSubmission.business_id == bid)
+        .first()
+    )
+    if not sub:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    if sub.status != "pending_approval":
+        raise HTTPException(status_code=400, detail="Submission is not pending approval")
+    if not sub.ai_response:
+        raise HTTPException(status_code=400, detail="No AI response to approve")
+
+    business = db.query(Business).filter(Business.id == bid).first()
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    _send_reply_email(business, sub, sub.ai_response)
+    if sub.phone:
+        _send_reply_sms(business, sub, sub.ai_response)
+
+    sub.status = "ai_responded"
+    sub.responded_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
 @router.post("/api/contact-submissions/{submission_id}/manual-response", response_model=ContactSubmissionResponse)
 def send_manual_response(
     submission_id: int,

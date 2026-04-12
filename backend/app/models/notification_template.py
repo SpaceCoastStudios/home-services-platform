@@ -63,6 +63,16 @@ DEFAULTS: dict[tuple[str, str], dict] = {
             "Thank you,\n{{business_name}}"
         ),
     },
+    ("emergency_dispatch", "sms"): {
+        "subject": None,
+        "body": (
+            "🚨 EMERGENCY — {{business_name}}\n"
+            "Customer: {{customer_name}}\n"
+            "Phone: {{customer_phone}}\n"
+            "Issue: {{issue_summary}}\n\n"
+            "Respond immediately."
+        ),
+    },
 }
 
 # Available tokens per event type — shown in the dashboard UI
@@ -78,6 +88,10 @@ TOKENS = {
     ],
     "confirmation": [
         ("{{calendar_link}}", "Add-to-calendar link (email/SMS)"),
+    ],
+    "emergency_dispatch": [
+        ("{{customer_phone}}", "Customer's phone number"),
+        ("{{issue_summary}}", "Brief description of the emergency"),
     ],
 }
 

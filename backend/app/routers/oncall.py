@@ -49,6 +49,8 @@ class OnCallConfigUpdate(BaseModel):
     rolling_start_date: Optional[dt_date] = None
     fallback_phone: Optional[str] = None
     fallback_name: Optional[str] = None
+    emergency_fee_enabled: Optional[bool] = None
+    emergency_fee: Optional[float] = None
 
 
 class RotationEntryCreate(BaseModel):

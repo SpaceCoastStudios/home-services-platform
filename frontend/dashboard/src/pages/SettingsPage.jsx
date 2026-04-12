@@ -3,7 +3,7 @@ import { Save, Plus, Trash2, Copy, Check } from 'lucide-react'
 import {
   getBusinessHours, updateBusinessHours,
   getBlockedTimes, createBlockedTime, deleteBlockedTime,
-  getSettings, updateSetting,
+  getSettings, updateSetting, updateBusiness,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 
@@ -158,6 +158,52 @@ export default function SettingsPage() {
           </button>
         </form>
       </section>
+
+      {/* AI Response Mode */}
+      {activeBusiness && (
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">AI Auto-Responder</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Control how the AI handles contact form submissions.
+          </p>
+          <div className="space-y-3">
+            {[
+              {
+                value: 'auto_send',
+                label: 'Auto-send',
+                description: 'AI drafts and sends the response immediately. No staff action required.',
+              },
+              {
+                value: 'draft_only',
+                label: 'Require approval',
+                description: 'AI drafts a response but staff must review and approve before it is sent.',
+              },
+            ].map((opt) => (
+              <label key={opt.value} className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="radio"
+                  name="ai_response_mode"
+                  value={opt.value}
+                  checked={(activeBusiness.ai_response_mode || 'auto_send') === opt.value}
+                  onChange={async () => {
+                    try {
+                      await updateBusiness(activeBusiness.id, { ai_response_mode: opt.value })
+                      setMessage(`AI response mode set to "${opt.label}"`)
+                    } catch (err) {
+                      setMessage('Error: ' + err.message)
+                    }
+                  }}
+                  className="mt-0.5 accent-blue-600"
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{opt.label}</p>
+                  <p className="text-xs text-gray-500">{opt.description}</p>
+                </div>
+              </label>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Embed Code */}
       {activeBusiness?.slug && (

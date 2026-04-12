@@ -36,6 +36,8 @@ export default function OnCallPage() {
     rolling_start_date: '',
     fallback_phone: '',
     fallback_name: '',
+    emergency_fee_enabled: false,
+    emergency_fee: '',
   })
 
   // Rotation form state
@@ -70,6 +72,8 @@ export default function OnCallPage() {
         rolling_start_date: cfg.rolling_start_date || '',
         fallback_phone: cfg.fallback_phone || '',
         fallback_name: cfg.fallback_name || '',
+        emergency_fee_enabled: cfg.emergency_fee_enabled || false,
+        emergency_fee: cfg.emergency_fee != null ? String(cfg.emergency_fee) : '',
       })
     } catch (e) {
       showToast('Failed to load on-call settings', 'error')
@@ -84,7 +88,11 @@ export default function OnCallPage() {
   const handleSaveConfig = async () => {
     setSaving(true)
     try {
-      await updateOnCallConfig(form, businessId)
+      const payload = {
+        ...form,
+        emergency_fee: form.emergency_fee !== '' ? parseFloat(form.emergency_fee) : null,
+      }
+      await updateOnCallConfig(payload, businessId)
       showToast('On-call settings saved')
       load()
     } catch {
@@ -346,6 +354,42 @@ export default function OnCallPage() {
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
               </div>
             </div>
+          </div>
+
+          {/* Emergency Fee */}
+          <div className="pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="font-medium text-gray-900">Emergency Fee</p>
+                <p className="text-sm text-gray-500">AI will disclose the fee and get customer confirmation before dispatching</p>
+              </div>
+              <button onClick={() => setForm(f => ({ ...f, emergency_fee_enabled: !f.emergency_fee_enabled }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                  ${form.emergency_fee_enabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+                  ${form.emergency_fee_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            {form.emergency_fee_enabled && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Fee amount ($)</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-sm">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.emergency_fee}
+                    onChange={e => setForm(f => ({ ...f, emergency_fee: e.target.value }))}
+                    placeholder="150"
+                    className="w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  The AI will say: "An emergency service fee of ${form.emergency_fee || '___'} applies. Reply YES to confirm."
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Rotation type */}

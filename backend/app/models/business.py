@@ -41,6 +41,11 @@ class Business(Base):
     ai_system_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Custom instructions for the AI agent for this business
 
+    # AI auto-responder mode for contact form submissions:
+    #   "auto_send"  — AI response is sent immediately (default)
+    #   "draft_only" — AI drafts a response but staff must approve before sending
+    ai_response_mode: Mapped[str] = mapped_column(String(20), default="auto_send")
+
     # Plan / status
     plan: Mapped[str] = mapped_column(String(20), default="full")
     # "full" = we host their whole site, "mini" = API/connectors only

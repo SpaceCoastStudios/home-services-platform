@@ -89,7 +89,11 @@ def _run_agent(db: Session, business: Business, convo: SmsConversation) -> str:
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
     services = _get_active_services(db, business.id)
-    system_prompt = _build_system_prompt(business, services)
+    from app.models.oncall import OnCallConfig
+    oncall_config = db.query(OnCallConfig).filter(
+        OnCallConfig.business_id == business.id
+    ).first()
+    system_prompt = _build_system_prompt(business, services, oncall_config)
     messages = _build_messages(convo)
 
     tools = _define_tools(services)
@@ -217,6 +221,30 @@ def _define_tools(services: list[ServiceType]) -> list[dict]:
                 "required": ["reason"],
             },
         },
+        {
+            "name": "emergency_dispatch",
+            "description": (
+                "Use when the customer describes an emergency or urgent situation — for example: "
+                "no AC in hot weather, no heat in cold weather, flooding, burst pipe, gas smell, "
+                "or any safety-critical issue that cannot wait for a scheduled appointment. "
+                "This will immediately SMS the on-call technician. "
+                "Tell the customer that a technician has been alerted and will contact them shortly."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "customer_name": {
+                        "type": "string",
+                        "description": "Customer's name (use 'Unknown' if not yet collected).",
+                    },
+                    "issue_summary": {
+                        "type": "string",
+                        "description": "One or two sentence description of the emergency.",
+                    },
+                },
+                "required": ["customer_name", "issue_summary"],
+            },
+        },
     ]
 
 
@@ -244,6 +272,19 @@ def _execute_tool(
         reason = tool_input.get("reason", "No reason given")
         logger.info("sms_agent: convo %s escalated — %s", convo.id, reason)
         return {"escalated": True, "reason": reason}
+
+    elif tool_name == "emergency_dispatch":
+        from app.services.oncall_notifier import dispatch_emergency
+        result = dispatch_emergency(
+            db=db,
+            business=business,
+            customer_phone=convo.customer_phone,
+            customer_name=tool_input.get("customer_name", convo.customer_name or "Unknown"),
+            issue_summary=tool_input.get("issue_summary", ""),
+        )
+        convo.status = "escalated"
+        logger.info("sms_agent: emergency dispatch for convo %s — %s", convo.id, result)
+        return result
 
     return {"error": f"Unknown tool: {tool_name}"}
 
@@ -424,7 +465,7 @@ def _send_booking_confirmation(
 # System prompt
 # ---------------------------------------------------------------------------
 
-def _build_system_prompt(business: Business, services: list[ServiceType]) -> str:
+def _build_system_prompt(business: Business, services: list[ServiceType], oncall_config=None) -> str:
     agent_name = business.ai_agent_name or f"{business.name} Assistant"
     custom_prompt = business.ai_system_prompt or ""
 
@@ -434,6 +475,29 @@ def _build_system_prompt(business: Business, services: list[ServiceType]) -> str
         + ")"
         for s in services
     ) or "  • General service"
+
+    # Build emergency dispatch instructions if configured
+    emergency_section = ""
+    if oncall_config and oncall_config.is_enabled:
+        fee_line = ""
+        if oncall_config.emergency_fee_enabled and oncall_config.emergency_fee:
+            fee = float(oncall_config.emergency_fee)
+            fee_line = (
+                f"\nIMPORTANT — Emergency Fee: Before dispatching, you MUST inform the customer that "
+                f"an emergency service fee of ${fee:.0f} applies and ask them to confirm with YES. "
+                f"Only call emergency_dispatch after they confirm. "
+                f"If they decline, offer to schedule a regular appointment instead."
+            )
+
+        emergency_section = f"""
+EMERGENCY DISPATCH:
+If a customer describes an emergency (no AC in heat, no heat in cold, flooding, burst pipe, gas smell, \
+or any safety-critical issue), follow these steps:
+1. Ask 1-2 quick clarifying questions to understand the situation (e.g. "Is the unit completely off or just not cooling?" or "How long has this been happening?").
+2. Based on their answers, confirm it is a genuine emergency.{fee_line}
+3. Use the emergency_dispatch tool to alert the on-call technician.
+4. Tell the customer a technician has been alerted and will contact them shortly.
+Do NOT skip the clarifying questions — they help the technician arrive prepared."""
 
     return f"""You are {agent_name}, a friendly booking assistant for {business.name}. \
 You communicate only via SMS, so keep every reply SHORT — under 2-3 sentences ideally, \
@@ -449,7 +513,7 @@ Collect these naturally through conversation — don't fire all questions at onc
 Use the check_availability tool before suggesting times.
 Use the create_booking tool only once you have all 4 pieces confirmed.
 Use escalate_to_human if you can't resolve something after 2 attempts.
-
+{emergency_section}
 {custom_prompt}
 
 SERVICES OFFERED BY {business.name.upper()}:

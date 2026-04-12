@@ -9,7 +9,7 @@ OnCallOverride  — temporary manual override (expires automatically).
 
 from datetime import datetime, date, time, timezone
 from sqlalchemy import (
-    Integer, String, Boolean, DateTime, Date, Time, Text, ForeignKey
+    Integer, String, Boolean, DateTime, Date, Time, Text, Numeric, ForeignKey
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -46,6 +46,11 @@ class OnCallConfig(Base):
 
     # Reference Monday for rolling rotation week calculation
     rolling_start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
+    # Emergency fee — shown to customer via SMS before dispatching
+    emergency_fee_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    emergency_fee: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
+    # e.g. 150.00 → AI tells customer "An emergency fee of $150 applies"
 
     # Fallback: if no on-call tech is found, route here
     fallback_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)

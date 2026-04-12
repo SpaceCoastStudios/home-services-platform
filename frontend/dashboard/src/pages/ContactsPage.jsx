@@ -4,19 +4,21 @@ import {
   getContactSubmissions,
   updateContactSubmission,
   triggerAiResponse,
+  approveAiResponse,
   sendManualResponse,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 
 const STATUS_CONFIG = {
-  new:                 { label: 'New',          color: 'bg-blue-100 text-blue-700',   icon: MessageSquare },
-  ai_responded:        { label: 'AI Responded', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  ai_response_failed:  { label: 'AI Failed',    color: 'bg-red-100 text-red-700',     icon: AlertCircle },
-  responded:           { label: 'Responded',    color: 'bg-teal-100 text-teal-700',   icon: CheckCircle },
-  human_review:        { label: 'Needs Review', color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
-  appointment_booked:  { label: 'Booked',       color: 'bg-purple-100 text-purple-700', icon: CheckCircle },
-  error:               { label: 'Error',        color: 'bg-red-100 text-red-700',     icon: AlertCircle },
-  closed:              { label: 'Closed',       color: 'bg-gray-100 text-gray-600',   icon: CheckCircle },
+  new:                 { label: 'New',              color: 'bg-blue-100 text-blue-700',    icon: MessageSquare },
+  pending_approval:    { label: 'Needs Approval',   color: 'bg-amber-100 text-amber-700',  icon: AlertCircle },
+  ai_responded:        { label: 'AI Responded',     color: 'bg-green-100 text-green-700',  icon: CheckCircle },
+  ai_response_failed:  { label: 'AI Failed',        color: 'bg-red-100 text-red-700',      icon: AlertCircle },
+  responded:           { label: 'Responded',        color: 'bg-teal-100 text-teal-700',    icon: CheckCircle },
+  human_review:        { label: 'Needs Review',     color: 'bg-amber-100 text-amber-700',  icon: AlertCircle },
+  appointment_booked:  { label: 'Booked',           color: 'bg-purple-100 text-purple-700', icon: CheckCircle },
+  error:               { label: 'Error',            color: 'bg-red-100 text-red-700',      icon: AlertCircle },
+  closed:              { label: 'Closed',           color: 'bg-gray-100 text-gray-600',    icon: CheckCircle },
 }
 
 export default function ContactsPage() {
@@ -73,6 +75,22 @@ export default function ContactsPage() {
     }
   }
 
+  const handleApprove = async () => {
+    if (!selected) return
+    setTriggering(true)
+    setActionMsg('')
+    try {
+      const updated = await approveAiResponse(selected.id, activeBusinessId)
+      setSelected(updated)
+      setActionMsg('AI response approved and sent.')
+      load()
+    } catch (err) {
+      setActionMsg('Failed to approve response.')
+    } finally {
+      setTriggering(false)
+    }
+  }
+
   const handleManualSend = async () => {
     if (!selected || !manualText.trim()) return
     setTriggering(true)
@@ -111,7 +129,7 @@ export default function ContactsPage() {
 
       {/* Status filters */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {['', 'new', 'ai_responded', 'human_review', 'appointment_booked', 'closed'].map((s) => (
+        {['', 'new', 'pending_approval', 'ai_responded', 'human_review', 'appointment_booked', 'closed'].map((s) => (
           <button key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
@@ -211,7 +229,24 @@ export default function ContactsPage() {
                 </div>
 
                 {/* AI response */}
-                {selected.ai_response ? (
+                {selected.status === 'pending_approval' && selected.ai_response ? (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <Bot size={13} className="text-amber-500" />
+                      <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">AI Draft — Awaiting Approval</p>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap mb-3">
+                      {selected.ai_response}
+                    </div>
+                    <button
+                      onClick={handleApprove}
+                      disabled={triggering}
+                      className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-60 transition-colors">
+                      {triggering ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
+                      {triggering ? 'Sending…' : 'Approve & Send'}
+                    </button>
+                  </div>
+                ) : selected.ai_response ? (
                   <div>
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <Bot size={13} className="text-blue-500" />
@@ -242,8 +277,8 @@ export default function ContactsPage() {
                   </div>
                 )}
 
-                {/* Re-trigger button (if already responded) */}
-                {selected.ai_response && (
+                {/* Re-trigger button (if already sent) */}
+                {selected.ai_response && selected.status !== 'pending_approval' && (
                   <button
                     onClick={handleTriggerAI}
                     disabled={triggering}

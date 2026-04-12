@@ -77,19 +77,29 @@ def _process(db: Session, submission: ContactSubmission, business: Business) -> 
         logger.warning("contact_responder: LLM returned empty reply for submission %s", submission.id)
         return
 
-    # --- 3. Send email ---
+    # --- 3. Save AI response ---
+    submission.ai_response = reply_text
+    submission.ai_suggested_slots = suggested_slots if suggested_slots else None
+
+    # --- 4. Send or hold depending on business ai_response_mode ---
+    draft_only = getattr(business, "ai_response_mode", "auto_send") == "draft_only"
+
+    if draft_only:
+        # Hold for staff approval — do not send yet
+        submission.status = "pending_approval"
+        db.commit()
+        logger.info(
+            "contact_responder: submission %s drafted (pending approval) for business %s",
+            submission.id, business.slug,
+        )
+        return
+
+    # auto_send — send immediately
     email_sent = _send_reply_email(business, submission, reply_text)
 
-    # --- 4. Optionally send SMS ---
     if submission.phone:
         _send_reply_sms(business, submission, reply_text)
 
-    # --- 5. Update submission record ---
-    # Mark ai_responded as long as the AI generated a reply — email delivery
-    # is best-effort and logged separately so a SendGrid hiccup doesn't
-    # leave the queue looking broken.
-    submission.ai_response = reply_text
-    submission.ai_suggested_slots = suggested_slots if suggested_slots else None
     submission.status = "ai_responded"
     submission.responded_at = datetime.now(timezone.utc)
     db.commit()
