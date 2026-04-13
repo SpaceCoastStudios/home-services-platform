@@ -109,6 +109,11 @@ DEFAULTS: dict[tuple[str, str], dict] = {
             "Reply STOP to opt out."
         ),
     },
+    # OTW complete prompt — sent back to the tech after they confirm they're on the way
+    ("otw_tech_complete_prompt", "sms"): {
+        "subject": None,
+        "body": "Got it! Reply YES when you're finished with the job.",
+    },
 }
 
 # Available tokens per event type — shown in the dashboard UI

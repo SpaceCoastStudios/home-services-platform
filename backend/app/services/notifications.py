@@ -237,6 +237,43 @@ def send_otw_tech_prompt(db, appointment) -> bool:
     return ok
 
 
+def send_otw_tech_complete_prompt(db, appointment) -> bool:
+    """
+    After the tech confirms they're on the way, text them:
+    "Got it! Reply YES when you're finished with the job."
+    Logs as event 'otw_tech_complete_prompt'.
+    """
+    from app.models.notification import NotificationLog
+    from app.services.template_renderer import render_sms_raw
+
+    tech = appointment.technician
+    business = appointment.business
+
+    if not tech or not tech.phone:
+        return False
+
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
+
+    body = render_sms_raw("otw_tech_complete_prompt", db, business)
+
+    ok = send_sms(tech.phone, body, from_number=twilio_from)
+
+    db.add(NotificationLog(
+        appointment_id=appointment.id,
+        type="sms",
+        event="otw_tech_complete_prompt",
+        sent_at=datetime.now(timezone.utc),
+        status="sent" if ok else "failed",
+    ))
+    db.commit()
+
+    logger.info(
+        "OTW complete prompt %s → tech %s for appt %d",
+        "sent" if ok else "failed", tech.phone, appointment.id,
+    )
+    return ok
+
+
 def send_otw_customer_notification(db, appointment) -> bool:
     """
     Text the customer that their technician is on the way.

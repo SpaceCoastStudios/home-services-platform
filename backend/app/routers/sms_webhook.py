@@ -101,15 +101,25 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
 
 async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
     """
-    Check if the sender is a technician with an upcoming appointment.
-    If yes, send the customer the OTW notification and update appointment status.
-    Returns True if handled (caller should return empty TwiML).
+    Handles YES replies from technicians on the OTW thread.
+
+    Two-step flow:
+      1st YES (appointment confirmed/pending, OTW prompt was sent):
+          → mark en_route, notify customer OTW, text tech "Reply YES when done"
+      2nd YES (appointment en_route, complete prompt was sent):
+          → mark completed, trigger review request to customer
+
+    Returns True if handled (caller should return empty TwiML, skip AI agent).
     """
     from datetime import datetime, timedelta, timezone
     from app.models.appointment import Appointment
     from app.models.technician import Technician
     from app.models.notification import NotificationLog
-    from app.services.notifications import send_otw_customer_notification
+    from app.services.notifications import (
+        send_otw_customer_notification,
+        send_otw_tech_complete_prompt,
+        send_review_request,
+    )
 
     now = datetime.now(timezone.utc)
 
@@ -122,13 +132,53 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
     if not tech:
         return False
 
-    # Find the soonest upcoming appointment for this tech (starting within 2 hours)
+    # ── Step 2: Check for an en_route appointment where we sent the complete prompt ──
+    # Look back up to 8 hours so we catch jobs that ran long
+    en_route_appt = (
+        db.query(Appointment)
+        .filter(
+            Appointment.technician_id == tech.id,
+            Appointment.scheduled_start >= now - timedelta(hours=8),
+            Appointment.status == "en_route",
+        )
+        .order_by(Appointment.scheduled_start.asc())
+        .first()
+    )
+    if en_route_appt:
+        was_complete_prompted = (
+            db.query(NotificationLog)
+            .filter(
+                NotificationLog.appointment_id == en_route_appt.id,
+                NotificationLog.event == "otw_tech_complete_prompt",
+                NotificationLog.status == "sent",
+            )
+            .first()
+        )
+        if was_complete_prompted:
+            logger.info(
+                "sms_webhook: job-complete reply from tech %s (id=%d) for appt %d",
+                tech.name, tech.id, en_route_appt.id,
+            )
+            # Mark appointment completed
+            en_route_appt.status = "completed"
+            db.commit()
+            db.refresh(en_route_appt)
+
+            # Send review request to customer
+            try:
+                send_review_request(db, en_route_appt)
+            except Exception as exc:
+                logger.error("Review request failed for appt %d: %s", en_route_appt.id, exc)
+
+            return True
+
+    # ── Step 1: Check for an upcoming appointment where we sent the OTW prompt ──
     window_end = now + timedelta(hours=2)
     appt = (
         db.query(Appointment)
         .filter(
             Appointment.technician_id == tech.id,
-            Appointment.scheduled_start >= now,
+            Appointment.scheduled_start >= now - timedelta(hours=1),
             Appointment.scheduled_start <= window_end,
             Appointment.status.notin_(["cancelled", "completed", "en_route"]),
         )
@@ -139,7 +189,7 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
         return False
 
     # Only handle if we actually sent an OTW prompt for this appointment
-    was_prompted = (
+    was_otw_prompted = (
         db.query(NotificationLog)
         .filter(
             NotificationLog.appointment_id == appt.id,
@@ -148,7 +198,7 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
         )
         .first()
     )
-    if not was_prompted:
+    if not was_otw_prompted:
         return False
 
     logger.info(
@@ -161,11 +211,17 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
     db.commit()
     db.refresh(appt)
 
-    # Notify customer
+    # Notify customer they're on the way
     try:
         send_otw_customer_notification(db, appt)
     except Exception as exc:
         logger.error("OTW customer notification failed for appt %d: %s", appt.id, exc)
+
+    # Send the complete prompt back to the tech on the same thread
+    try:
+        send_otw_tech_complete_prompt(db, appt)
+    except Exception as exc:
+        logger.error("OTW complete prompt failed for appt %d: %s", appt.id, exc)
 
     return True
 
