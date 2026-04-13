@@ -144,6 +144,26 @@ def _send_otw_tech_prompts():
             if already_sent:
                 continue
 
+            # Skip if this tech already has a different en_route appointment —
+            # we don't want two pending YES requests in the same thread.
+            # The completion of the current job will trigger the next OTW prompt.
+            if appt.technician_id:
+                active_en_route = (
+                    db.query(Appointment)
+                    .filter(
+                        Appointment.technician_id == appt.technician_id,
+                        Appointment.id != appt.id,
+                        Appointment.status == "en_route",
+                    )
+                    .first()
+                )
+                if active_en_route:
+                    logger.info(
+                        "OTW job: skipping appt %d — tech %d has appt %d still en_route",
+                        appt.id, appt.technician_id, active_en_route.id,
+                    )
+                    continue
+
             ok = send_otw_tech_prompt(db, appt)
             if ok:
                 sent_count += 1

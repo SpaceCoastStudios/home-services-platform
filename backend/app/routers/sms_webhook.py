@@ -170,6 +170,13 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
             except Exception as exc:
                 logger.error("Review request failed for appt %d: %s", en_route_appt.id, exc)
 
+            # Check if this tech has a next appointment coming up that hasn't had
+            # its OTW prompt sent yet — send it now so the thread flows seamlessly.
+            try:
+                _send_next_otw_if_due(db, tech, now)
+            except Exception as exc:
+                logger.error("Next OTW prompt failed for tech %d: %s", tech.id, exc)
+
             return True
 
     # ── Step 1: Check for an upcoming appointment where we sent the OTW prompt ──
@@ -389,6 +396,53 @@ def _get_convo_or_404(db: Session, convo_id: int, business_id: int) -> SmsConver
     if not convo:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return convo
+
+
+def _send_next_otw_if_due(db, tech, now) -> None:
+    """
+    After a tech completes a job, check if they have an upcoming appointment
+    within the next 2 hours that never received an OTW prompt (because the
+    scheduler skipped it while the previous job was still en_route).
+    If found, send the OTW prompt immediately so the thread flows seamlessly.
+    """
+    from datetime import timedelta
+    from app.models.appointment import Appointment
+    from app.models.notification import NotificationLog
+    from app.services.notifications import send_otw_tech_prompt
+
+    window_end = now + timedelta(hours=2)
+
+    next_appt = (
+        db.query(Appointment)
+        .filter(
+            Appointment.technician_id == tech.id,
+            Appointment.scheduled_start >= now,
+            Appointment.scheduled_start <= window_end,
+            Appointment.status.notin_(["cancelled", "completed", "en_route"]),
+        )
+        .order_by(Appointment.scheduled_start.asc())
+        .first()
+    )
+    if not next_appt:
+        return
+
+    # Only send if no OTW prompt has gone out for this appointment yet
+    already_prompted = (
+        db.query(NotificationLog)
+        .filter(
+            NotificationLog.appointment_id == next_appt.id,
+            NotificationLog.event == "otw_tech_prompt",
+        )
+        .first()
+    )
+    if already_prompted:
+        return
+
+    logger.info(
+        "sms_webhook: sending next OTW prompt to tech %s (id=%d) for appt %d",
+        tech.name, tech.id, next_appt.id,
+    )
+    send_otw_tech_prompt(db, next_appt)
 
 
 def _serialize_convo(convo: SmsConversation, include_messages: bool = False) -> dict:
