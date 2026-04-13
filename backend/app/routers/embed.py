@@ -289,6 +289,12 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
         <button type="submit" class="submit-btn" id="submitBtn">Send Message</button>
       </div>
 
+      <div class="form-group full">
+        <p style="font-size:11px; color:#9ca3af; line-height:1.5; margin-top:4px;">
+          By submitting this form and providing your phone number, you consent to receive SMS messages from {business_name} including appointment confirmations, reminders, and service-related notifications. Msg &amp; data rates may apply. Reply STOP to opt out at any time.
+        </p>
+      </div>
+
     </div>
   </form>
 
