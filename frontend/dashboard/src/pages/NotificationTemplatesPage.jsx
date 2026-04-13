@@ -19,6 +19,7 @@ import { CheckCircle, AlertCircle, RotateCcw, Save, MessageSquare, Mail } from '
 const EVENT_LABELS = {
   confirmation: 'Booking Confirmation',
   reminder_24h: '24-Hour Reminder',
+  review_request: 'Review Request',
 }
 
 const CHANNEL_LABELS = {
@@ -266,6 +267,7 @@ export default function NotificationTemplatesPage() {
   const grouped = [
     { key: 'confirmation', label: 'Booking Confirmation', icon: '✅' },
     { key: 'reminder_24h', label: '24-Hour Reminder', icon: '⏰' },
+    { key: 'review_request', label: 'Review Request', icon: '⭐' },
   ]
 
   return (
@@ -352,7 +354,7 @@ export default function NotificationTemplatesPage() {
             Available Tokens
           </h3>
           <div className="grid gap-1.5 sm:grid-cols-2">
-            {[...(tokens.all || []), ...(tokens.confirmation || [])].map(([tok, lbl]) => (
+            {[...(tokens.all || []), ...(tokens.confirmation || []), ...(tokens.review_request || [])].map(([tok, lbl]) => (
               <div key={tok} className="flex items-center gap-2 text-xs text-gray-600">
                 <span className="font-mono bg-white border border-gray-200 rounded px-1.5 py-0.5 text-blue-700 shrink-0">
                   {tok}

@@ -73,6 +73,42 @@ DEFAULTS: dict[tuple[str, str], dict] = {
             "Respond immediately."
         ),
     },
+    ("review_request", "sms"): {
+        "subject": None,
+        "body": (
+            "Hi {{customer_name}}! Thank you for choosing {{business_name}}. "
+            "We'd love to hear about your experience — would you mind leaving us a quick review? "
+            "{{review_link}} 🙏"
+        ),
+    },
+    ("review_request", "email"): {
+        "subject": "How did we do, {{customer_name}}?",
+        "body": (
+            "Hi {{customer_name}},\n\n"
+            "Thank you for trusting {{business_name}} with your {{service_name}}. "
+            "We hope everything went smoothly!\n\n"
+            "If you have a moment, we'd really appreciate a quick review — it helps other "
+            "homeowners find us and helps our team improve.\n\n"
+            "Leave a review: {{review_link}}\n\n"
+            "Thank you so much,\n{{business_name}}"
+        ),
+    },
+    # OTW tech prompt — sent to the technician 1 hour before the appointment
+    ("otw_tech_prompt", "sms"): {
+        "subject": None,
+        "body": (
+            "Heading to {{customer_name}} at {{address}}. "
+            "Reply YES when you're on the way."
+        ),
+    },
+    # OTW customer notification — sent to the customer when tech replies YES
+    ("otw_customer", "sms"): {
+        "subject": None,
+        "body": (
+            "Hi {{customer_name}}! Your {{business_name}} technician is on the way. "
+            "Reply STOP to opt out."
+        ),
+    },
 }
 
 # Available tokens per event type — shown in the dashboard UI
@@ -92,6 +128,9 @@ TOKENS = {
     "emergency_dispatch": [
         ("{{customer_phone}}", "Customer's phone number"),
         ("{{issue_summary}}", "Brief description of the emergency"),
+    ],
+    "review_request": [
+        ("{{review_link}}", "Google review link URL"),
     ],
 }
 

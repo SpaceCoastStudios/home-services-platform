@@ -101,6 +101,62 @@ def _send_appointment_reminders():
         db.close()
 
 
+def _send_otw_tech_prompts():
+    """
+    Every 15 minutes: find appointments starting in 45–75 minutes that have an
+    assigned technician and haven't had an OTW prompt sent yet.  Text the tech:
+    "Heading to <Customer> at <Address>. Reply YES when you're on the way."
+    """
+    from app.database import SessionLocal
+    from app.models.appointment import Appointment
+    from app.models.notification import NotificationLog
+    from app.services.notifications import send_otw_tech_prompt
+
+    db = SessionLocal()
+    try:
+        now = datetime.now(timezone.utc)
+        window_start = now + timedelta(minutes=45)
+        window_end   = now + timedelta(minutes=75)
+
+        upcoming = (
+            db.query(Appointment)
+            .filter(
+                Appointment.scheduled_start >= window_start,
+                Appointment.scheduled_start <= window_end,
+                Appointment.technician_id.isnot(None),
+                Appointment.status.notin_(["cancelled", "completed", "en_route"]),
+            )
+            .all()
+        )
+
+        sent_count = 0
+        for appt in upcoming:
+            # Skip if we already sent an OTW prompt for this appointment
+            already_sent = (
+                db.query(NotificationLog)
+                .filter(
+                    NotificationLog.appointment_id == appt.id,
+                    NotificationLog.event == "otw_tech_prompt",
+                    NotificationLog.status == "sent",
+                )
+                .first()
+            )
+            if already_sent:
+                continue
+
+            ok = send_otw_tech_prompt(db, appt)
+            if ok:
+                sent_count += 1
+
+        if sent_count:
+            logger.info("OTW job: prompted %d technicians", sent_count)
+
+    except Exception as e:
+        logger.error("OTW scheduler error: %s", e)
+    finally:
+        db.close()
+
+
 def start_scheduler():
     """Start the background scheduler. Call once at app startup."""
     global _scheduler
@@ -125,10 +181,18 @@ def start_scheduler():
         replace_existing=True,
     )
 
+    # Every 15 minutes — send OTW tech prompts for appointments starting in ~1 hour
+    _scheduler.add_job(
+        _send_otw_tech_prompts,
+        trigger=IntervalTrigger(minutes=15),
+        id="send_otw_prompts",
+        replace_existing=True,
+    )
+
     _scheduler.start()
     logger.info(
         "Background scheduler started "
-        "(recurring: daily 06:00 | reminders: every hour)"
+        "(recurring: daily 06:00 | reminders: hourly | OTW prompts: every 15 min)"
     )
 
 

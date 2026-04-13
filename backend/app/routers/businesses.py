@@ -50,6 +50,8 @@ class BusinessUpdate(BaseModel):
     ai_system_prompt: Optional[str] = None
     twilio_phone_number: Optional[str] = None
     from_email: Optional[str] = None
+    ai_response_mode: Optional[str] = None
+    google_review_url: Optional[str] = None
 
 
 class BusinessResponse(BaseModel):
@@ -67,6 +69,8 @@ class BusinessResponse(BaseModel):
     is_demo: bool
     ai_agent_name: Optional[str] = None
     from_email: Optional[str] = None
+    ai_response_mode: Optional[str] = None
+    google_review_url: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

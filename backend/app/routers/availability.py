@@ -1,9 +1,12 @@
 """Availability and appointment endpoints — scoped by business_id."""
 
+import logging
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 from app.database import get_db
 from app.models.admin_user import AdminUser
@@ -176,6 +179,11 @@ def update_appointment(
 
     update_data = body.model_dump(exclude_unset=True)
 
+    # Track whether status is changing to "completed" (triggers review request)
+    prev_status = appt.status
+    new_status = update_data.get("status")
+    becoming_completed = new_status == "completed" and prev_status != "completed"
+
     # If rescheduling, recalculate end time
     if "scheduled_start" in update_data:
         service = db.query(ServiceType).filter(ServiceType.id == appt.service_type_id).first()
@@ -188,6 +196,15 @@ def update_appointment(
 
     db.commit()
     db.refresh(appt)
+
+    # Send review request when appointment is marked completed
+    if becoming_completed:
+        try:
+            from app.services.notifications import send_review_request
+            send_review_request(db, appt)
+        except Exception as exc:
+            logger.warning("Review request failed for appt %d: %s", appt.id, exc)
+
     return appt
 
 

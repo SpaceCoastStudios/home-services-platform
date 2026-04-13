@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Save, Plus, Trash2, Copy, Check } from 'lucide-react'
+import { Save, Plus, Trash2, Copy, Check, Star } from 'lucide-react'
 import {
   getBusinessHours, updateBusinessHours,
   getBlockedTimes, createBlockedTime, deleteBlockedTime,
@@ -20,6 +20,8 @@ export default function SettingsPage() {
   const [blockForm, setBlockForm] = useState({ start_datetime: '', end_datetime: '', reason: '' })
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [reviewUrl, setReviewUrl] = useState('')
+  const [savingReviewUrl, setSavingReviewUrl] = useState(false)
 
   const load = async () => {
     if (activeBusinessId == null) return
@@ -39,6 +41,20 @@ export default function SettingsPage() {
     } catch (err) { console.error(err) }
   }
   useEffect(() => { load() }, [activeBusinessId])
+
+  // Sync review URL from business context when it loads
+  useEffect(() => {
+    setReviewUrl(activeBusiness?.google_review_url || '')
+  }, [activeBusiness])
+
+  const saveReviewUrl = async () => {
+    setSavingReviewUrl(true)
+    try {
+      await updateBusiness(activeBusinessId, { google_review_url: reviewUrl || null })
+      setMessage('Google review URL saved')
+    } catch (err) { setMessage('Error: ' + err.message) }
+    setSavingReviewUrl(false)
+  }
 
   const updateHour = (idx, field, value) => {
     setHours(h => h.map((item, i) => i === idx ? { ...item, [field]: value } : item))
@@ -242,6 +258,47 @@ export default function SettingsPage() {
               {API_BASE}/embed/{activeBusiness.slug}/contact
             </a>
           </p>
+        </section>
+      )}
+
+      {/* Review Request */}
+      {activeBusiness && (
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Star size={18} className="text-yellow-500" />
+            <h2 className="text-lg font-semibold text-gray-900">Review Requests</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            When an appointment is marked completed, the system will automatically text and email
+            the customer a review request. Paste your Google review link below to enable this feature.
+          </p>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Google Review Link</label>
+              <input
+                type="url"
+                value={reviewUrl}
+                onChange={(e) => setReviewUrl(e.target.value)}
+                placeholder="https://g.page/r/..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Find this in your Google Business Profile → Get more reviews
+              </p>
+            </div>
+            <button
+              onClick={saveReviewUrl}
+              disabled={savingReviewUrl}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+            >
+              <Save size={16} /> {savingReviewUrl ? 'Saving...' : 'Save URL'}
+            </button>
+          </div>
+          {reviewUrl && (
+            <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+              <Check size={12} /> Review requests are active
+            </p>
+          )}
         </section>
       )}
 

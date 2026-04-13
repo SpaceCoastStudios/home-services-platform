@@ -64,6 +64,13 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
             logger.warning("sms_webhook: invalid Twilio signature — rejecting")
             return Response(content=_twiml(""), media_type="application/xml", status_code=403)
 
+    # --- Check if this is a technician replying to an OTW prompt ---
+    # Do this BEFORE business lookup so we can check all businesses
+    if message_body and message_body.upper().strip() in ("YES", "Y"):
+        otw_handled = await _handle_tech_otw_reply(db, from_phone, to_phone)
+        if otw_handled:
+            return Response(content=_twiml(""), media_type="application/xml")
+
     # --- Find business by Twilio number ---
     # Normalize to E.164 (+1XXXXXXXXXX) for comparison
     business = (
@@ -90,6 +97,77 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
             )
 
     return Response(content=_twiml(reply), media_type="application/xml")
+
+
+async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
+    """
+    Check if the sender is a technician with an upcoming appointment.
+    If yes, send the customer the OTW notification and update appointment status.
+    Returns True if handled (caller should return empty TwiML).
+    """
+    from datetime import datetime, timedelta, timezone
+    from app.models.appointment import Appointment
+    from app.models.technician import Technician
+    from app.models.notification import NotificationLog
+    from app.services.notifications import send_otw_customer_notification
+
+    now = datetime.now(timezone.utc)
+
+    # Find technician by phone number across all businesses
+    tech = (
+        db.query(Technician)
+        .filter(Technician.phone == tech_phone, Technician.is_active == True)
+        .first()
+    )
+    if not tech:
+        return False
+
+    # Find the soonest upcoming appointment for this tech (starting within 2 hours)
+    window_end = now + timedelta(hours=2)
+    appt = (
+        db.query(Appointment)
+        .filter(
+            Appointment.technician_id == tech.id,
+            Appointment.scheduled_start >= now,
+            Appointment.scheduled_start <= window_end,
+            Appointment.status.notin_(["cancelled", "completed", "en_route"]),
+        )
+        .order_by(Appointment.scheduled_start.asc())
+        .first()
+    )
+    if not appt:
+        return False
+
+    # Only handle if we actually sent an OTW prompt for this appointment
+    was_prompted = (
+        db.query(NotificationLog)
+        .filter(
+            NotificationLog.appointment_id == appt.id,
+            NotificationLog.event == "otw_tech_prompt",
+            NotificationLog.status == "sent",
+        )
+        .first()
+    )
+    if not was_prompted:
+        return False
+
+    logger.info(
+        "sms_webhook: OTW reply from tech %s (id=%d) for appt %d",
+        tech.name, tech.id, appt.id,
+    )
+
+    # Mark appointment en_route
+    appt.status = "en_route"
+    db.commit()
+    db.refresh(appt)
+
+    # Notify customer
+    try:
+        send_otw_customer_notification(db, appt)
+    except Exception as exc:
+        logger.error("OTW customer notification failed for appt %d: %s", appt.id, exc)
+
+    return True
 
 
 # ---------------------------------------------------------------------------

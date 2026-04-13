@@ -291,6 +291,16 @@ def run_migrations(db):
     except Exception:
         db.rollback()  # Column already exists — safe to ignore
 
+    # Add google_review_url to businesses if it doesn't exist
+    try:
+        db.execute(text(
+            "ALTER TABLE businesses ADD COLUMN google_review_url VARCHAR(500)"
+        ))
+        db.commit()
+        logger.info("Migration: added google_review_url to businesses")
+    except Exception:
+        db.rollback()  # Column already exists — safe to ignore
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

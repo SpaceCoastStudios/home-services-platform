@@ -46,6 +46,9 @@ class Business(Base):
     #   "draft_only" — AI drafts a response but staff must approve before sending
     ai_response_mode: Mapped[str] = mapped_column(String(20), default="auto_send")
 
+    # Google review link — sent to customers after a completed appointment
+    google_review_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # Plan / status
     plan: Mapped[str] = mapped_column(String(20), default="full")
     # "full" = we host their whole site, "mini" = API/connectors only

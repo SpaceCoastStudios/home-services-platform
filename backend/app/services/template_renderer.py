@@ -89,6 +89,23 @@ def render_sms(event_type: str, db: Session, business: Business, appointment: Ap
     """Render the SMS body for a given event type."""
     _, body = _load_template(db, business.id, event_type, "sms")
     vars = _build_vars(business, appointment)
+    # Inject review link if the business has one configured
+    if hasattr(business, "google_review_url") and business.google_review_url:
+        vars["review_link"] = business.google_review_url
+    return _render(body, vars)
+
+
+def render_sms_raw(event_type: str, db: Session, business: Business, **kwargs) -> str:
+    """
+    Render an SMS template with an arbitrary token dict instead of a full
+    Appointment object.  Used for OTW prompts and other non-appointment messages.
+    """
+    _, body = _load_template(db, business.id, event_type, "sms")
+    vars = {
+        "business_name": business.name or "",
+        "business_phone": business.phone or "",
+        **kwargs,
+    }
     return _render(body, vars)
 
 
@@ -101,6 +118,9 @@ def render_email(
     """
     subject_tpl, body_tpl = _load_template(db, business.id, event_type, "email")
     vars = _build_vars(business, appointment)
+    # Inject review link if the business has one configured
+    if hasattr(business, "google_review_url") and business.google_review_url:
+        vars["review_link"] = business.google_review_url
 
     subject = _render(subject_tpl or "", vars)
     plain = _render(body_tpl or "", vars)

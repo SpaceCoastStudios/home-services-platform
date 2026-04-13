@@ -11,6 +11,7 @@ const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-700',
   confirmed: 'bg-green-100 text-green-700',
   in_progress: 'bg-blue-100 text-blue-700',
+  en_route: 'bg-purple-100 text-purple-700',
   completed: 'bg-gray-100 text-gray-600',
   cancelled: 'bg-red-100 text-red-700',
   no_show: 'bg-red-100 text-red-700',
@@ -244,7 +245,7 @@ export default function AppointmentsPage() {
       {tab === 'appointments' && (
         <>
           <div className="flex gap-2 mb-4">
-            {['', 'pending', 'confirmed', 'in_progress', 'completed', 'cancelled'].map((s) => (
+            {['', 'pending', 'confirmed', 'in_progress', 'en_route', 'completed', 'cancelled'].map((s) => (
               <button key={s} onClick={() => setFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'

@@ -1,7 +1,7 @@
 """
 Notification template endpoints — per-business editable SMS and email message copy.
 
-GET  /api/notification-templates          — return all 4 templates for a business
+GET  /api/notification-templates          — return all templates for a business
                                             (returns defaults for any not yet saved)
 PUT  /api/notification-templates          — save one or more templates (upsert)
 POST /api/notification-templates/reset    — reset all templates to platform defaults
@@ -24,6 +24,8 @@ ALL_KEYS = [
     ("confirmation", "email"),
     ("reminder_24h", "sms"),
     ("reminder_24h", "email"),
+    ("review_request", "sms"),
+    ("review_request", "email"),
 ]
 
 
@@ -76,7 +78,7 @@ def get_notification_templates(
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(get_current_user),
 ):
-    """Return all 4 templates for a business, falling back to defaults."""
+    """Return all templates for a business, falling back to defaults."""
     bid = get_business_id_for_user(current_user, business_id)
     templates = _get_templates_for_business(db, bid)
     # Also return available tokens for the UI
