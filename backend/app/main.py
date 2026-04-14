@@ -301,6 +301,26 @@ def run_migrations(db):
     except Exception:
         db.rollback()  # Column already exists — safe to ignore
 
+    # Add timezone column to businesses (used for morning kickoff "not before 7 AM" rule)
+    try:
+        db.execute(text(
+            "ALTER TABLE businesses ADD COLUMN timezone VARCHAR(60) NOT NULL DEFAULT 'America/New_York'"
+        ))
+        db.commit()
+        logger.info("Migration: added timezone to businesses")
+    except Exception:
+        db.rollback()  # Column already exists — safe to ignore
+
+    # Add route_optimization_enabled flag to businesses (deferred build — column placeholder)
+    try:
+        db.execute(text(
+            "ALTER TABLE businesses ADD COLUMN route_optimization_enabled BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        db.commit()
+        logger.info("Migration: added route_optimization_enabled to businesses")
+    except Exception:
+        db.rollback()  # Column already exists — safe to ignore
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

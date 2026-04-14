@@ -114,6 +114,28 @@ DEFAULTS: dict[tuple[str, str], dict] = {
         "subject": None,
         "body": "Got it! Reply YES when you're finished with the job.",
     },
+    # Morning kickoff — sent to the tech ~1 hour before their first appointment (never before 7 AM)
+    ("otw_morning_kickoff", "sms"): {
+        "subject": None,
+        "body": (
+            "Good morning, {{tech_name}}! You have {{appointment_count}} job(s) scheduled today. "
+            "Reply YES when you're headed to your first stop: "
+            "{{customer_name}} at {{address}}."
+        ),
+    },
+    # Next stop prompt — sent between jobs after tech marks previous job complete
+    ("otw_next_stop", "sms"): {
+        "subject": None,
+        "body": (
+            "Great work! Ready for your next stop? "
+            "Reply YES when you're headed to {{customer_name}} at {{address}}."
+        ),
+    },
+    # Day complete — sent after the tech completes their last job of the day
+    ("otw_day_complete", "sms"): {
+        "subject": None,
+        "body": "That's a wrap, {{tech_name}}! Great work today. Enjoy your evening! \U0001f31f",
+    },
 }
 
 # Available tokens per event type — shown in the dashboard UI
@@ -126,6 +148,13 @@ TOKENS = {
         ("{{business_phone}}", "Business phone number"),
         ("{{address}}", "Appointment address"),
         ("{{technician_name}}", "Assigned technician"),
+    ],
+    "otw_morning_kickoff": [
+        ("{{tech_name}}", "Technician's first name"),
+        ("{{appointment_count}}", "Number of jobs scheduled today"),
+    ],
+    "otw_day_complete": [
+        ("{{tech_name}}", "Technician's first name"),
     ],
     "confirmation": [
         ("{{calendar_link}}", "Add-to-calendar link (email/SMS)"),

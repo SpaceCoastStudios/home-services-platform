@@ -195,12 +195,13 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
     if not appt:
         return False
 
-    # Only handle if we actually sent an OTW prompt for this appointment
+    # Only handle if we actually sent an OTW prompt OR a morning kickoff for this appointment
+    # (both types prompt the tech to reply YES before heading to a stop)
     was_otw_prompted = (
         db.query(NotificationLog)
         .filter(
             NotificationLog.appointment_id == appt.id,
-            NotificationLog.event == "otw_tech_prompt",
+            NotificationLog.event.in_(["otw_tech_prompt", "otw_morning_kickoff", "otw_next_stop"]),
             NotificationLog.status == "sent",
         )
         .first()
@@ -400,38 +401,72 @@ def _get_convo_or_404(db: Session, convo_id: int, business_id: int) -> SmsConver
 
 def _send_next_otw_if_due(db, tech, now) -> None:
     """
-    After a tech completes a job, check if they have an upcoming appointment
-    within the next 2 hours that never received an OTW prompt (because the
-    scheduler skipped it while the previous job was still en_route).
-    If found, send the OTW prompt immediately so the thread flows seamlessly.
+    After a tech completes a job, determine what to send next:
+
+    - If there is another appointment remaining today → send "otw_next_stop"
+      ("Great work! Ready for your next stop? Reply YES when you're headed to …")
+    - If no more appointments remain today → send "otw_day_complete"
+      ("That's a wrap! Great work today. Enjoy your evening! 🌟")
+
+    For the next-stop path we also skip the appointment if an OTW prompt was
+    already sent by the scheduler (shouldn't happen when jobs are back-to-back,
+    but it's a safety guard).
     """
     from datetime import timedelta
     from app.models.appointment import Appointment
     from app.models.notification import NotificationLog
-    from app.services.notifications import send_otw_tech_prompt
+    from app.services.notifications import (
+        send_otw_next_stop,
+        send_otw_day_complete,
+    )
 
-    window_end = now + timedelta(hours=2)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    today_end   = today_start + timedelta(days=1)
 
-    next_appt = (
+    # All remaining appointments for this tech today (not yet completed/cancelled)
+    remaining = (
         db.query(Appointment)
         .filter(
             Appointment.technician_id == tech.id,
             Appointment.scheduled_start >= now,
-            Appointment.scheduled_start <= window_end,
+            Appointment.scheduled_start < today_end,
             Appointment.status.notin_(["cancelled", "completed", "en_route"]),
         )
         .order_by(Appointment.scheduled_start.asc())
-        .first()
+        .all()
     )
-    if not next_appt:
+
+    if not remaining:
+        # No more jobs today — send the day-complete message
+        # Use the last completed appointment as the anchor for the notification log
+        last_appt = (
+            db.query(Appointment)
+            .filter(
+                Appointment.technician_id == tech.id,
+                Appointment.scheduled_start >= today_start,
+                Appointment.scheduled_start < today_end,
+                Appointment.status == "completed",
+            )
+            .order_by(Appointment.scheduled_start.desc())
+            .first()
+        )
+        if last_appt:
+            business = last_appt.business
+            logger.info(
+                "sms_webhook: sending day-complete to tech %s (id=%d)",
+                tech.name, tech.id,
+            )
+            send_otw_day_complete(db, tech, business, last_appt)
         return
 
-    # Only send if no OTW prompt has gone out for this appointment yet
+    next_appt = remaining[0]
+
+    # Skip if an OTW prompt of any kind was already sent for this appointment
     already_prompted = (
         db.query(NotificationLog)
         .filter(
             NotificationLog.appointment_id == next_appt.id,
-            NotificationLog.event == "otw_tech_prompt",
+            NotificationLog.event.in_(["otw_tech_prompt", "otw_morning_kickoff", "otw_next_stop"]),
         )
         .first()
     )
@@ -439,10 +474,10 @@ def _send_next_otw_if_due(db, tech, now) -> None:
         return
 
     logger.info(
-        "sms_webhook: sending next OTW prompt to tech %s (id=%d) for appt %d",
+        "sms_webhook: sending next-stop prompt to tech %s (id=%d) for appt %d",
         tech.name, tech.id, next_appt.id,
     )
-    send_otw_tech_prompt(db, next_appt)
+    send_otw_next_stop(db, next_appt, tech)
 
 
 def _serialize_convo(convo: SmsConversation, include_messages: bool = False) -> dict:

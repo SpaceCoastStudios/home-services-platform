@@ -20,6 +20,12 @@ const EVENT_LABELS = {
   confirmation: 'Booking Confirmation',
   reminder_24h: '24-Hour Reminder',
   review_request: 'Review Request',
+  otw_tech_prompt: 'OTW — Tech Prompt (1 hr before)',
+  otw_customer: 'OTW — Customer Notification',
+  otw_tech_complete_prompt: 'OTW — Job Complete Prompt',
+  otw_morning_kickoff: 'OTW — Morning Kickoff',
+  otw_next_stop: 'OTW — Next Stop',
+  otw_day_complete: 'OTW — Day Complete',
 }
 
 const CHANNEL_LABELS = {
@@ -268,6 +274,12 @@ export default function NotificationTemplatesPage() {
     { key: 'confirmation', label: 'Booking Confirmation', icon: '✅' },
     { key: 'reminder_24h', label: '24-Hour Reminder', icon: '⏰' },
     { key: 'review_request', label: 'Review Request', icon: '⭐' },
+    { key: 'otw_morning_kickoff', label: 'OTW — Morning Kickoff', icon: '🌅' },
+    { key: 'otw_tech_prompt', label: 'OTW — Tech Prompt (1 hr before)', icon: '🚗' },
+    { key: 'otw_customer', label: 'OTW — Customer Notification', icon: '📲' },
+    { key: 'otw_tech_complete_prompt', label: 'OTW — Job Complete Prompt', icon: '🔧' },
+    { key: 'otw_next_stop', label: 'OTW — Next Stop', icon: '➡️' },
+    { key: 'otw_day_complete', label: 'OTW — Day Complete', icon: '🌟' },
   ]
 
   return (
@@ -354,7 +366,13 @@ export default function NotificationTemplatesPage() {
             Available Tokens
           </h3>
           <div className="grid gap-1.5 sm:grid-cols-2">
-            {[...(tokens.all || []), ...(tokens.confirmation || []), ...(tokens.review_request || [])].map(([tok, lbl]) => (
+            {[
+              ...(tokens.all || []),
+              ...(tokens.confirmation || []),
+              ...(tokens.review_request || []),
+              ...(tokens.otw_morning_kickoff || []),
+              ...(tokens.otw_day_complete || []),
+            ].map(([tok, lbl]) => (
               <div key={tok} className="flex items-center gap-2 text-xs text-gray-600">
                 <span className="font-mono bg-white border border-gray-200 rounded px-1.5 py-0.5 text-blue-700 shrink-0">
                   {tok}

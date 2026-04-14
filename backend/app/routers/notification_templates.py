@@ -26,6 +26,13 @@ ALL_KEYS = [
     ("reminder_24h", "email"),
     ("review_request", "sms"),
     ("review_request", "email"),
+    # OTW / tech flow templates
+    ("otw_tech_prompt", "sms"),
+    ("otw_customer", "sms"),
+    ("otw_tech_complete_prompt", "sms"),
+    ("otw_morning_kickoff", "sms"),
+    ("otw_next_stop", "sms"),
+    ("otw_day_complete", "sms"),
 ]
 
 

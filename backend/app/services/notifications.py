@@ -311,3 +311,127 @@ def send_otw_customer_notification(db, appointment) -> bool:
 
     logger.info("OTW customer notification %s → %s for appt %d", "sent" if ok else "failed", customer.phone, appointment.id)
     return ok
+
+
+def send_otw_morning_kickoff(db, appointment, tech, appointment_count: int) -> bool:
+    """
+    Send the morning kickoff SMS to a technician ~1 hour before their first appointment.
+    Greets them by name, tells them how many jobs they have, and prompts them to reply
+    YES when heading to their first stop.
+
+    Never called before 07:00 business local time — enforced in the scheduler.
+    Idempotency is handled by the caller checking notification_logs before calling.
+    """
+    from app.models.notification import NotificationLog
+    from app.services.template_renderer import render_sms_raw
+
+    business = appointment.business
+
+    if not tech or not tech.phone:
+        logger.warning("Morning kickoff skipped — no tech phone for appt %d", appointment.id)
+        return False
+
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
+
+    body = render_sms_raw(
+        "otw_morning_kickoff", db, business,
+        tech_name=tech.first_name or tech.full_name or "there",
+        appointment_count=str(appointment_count),
+        customer_name=appointment.customer.full_name if appointment.customer else "your customer",
+        address=appointment.address or (appointment.customer.address if appointment.customer else "the job site"),
+    )
+
+    ok = send_sms(tech.phone, body, from_number=twilio_from)
+
+    db.add(NotificationLog(
+        appointment_id=appointment.id,
+        type="sms",
+        event="otw_morning_kickoff",
+        sent_at=datetime.now(timezone.utc),
+        status="sent" if ok else "failed",
+    ))
+    db.commit()
+
+    logger.info(
+        "Morning kickoff %s → tech %s (%d jobs) for appt %d",
+        "sent" if ok else "failed", tech.phone, appointment_count, appointment.id,
+    )
+    return ok
+
+
+def send_otw_next_stop(db, appointment, tech) -> bool:
+    """
+    Send a "Great work! Ready for your next stop?" prompt between jobs.
+    Called by _send_next_otw_if_due() after the tech marks a job complete
+    and there are more appointments remaining today.
+    """
+    from app.models.notification import NotificationLog
+    from app.services.template_renderer import render_sms_raw
+
+    business = appointment.business
+
+    if not tech or not tech.phone:
+        logger.warning("Next stop prompt skipped — no tech phone for appt %d", appointment.id)
+        return False
+
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
+
+    body = render_sms_raw(
+        "otw_next_stop", db, business,
+        customer_name=appointment.customer.full_name if appointment.customer else "your customer",
+        address=appointment.address or (appointment.customer.address if appointment.customer else "the job site"),
+    )
+
+    ok = send_sms(tech.phone, body, from_number=twilio_from)
+
+    db.add(NotificationLog(
+        appointment_id=appointment.id,
+        type="sms",
+        event="otw_next_stop",
+        sent_at=datetime.now(timezone.utc),
+        status="sent" if ok else "failed",
+    ))
+    db.commit()
+
+    logger.info(
+        "Next stop prompt %s → tech %s for appt %d",
+        "sent" if ok else "failed", tech.phone, appointment.id,
+    )
+    return ok
+
+
+def send_otw_day_complete(db, tech, business, last_appointment) -> bool:
+    """
+    Send "That's a wrap!" after the technician completes their last job of the day.
+    Called by _send_next_otw_if_due() when no more appointments remain today.
+    """
+    from app.models.notification import NotificationLog
+    from app.services.template_renderer import render_sms_raw
+
+    if not tech or not tech.phone:
+        logger.warning("Day complete message skipped — no tech phone")
+        return False
+
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
+
+    body = render_sms_raw(
+        "otw_day_complete", db, business,
+        tech_name=tech.first_name or tech.full_name or "there",
+    )
+
+    ok = send_sms(tech.phone, body, from_number=twilio_from)
+
+    db.add(NotificationLog(
+        appointment_id=last_appointment.id,
+        type="sms",
+        event="otw_day_complete",
+        sent_at=datetime.now(timezone.utc),
+        status="sent" if ok else "failed",
+    ))
+    db.commit()
+
+    logger.info(
+        "Day complete message %s → tech %s",
+        "sent" if ok else "failed", tech.phone,
+    )
+    return ok

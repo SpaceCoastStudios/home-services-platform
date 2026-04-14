@@ -49,6 +49,15 @@ class Business(Base):
     # Google review link — sent to customers after a completed appointment
     google_review_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Timezone — used for scheduling logic (e.g. kickoff "not before 7 AM")
+    # Should be a valid pytz timezone string, e.g. "America/New_York"
+    timezone: Mapped[str | None] = mapped_column(String(60), nullable=True, default="America/New_York")
+
+    # Feature flags
+    # When True, appointments will eventually be sorted geographically for each tech's
+    # daily route. Build is deferred — toggle exists so the column is ready in the DB.
+    route_optimization_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Plan / status
     plan: Mapped[str] = mapped_column(String(20), default="full")
     # "full" = we host their whole site, "mini" = API/connectors only

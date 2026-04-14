@@ -52,6 +52,8 @@ class BusinessUpdate(BaseModel):
     from_email: Optional[str] = None
     ai_response_mode: Optional[str] = None
     google_review_url: Optional[str] = None
+    timezone: Optional[str] = None
+    route_optimization_enabled: Optional[bool] = None
 
 
 class BusinessResponse(BaseModel):
@@ -71,6 +73,8 @@ class BusinessResponse(BaseModel):
     from_email: Optional[str] = None
     ai_response_mode: Optional[str] = None
     google_review_url: Optional[str] = None
+    timezone: Optional[str] = None
+    route_optimization_enabled: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}
