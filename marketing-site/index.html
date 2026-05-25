@@ -971,17 +971,17 @@
                 </select>
               </div>
 
-              <!-- SMS Consent — required by TCPA / A2P 10DLC carriers -->
+              <!-- SMS Consent — optional; must NOT be a required condition per TCPA / A2P 10DLC rules -->
               <div class="wf-group full">
                 <div class="sms-consent-wrap">
                   <label class="sms-consent-lbl" for="wf-sms-consent">
-                    <input type="checkbox" id="wf-sms-consent" required />
+                    <input type="checkbox" id="wf-sms-consent" />
                     <span>
-                      By providing my phone number, I agree to receive SMS messages from Space Coast Studios, including appointment confirmations, reminders, and service-related notifications. Msg &amp; data rates may apply. Reply STOP to opt out at any time. Reply HELP for help.
+                      <strong>(Optional)</strong> I agree to receive SMS messages from Space Coast Studios, including appointment confirmations, reminders, and service-related notifications. Msg &amp; data rates may apply. Reply STOP to opt out at any time. Reply HELP for help.
                       View our <a href="https://spacecoaststudios.com/terms" target="_blank">Terms</a> and <a href="https://spacecoaststudios.com/privacy" target="_blank">Privacy Policy</a>.
+                      <em>SMS consent is not required to submit this form or receive service.</em>
                     </span>
                   </label>
-                  <div id="wf-consent-err" class="consent-err">Please agree to receive SMS messages to continue.</div>
                 </div>
               </div>
             </div>
@@ -1080,7 +1080,6 @@
       const phone        = document.getElementById('wf-phone').value.trim();
       const industry     = document.getElementById('wf-industry').value;
       const consentBox   = document.getElementById('wf-sms-consent');
-      const consentErr   = document.getElementById('wf-consent-err');
       const formErr      = document.getElementById('wf-form-err');
       const submitBtn    = demoForm.querySelector('.wf-submit');
 
@@ -1091,14 +1090,7 @@
       }
       formErr.style.display = 'none';
 
-      // Validate SMS consent — required for TCPA / A2P 10DLC compliance
-      if (!consentBox.checked) {
-        consentErr.style.display = 'block';
-        consentBox.closest('.sms-consent-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
-      consentErr.style.display = 'none';
-
+      // SMS consent is optional — form submits regardless; sms_consent flag passed to backend
       submitBtn.textContent = 'Sending…';
       submitBtn.disabled = true;
 
@@ -1119,7 +1111,7 @@
             phone: phone || null,
             service_requested: industry || 'Demo Request',
             message,
-            sms_consent: true,
+            sms_consent: consentBox.checked,
           }),
         });
 
