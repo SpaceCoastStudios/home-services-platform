@@ -18,6 +18,24 @@ logger = logging.getLogger(__name__)
 
 # ── SMS via Twilio ─────────────────────────────────────────────────────────────
 
+def _normalize_phone(number: str) -> str:
+    """
+    Normalize a phone number to E.164 format for Twilio.
+    Handles 10-digit US numbers (5055551234 → +15055551234),
+    11-digit numbers starting with 1 (15055551234 → +15055551234),
+    and numbers already in E.164 format (+15055551234 → unchanged).
+    Strips spaces, dashes, dots, and parentheses before processing.
+    """
+    digits = "".join(c for c in number if c.isdigit())
+    if number.startswith("+"):
+        return number  # Already E.164 — leave as-is
+    if len(digits) == 10:
+        return f"+1{digits}"
+    if len(digits) == 11 and digits.startswith("1"):
+        return f"+{digits}"
+    return number  # Unknown format — pass through and let Twilio error
+
+
 def send_sms(to_number: str, body: str, from_number: str | None = None) -> bool:
     """Send an SMS. Returns True on success, False on failure."""
     if not all([settings.TWILIO_ACCOUNT_SID,
@@ -27,6 +45,7 @@ def send_sms(to_number: str, body: str, from_number: str | None = None) -> bool:
         return False
 
     from_num = from_number or settings.TWILIO_PHONE_NUMBER
+    to_e164 = _normalize_phone(to_number)
 
     try:
         from twilio.rest import Client
@@ -34,12 +53,12 @@ def send_sms(to_number: str, body: str, from_number: str | None = None) -> bool:
         client.messages.create(
             body=body,
             from_=from_num,
-            to=to_number,
+            to=to_e164,
         )
-        logger.info("SMS sent to %s from %s", to_number, from_num)
+        logger.info("SMS sent to %s from %s", to_e164, from_num)
         return True
     except Exception as e:
-        logger.error("SMS failed to %s: %s", to_number, e)
+        logger.error("SMS failed to %s: %s", to_e164, e)
         return False
 
 
