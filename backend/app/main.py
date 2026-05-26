@@ -321,6 +321,18 @@ def run_migrations(db):
     except Exception:
         db.rollback()  # Column already exists — safe to ignore
 
+    # Add city and state columns to customers
+    for col_sql in [
+        "ALTER TABLE customers ADD COLUMN city VARCHAR(100)",
+        "ALTER TABLE customers ADD COLUMN state VARCHAR(50)",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()  # Column already exists — safe to ignore
+    logger.info("Migration: customers city/state columns ready")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

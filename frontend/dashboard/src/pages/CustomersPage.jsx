@@ -8,7 +8,7 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState([])
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', email: '', address: '', zip_code: '' })
+  const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', email: '', address: '', city: '', state: '', zip_code: '' })
   const [error, setError] = useState('')
 
   const load = async () => {
@@ -24,7 +24,7 @@ export default function CustomersPage() {
     try {
       await createCustomer(form, activeBusinessId)
       setShowCreate(false)
-      setForm({ first_name: '', last_name: '', phone: '', email: '', address: '', zip_code: '' })
+      setForm({ first_name: '', last_name: '', phone: '', email: '', address: '', city: '', state: '', zip_code: '' })
       load()
     } catch (err) { setError(err.message) }
   }
@@ -73,7 +73,9 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 text-sm font-medium">{c.first_name} {c.last_name}</td>
                   <td className="px-6 py-4 text-sm">{c.phone}</td>
                   <td className="px-6 py-4 text-sm text-gray-500">{c.email || '—'}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{c.address || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">
+                    {[c.address, c.city, c.state, c.zip_code].filter(Boolean).join(', ') || '—'}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
@@ -110,8 +112,18 @@ export default function CustomersPage() {
                 <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="123 Main St" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                  <input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="FL" maxLength={2} />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>

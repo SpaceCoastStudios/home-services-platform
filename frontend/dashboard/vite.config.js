@@ -6,11 +6,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/contact': 'http://localhost:8000',
-      '/cal': 'http://localhost:8000',
-      '/voice': 'http://localhost:8000',
-      '/chat': 'http://localhost:8000',
+      '/api': 'https://api.spacecoaststudios.com',
+      '/contact': 'https://api.spacecoaststudios.com',
+      '/cal': 'https://api.spacecoaststudios.com',
+      '/voice': 'https://api.spacecoaststudios.com',
+      '/chat': 'https://api.spacecoaststudios.com',
     },
   },
 })

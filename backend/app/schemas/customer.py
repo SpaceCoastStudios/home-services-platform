@@ -11,6 +11,8 @@ class CustomerCreate(BaseModel):
     phone: str
     email: Optional[EmailStr] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
     zip_code: Optional[str] = None
     notes: Optional[str] = None
 
@@ -21,6 +23,8 @@ class CustomerUpdate(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
     zip_code: Optional[str] = None
     notes: Optional[str] = None
 
@@ -32,6 +36,8 @@ class CustomerResponse(BaseModel):
     phone: str
     email: Optional[str] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
     zip_code: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
