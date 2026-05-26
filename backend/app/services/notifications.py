@@ -84,6 +84,62 @@ def _format_appointment_time(dt: datetime) -> str:
     return dt.strftime("%A, %B %-d at %-I:%M %p")
 
 
+def send_confirmation(db, appointment) -> dict:
+    """
+    Send an immediate booking confirmation to the customer via SMS and/or email.
+    Called right after an appointment is created.
+
+    Returns {"sms": "sent"|"failed"|"skipped", "email": "sent"|"failed"|"skipped"}
+    """
+    from app.models.notification import NotificationLog
+    from app.services.template_renderer import render_sms, render_email
+
+    customer = appointment.customer
+    business = appointment.business
+    results = {}
+
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
+
+    # ── SMS ────────────────────────────────────────────────────────────────────
+    if customer and customer.phone:
+        sms_body = render_sms("confirmation", db, business, appointment)
+        sms_ok = send_sms(customer.phone, sms_body, from_number=twilio_from)
+        sms_status = "sent" if sms_ok else "failed"
+        results["sms"] = sms_status
+
+        db.add(NotificationLog(
+            appointment_id=appointment.id,
+            type="sms",
+            event="confirmation",
+            sent_at=datetime.now(timezone.utc),
+            status=sms_status,
+        ))
+    else:
+        results["sms"] = "skipped"
+
+    # ── Email ──────────────────────────────────────────────────────────────────
+    if customer and customer.email:
+        subject, plain, html = render_email("confirmation", db, business, appointment)
+        email_ok = send_email(customer.email, subject, html, plain)
+        email_status = "sent" if email_ok else "failed"
+        results["email"] = email_status
+
+        db.add(NotificationLog(
+            appointment_id=appointment.id,
+            type="email",
+            event="confirmation",
+            sent_at=datetime.now(timezone.utc),
+            status=email_status,
+        ))
+    else:
+        results["email"] = "skipped"
+
+    db.commit()
+    logger.info("Confirmation sent for appt %d — SMS: %s, Email: %s",
+                appointment.id, results.get("sms"), results.get("email"))
+    return results
+
+
 def send_reminder(db, appointment) -> dict:
     """
     Send a 24-hour reminder for a single appointment via SMS and/or email.

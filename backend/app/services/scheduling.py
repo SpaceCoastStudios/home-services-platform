@@ -1,5 +1,6 @@
 """Scheduling engine — availability calculation and appointment booking, scoped by business_id."""
 
+import pytz
 from datetime import datetime, date, time, timedelta, timezone
 from typing import Optional
 
@@ -8,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.models.appointment import Appointment
 from app.models.blocked_time import BlockedTime
+from app.models.business import Business
 from app.models.business_hours import BusinessHours
 from app.models.service_type import ServiceType
 from app.models.system_settings import SystemSetting
@@ -104,7 +106,15 @@ def get_available_slots(
     if not qualified_techs:
         return []
 
-    # 4. Iterate each day in range
+    # 4. Look up business timezone for correct local-time slot generation
+    business = db.query(Business).filter(Business.id == business_id).first()
+    biz_tz_str = (getattr(business, "timezone", None) or "America/New_York") if business else "America/New_York"
+    try:
+        biz_tz = pytz.timezone(biz_tz_str)
+    except Exception:
+        biz_tz = pytz.utc
+
+    # 5. Iterate each day in range
     results = []
     current_date = start_date
     now = datetime.now(timezone.utc)
@@ -117,8 +127,9 @@ def get_available_slots(
             current_date += timedelta(days=1)
             continue
 
-        day_start = datetime.combine(current_date, bh.open_time, tzinfo=timezone.utc)
-        day_end = datetime.combine(current_date, bh.close_time, tzinfo=timezone.utc)
+        # Combine business-hours times with the business's LOCAL timezone, then convert to UTC
+        day_start = biz_tz.localize(datetime.combine(current_date, bh.open_time)).astimezone(timezone.utc)
+        day_end = biz_tz.localize(datetime.combine(current_date, bh.close_time)).astimezone(timezone.utc)
 
         # Get business-wide blocked times for this tenant/day
         business_blocks = (

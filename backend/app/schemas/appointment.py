@@ -1,7 +1,7 @@
 """Appointment request/response schemas."""
 
-from datetime import datetime, date
-from pydantic import BaseModel
+from datetime import datetime, date, timezone
+from pydantic import BaseModel, field_validator
 from typing import Optional
 
 
@@ -45,6 +45,14 @@ class AppointmentResponse(BaseModel):
     service_name: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("scheduled_start", "scheduled_end", "created_at", "updated_at", mode="before")
+    @classmethod
+    def ensure_utc(cls, v):
+        """Naive datetimes from the DB are UTC — tag them so the browser converts correctly."""
+        if isinstance(v, datetime) and v.tzinfo is None:
+            return v.replace(tzinfo=timezone.utc)
+        return v
 
 
 class AvailabilityRequest(BaseModel):

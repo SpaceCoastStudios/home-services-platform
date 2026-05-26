@@ -157,6 +157,14 @@ def create_appointment(
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
+
+    # Send booking confirmation SMS/email to customer
+    try:
+        from app.services.notifications import send_confirmation
+        send_confirmation(db, appointment)
+    except Exception as exc:
+        logger.warning("Confirmation notification failed for appt %d: %s", appointment.id, exc)
+
     return appointment
 
 
