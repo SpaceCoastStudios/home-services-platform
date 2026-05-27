@@ -948,7 +948,10 @@ $result.url  # open in browser — $2 total, refund immediately after
 - `GET /api/businesses/me` — business admin self-service endpoint
 - `PUT /api/businesses/{id}` opened to business admins (with protected field list)
 - Full platform audit: marketing site cleanup (removed placeholder phone, fixed API_URL ordering, clarified founding offer renewal prices, fixed error email), README synced with all new features
-- Documentation consolidated: all .md files merged into single CLAUDE.md, `HomeServices_Architecture_Plan.md` archived
+- Documentation consolidated: all .md files merged into single CLAUDE.md, `HomeServices_Architecture_Plan.md` archived to `docs/archive/`, `SCS_PROJECT_CONTEXT.md` deleted
+- Stripe prices verified: confirmed all four standard price IDs in README/billing.py match actual amounts in Stripe dashboard ($1,997 setup, $249/mo, $2,997 setup, $399/mo)
+- Scheduled task `scs-context-update` updated: now targets CLAUDE.md (was SCS_PROJECT_CONTEXT.md), section references corrected, added limitation warning explaining it only captures git commits — non-code events (A2P status, attorney responses, client signups) require manual input
+- End-of-session habit established: say "Update CLAUDE.md with everything that happened today" to capture the full session, or "Update CLAUDE.md — [specific event]" for non-code updates (e.g. A2P approved, client signed)
 
 ### Pending Monitoring Items
 - **A2P approval:** 5th submission under review. Check Twilio Console → Regulatory Compliance for status updates.
