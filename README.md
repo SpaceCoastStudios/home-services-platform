@@ -4,6 +4,43 @@ Multi-tenant home services scheduling, dispatch, and notifications platform buil
 
 ---
 
+## Pricing Tiers
+
+### Starter — $1,997 setup + $249/month
+- AI-powered contact form responder
+- Embeddable contact form widget
+- Dedicated booking request page (shareable link)
+- Up to 3 service types
+- Up to 5 technicians
+- Email confirmations & reminders
+- Admin dashboard
+- Email support (2-business-day response)
+
+### Professional — $2,997 setup + $399/month
+- Everything in Starter, plus:
+- Unlimited service types & technicians
+- Self-scheduling booking widget (live calendar availability)
+- SMS booking agent (text-to-book)
+- SMS confirmations, reminders & alerts
+- On The Way technician notifications
+- Automated Google review requests
+- Emergency dispatch with on-call management
+- Recurring appointment scheduling
+- Custom AI persona & branding
+- Priority support (next-business-day response)
+- Monthly check-in call
+
+### Founding Client Offer (Limited Time / Introductory)
+- **Starter:** $497 setup + $99/month for first 3 months (then $249/month)
+- **Professional:** $997 setup + $199/month for first 3 months (then $399/month)
+
+### Stripe Configuration
+- Publishable key: `pk_live_51TM7kZ2MJMR8rAcZ2jSBcduwtelYsLikfR9OsPACEOypphYntZ1MmdpSK7lFdMb8egcatVty5vL5h4SiB2X7sc2n00HqCzzbqd`
+- Secret key: stored in DigitalOcean API component env vars as `STRIPE_SECRET_KEY`
+- Webhook secret: stored as `STRIPE_WEBHOOK_SECRET` (set after webhook endpoint created)
+
+---
+
 ## Infrastructure
 
 ### Hosting
@@ -133,3 +170,5 @@ npm run dev   # runs on localhost:5173, proxies /api to api.spacecoaststudios.co
 | `ANTHROPIC_API_KEY` | Claude API key (AI agent) |
 | `BASE_URL` | Public API base URL |
 | `ALLOWED_ORIGINS` | CORS origins (comma-separated) |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
