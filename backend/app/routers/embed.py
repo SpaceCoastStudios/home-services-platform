@@ -227,6 +227,42 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       font-size: 14px;
     }}
 
+    .sms-consent-group {{
+      margin-top: 4px;
+    }}
+
+    .sms-consent-label {{
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #4b5563;
+      line-height: 1.6;
+      font-weight: 400;
+    }}
+
+    .sms-consent-label input[type="checkbox"] {{
+      width: 16px;
+      min-width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      accent-color: {brand_color};
+      cursor: pointer;
+    }}
+
+    .sms-consent-label a {{
+      color: {brand_color};
+      text-decoration: underline;
+    }}
+
+    .consent-error {{
+      font-size: 12px;
+      color: #dc2626;
+      margin-top: 4px;
+      margin-left: 26px;
+    }}
+
     @media (max-width: 480px) {{
       .form-grid {{ grid-template-columns: 1fr; }}
       .form-group.full {{ grid-column: 1; }}
@@ -286,13 +322,25 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       </div>
 
       <div class="form-group full">
-        <button type="submit" class="submit-btn" id="submitBtn">Send Message</button>
+        <div class="sms-consent-group">
+          <label class="sms-consent-label">
+            <input type="checkbox" id="smsConsent" name="sms_consent" required />
+            <span>
+              I agree to receive SMS messages from {business_name}, including appointment
+              confirmations, reminders, and service-related notifications. Msg &amp; data
+              rates may apply. Reply STOP to opt out at any time. Reply HELP for help.
+              View our <a href="https://spacecoaststudios.com/terms" target="_blank" rel="noopener">Terms</a>
+              and <a href="https://spacecoaststudios.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+            </span>
+          </label>
+          <div id="consentError" class="consent-error" style="display:none;">
+            Please agree to receive SMS messages to continue.
+          </div>
+        </div>
       </div>
 
       <div class="form-group full">
-        <p style="font-size:11px; color:#9ca3af; line-height:1.5; margin-top:4px;">
-          By submitting this form and providing your phone number, you consent to receive SMS messages from {business_name} including appointment confirmations, reminders, and service-related notifications. Msg &amp; data rates may apply. Reply STOP to opt out at any time.
-        </p>
+        <button type="submit" class="submit-btn" id="submitBtn">Send Message</button>
       </div>
 
     </div>
@@ -307,6 +355,15 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
 
       const btn       = document.getElementById("submitBtn");
       const errorAlert = document.getElementById("errorAlert");
+
+      // Validate SMS consent checkbox
+      const consentBox   = document.getElementById("smsConsent");
+      const consentError = document.getElementById("consentError");
+      if (!consentBox.checked) {{
+        consentError.style.display = "block";
+        return;
+      }}
+      consentError.style.display = "none";
 
       btn.disabled    = true;
       btn.textContent = "Sending…";

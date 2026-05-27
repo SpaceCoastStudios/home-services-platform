@@ -58,7 +58,7 @@ def create_price(product_id, amount_cents, currency="usd", recurring=None, nickn
     if nickname:
         kwargs["nickname"] = nickname
     price = stripe.Price.create(**kwargs)
-    print(f"    Price: {price.nickname or price.id}  →  ${amount_cents/100:,.2f}"
+    print(f"    Price: {price.nickname or price.id}  =>  ${amount_cents/100:,.2f}"
           + (" /month" if recurring else " one-time")
           + f"  [ID: {price.id}]")
     return price

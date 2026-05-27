@@ -27,6 +27,7 @@ from app.utils.auth import hash_password
 from app.routers import (
     admin,
     auth,
+    billing,
     customers,
     services,
     technicians,
@@ -334,6 +335,34 @@ def run_migrations(db):
             db.rollback()  # Column already exists — safe to ignore
     logger.info("Migration: customers city/state columns ready")
 
+    # Stripe billing fields on businesses
+    for col_sql in [
+        "ALTER TABLE businesses ADD COLUMN stripe_customer_id VARCHAR(100) UNIQUE",
+        "ALTER TABLE businesses ADD COLUMN stripe_subscription_id VARCHAR(100)",
+        "ALTER TABLE businesses ADD COLUMN subscription_tier VARCHAR(20)",
+        "ALTER TABLE businesses ADD COLUMN subscription_status VARCHAR(20)",
+        "ALTER TABLE businesses ADD COLUMN subscription_period_end TIMESTAMP",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()
+    logger.info("Migration: businesses Stripe billing columns ready")
+
+    # Password reset + email fields on admin_users
+    for col_sql in [
+        "ALTER TABLE admin_users ADD COLUMN email VARCHAR(255)",
+        "ALTER TABLE admin_users ADD COLUMN password_reset_token VARCHAR(128)",
+        "ALTER TABLE admin_users ADD COLUMN password_reset_expires TIMESTAMP",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()
+    logger.info("Migration: admin_users password reset columns ready")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -375,6 +404,7 @@ app.add_middleware(
 # Register routers
 app.include_router(admin.router)
 app.include_router(auth.router)
+app.include_router(billing.router)
 app.include_router(businesses.router)   # Platform admin: manage tenants
 app.include_router(customers.router)
 app.include_router(services.router)

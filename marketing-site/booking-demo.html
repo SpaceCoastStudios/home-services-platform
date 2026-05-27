@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Widget Demo — Space Coast Studios</title>
+  <meta name="description" content="See how the Space Coast Studios booking widget looks on your website — including SMS opt-in consent." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0f172a;
+      --navy2:  #1e293b;
+      --orange: #f97316;
+      --slate:  #64748b;
+      --light:  #f8fafc;
+      --white:  #ffffff;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--navy);
+      background: var(--light);
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--navy);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      color: var(--white);
+      font-weight: 800;
+      font-size: 18px;
+      text-decoration: none;
+    }
+
+    .nav-brand span { color: var(--orange); }
+
+    .nav-back {
+      color: #94a3b8;
+      font-size: 14px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+
+    .nav-back:hover { color: var(--white); }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--navy);
+      padding: 56px 32px 48px;
+      text-align: center;
+      border-bottom: 3px solid var(--orange);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(249,115,22,0.15);
+      color: var(--orange);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 100px;
+      border: 1px solid rgba(249,115,22,0.3);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 14px;
+      line-height: 1.2;
+    }
+
+    .hero h1 span { color: var(--orange); }
+
+    .hero p {
+      color: #94a3b8;
+      font-size: 16px;
+      max-width: 580px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Demo layout ── */
+    .demo-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 56px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .demo-section { grid-template-columns: 1fr; }
+    }
+
+    /* ── Info column ── */
+    .info-col h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .info-col p {
+      color: var(--slate);
+      font-size: 15px;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--navy2);
+      line-height: 1.6;
+    }
+
+    .feature-list li .icon {
+      font-size: 16px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .consent-callout {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 4px solid var(--orange);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+
+    .consent-callout h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .consent-callout p {
+      font-size: 13px;
+      color: #92400e;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* ── Widget column ── */
+    .widget-col {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .widget-header {
+      background: #2563eb;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .widget-header .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+    }
+
+    .widget-header span {
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    /* ── Form inside widget ── */
+    .widget-body {
+      padding: 20px;
+    }
+
+    .form-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    label .required { color: #ef4444; margin-left: 2px; }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 8px 11px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #111827;
+      background: #fff;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .contact-method-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .contact-method-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 400;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .contact-method-group input[type="radio"] {
+      width: auto;
+      accent-color: #2563eb;
+    }
+
+    /* ── SMS Consent checkbox ── */
+    .sms-consent-group {
+      margin-top: 2px;
+    }
+
+    .sms-consent-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 11.5px;
+      color: #4b5563;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .sms-consent-label input[type="checkbox"] {
+      width: 15px;
+      min-width: 15px;
+      height: 15px;
+      margin-top: 2px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .sms-consent-label a {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+
+    .consent-error {
+      font-size: 11px;
+      color: #dc2626;
+      margin-top: 4px;
+      margin-left: 25px;
+      display: none;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      font-family: inherit;
+    }
+
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .success-state {
+      text-align: center;
+      padding: 40px 20px;
+      display: none;
+    }
+
+    .success-state .check { font-size: 44px; margin-bottom: 10px; }
+
+    .success-state h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #2563eb;
+      margin-bottom: 6px;
+    }
+
+    .success-state p { color: #6b7280; font-size: 13px; }
+
+    /* ── Footer note ── */
+    .demo-note {
+      background: var(--navy);
+      color: #64748b;
+      text-align: center;
+      padding: 28px 24px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .demo-note a {
+      color: var(--orange);
+      text-decoration: none;
+    }
+
+    .demo-note a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="/" class="nav-brand">Space Coast <span>Studios</span></a>
+    <a href="/" class="nav-back">← Back to home</a>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">Live Widget Demo</div>
+    <h1>Your Booking Widget,<br><span>Live on Your Website</span></h1>
+    <p>
+      This is the embeddable booking form your customers will see. It collects their
+      contact info, service request, and — critically — their <strong style="color:#fff;">explicit SMS consent</strong>
+      before submission.
+    </p>
+  </div>
+
+  <!-- Demo section -->
+  <div class="demo-section">
+
+    <!-- Info column -->
+    <div class="info-col">
+      <h2>How the widget works</h2>
+      <p>
+        The booking widget is a lightweight iframe you paste into any website with a single line of code.
+        It loads your business's service list, branding, and consent language automatically —
+        no developer needed after the initial setup.
+      </p>
+
+      <ul class="feature-list">
+        <li>
+          <span class="icon">📋</span>
+          <span>Collects name, phone, email, service type, and a message from the customer</span>
+        </li>
+        <li>
+          <span class="icon">✅</span>
+          <span>Requires explicit SMS opt-in checkbox before the form can be submitted</span>
+        </li>
+        <li>
+          <span class="icon">🤖</span>
+          <span>Submission triggers an instant AI response via SMS to the customer's phone</span>
+        </li>
+        <li>
+          <span class="icon">📅</span>
+          <span>AI checks your availability and books the appointment directly in the conversation</span>
+        </li>
+        <li>
+          <span class="icon">🎨</span>
+          <span>Styled to match your brand color — no coding required</span>
+        </li>
+        <li>
+          <span class="icon">📱</span>
+          <span>Fully responsive — works on mobile, tablet, and desktop</span>
+        </li>
+      </ul>
+
+      <div class="consent-callout">
+        <h3>SMS Opt-In Compliance</h3>
+        <p>
+          The checkbox below the form is a required field — customers cannot submit without
+          checking it. This provides documented, TCPA-compliant opt-in consent for all
+          automated SMS messages sent through your platform.
+        </p>
+      </div>
+    </div>
+
+    <!-- Widget column -->
+    <div class="widget-col">
+      <div class="widget-header">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <span>Sample Booking Widget — Sunshine HVAC Services</span>
+      </div>
+
+      <div class="widget-body">
+
+        <div id="successState" class="success-state">
+          <div class="check">✅</div>
+          <h3>Message Received!</h3>
+          <p>Thanks for reaching out. We'll be in touch shortly via your preferred contact method.</p>
+        </div>
+
+        <form id="demoForm">
+          <div class="form-title">Contact Sunshine HVAC Services</div>
+
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="name">Full name <span class="required">*</span></label>
+              <input type="text" id="name" placeholder="Jane Smith" />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone number <span class="required">*</span></label>
+              <input type="tel" id="phone" placeholder="(321) 555-0100" />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email address <span class="required">*</span></label>
+              <input type="email" id="email" placeholder="jane@example.com" />
+            </div>
+
+            <div class="form-group">
+              <label for="service">Service needed</label>
+              <select id="service">
+                <option value="">— Select a service —</option>
+                <option>AC Tune-Up</option>
+                <option>Heating Repair</option>
+                <option>New System Installation</option>
+                <option>Duct Cleaning</option>
+                <option>Emergency Service</option>
+              </select>
+            </div>
+
+            <div class="form-group full">
+              <label>Preferred contact method</label>
+              <div class="contact-method-group">
+                <label><input type="radio" name="contact_method" value="call" checked /> Phone call</label>
+                <label><input type="radio" name="contact_method" value="text" /> Text message</label>
+                <label><input type="radio" name="contact_method" value="email" /> Email</label>
+              </div>
+            </div>
+
+            <div class="form-group full">
+              <label for="message">Message <span class="required">*</span></label>
+              <textarea id="message" placeholder="Tell us about your project or issue…"></textarea>
+            </div>
+
+            <!-- SMS CONSENT CHECKBOX -->
+            <div class="form-group full">
+              <div class="sms-consent-group">
+                <label class="sms-consent-label">
+                  <input type="checkbox" id="smsConsent" />
+                  <span>
+                    I agree to receive SMS messages from Sunshine HVAC Services, including
+                    appointment confirmations, reminders, and service-related notifications.
+                    Msg &amp; data rates may apply. Reply STOP to opt out at any time.
+                    Reply HELP for help. View our
+                    <a href="https://spacecoaststudios.com/terms" target="_blank" rel="noopener">Terms of Service</a>
+                    and
+                    <a href="https://spacecoaststudios.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+                  </span>
+                </label>
+                <div id="consentError" class="consent-error">
+                  Please agree to receive SMS messages to continue.
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group full">
+              <button type="submit" class="submit-btn" id="submitBtn">Send Message</button>
+            </div>
+
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer note -->
+  <div class="demo-note">
+    This is a demonstration of the Space Coast Studios booking widget.<br>
+    The form above reflects the actual opt-in flow used by our clients' customers.<br>
+    <a href="https://spacecoaststudios.com/terms">Terms of Service</a> &nbsp;·&nbsp;
+    <a href="https://spacecoaststudios.com/privacy">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="/">spacecoaststudios.com</a>
+  </div>
+
+  <script>
+    document.getElementById("demoForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const consentBox   = document.getElementById("smsConsent");
+      const consentError = document.getElementById("consentError");
+
+      if (!consentBox.checked) {
+        consentError.style.display = "block";
+        consentBox.focus();
+        return;
+      }
+
+      consentError.style.display = "none";
+
+      // Show success state (demo — no real submission)
+      document.getElementById("demoForm").style.display = "none";
+      document.getElementById("successState").style.display = "block";
+    });
+
+    // Hide consent error as soon as they check the box
+    document.getElementById("smsConsent").addEventListener("change", function() {
+      if (this.checked) {
+        document.getElementById("consentError").style.display = "none";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -15,6 +15,7 @@ import {
   ChevronDown,
   PhoneCall,
   Bell,
+  CreditCard,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -28,6 +29,7 @@ const businessNav = [
   { to: '/sms', icon: MessageCircle, label: 'SMS Conversations' },
   { to: '/notification-templates', icon: Bell, label: 'Notifications' },
   { to: '/oncall', icon: PhoneCall, label: 'On-Call' },
+  { to: '/billing', icon: CreditCard, label: 'Billing' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 

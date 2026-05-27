@@ -64,6 +64,15 @@ class Business(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Stripe billing
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    subscription_tier: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # "starter" | "professional"
+    subscription_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # "active" | "past_due" | "cancelled" | "trialing" | "unpaid"
+    subscription_period_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

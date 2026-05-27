@@ -15,6 +15,9 @@ import OnCallPage from './pages/OnCallPage'
 import OnboardingPage from './pages/OnboardingPage'
 import SMSConversationsPage from './pages/SMSConversationsPage'
 import NotificationTemplatesPage from './pages/NotificationTemplatesPage'
+import BillingPage from './pages/BillingPage'
+import SetPasswordPage from './pages/SetPasswordPage'
+import WelcomePage from './pages/WelcomePage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -34,6 +37,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/set-password" element={<SetPasswordPage />} />
+      <Route path="/welcome" element={<WelcomePage />} />
       <Route
         element={
           <ProtectedRoute>
@@ -53,6 +58,7 @@ export default function App() {
         <Route path="notification-templates" element={<NotificationTemplatesPage />} />
         <Route path="oncall" element={<OnCallPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="billing" element={<BillingPage />} />
         <Route
           path="businesses"
           element={

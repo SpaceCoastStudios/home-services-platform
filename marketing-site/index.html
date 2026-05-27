@@ -351,6 +351,7 @@
     .btn-pricing-primary:hover { background: var(--orange2); }
     .btn-pricing-outline { border: 1.5px solid var(--border); color: var(--navy); }
     .btn-pricing-outline:hover { border-color: #94a3b8; background: var(--light); }
+    button.btn-pricing { cursor: pointer; width: 100%; border: none; }
     .promo-banner {
       margin-top: 40px; padding: 24px 32px;
       background: linear-gradient(135deg, #fff7ed, #ffedd5);
@@ -847,7 +848,7 @@
           <li><span class="check">✓</span> Admin dashboard</li>
           <li><span class="check">✓</span> Email support (2-business-day response)</li>
         </ul>
-        <a href="#contact" class="btn-pricing btn-pricing-outline">Get Started</a>
+        <button class="btn-pricing btn-pricing-outline" data-checkout-plan="starter">Get Started</button>
       </div>
       <div class="pricing-card featured">
         <div class="featured-label">Most Popular</div>
@@ -869,7 +870,7 @@
           <li><span class="check">✓</span> Priority support (next-business-day response)</li>
           <li><span class="check">✓</span> Monthly check-in call</li>
         </ul>
-        <a href="#contact" class="btn-pricing btn-pricing-primary">Get Started</a>
+        <button class="btn-pricing btn-pricing-primary" data-checkout-plan="professional">Get Started</button>
       </div>
     </div>
 
@@ -1061,6 +1062,36 @@
   const nav = document.querySelector('nav');
   window.addEventListener('scroll', () => {
     nav.style.boxShadow = window.scrollY > 20 ? '0 2px 20px rgba(15,23,42,0.08)' : 'none';
+  });
+
+  // Stripe checkout — "Get Started" buttons
+  document.querySelectorAll('[data-checkout-plan]').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const plan = this.dataset.checkoutPlan;
+      const originalText = this.textContent;
+      this.textContent = 'Redirecting to checkout…';
+      this.disabled = true;
+
+      try {
+        const res = await fetch(`${API_URL}/api/billing/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Error ${res.status}`);
+        }
+
+        const { url } = await res.json();
+        window.location.href = url;
+      } catch (err) {
+        alert('Could not start checkout — please try again or contact us at hello@spacecoaststudios.com');
+        this.textContent = originalText;
+        this.disabled = false;
+      }
+    });
   });
 
   // Demo booking widget form handler

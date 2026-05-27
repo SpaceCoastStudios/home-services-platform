@@ -204,6 +204,14 @@ export const saveNotificationTemplates = (templates, businessId = null) =>
 export const resetNotificationTemplates = (businessId = null) =>
   api.post(`notification-templates/reset${qs({ business_id: businessId })}`, {})
 
+// ── Billing ───────────────────────────────────────────────────
+export const getBillingSubscription = () =>
+  request('/api/billing/subscription')
+export const createBillingPortal = () =>
+  request('/api/billing/portal', { method: 'POST' })
+export const createCheckoutSession = (plan) =>
+  request('/api/billing/checkout', { method: 'POST', body: JSON.stringify({ plan }) })
+
 // ── Admin: per-appointment notification triggers ──────────────
 const adminAppt = (id, action) =>
   request(`/api/admin/appointments/${id}/${action}`, { method: 'POST' })

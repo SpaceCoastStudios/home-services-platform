@@ -1,6 +1,7 @@
 """Admin user model — supports both platform-level and business-level admins."""
 
-from sqlalchemy import String, Boolean, Integer, ForeignKey
+from datetime import datetime
+from sqlalchemy import String, Boolean, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -17,11 +18,18 @@ class AdminUser(Base):
     )
 
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Separate from username — used for password reset emails.
+    # For self-signup users, username == email.
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), default="admin")
     # Platform roles:  "platform_admin"
     # Business roles:  "admin", "dispatcher", "viewer"
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Password reset (used for both new-user setup and forgot-password)
+    password_reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    password_reset_expires: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Relationships
     business = relationship("Business", back_populates="admin_users")
