@@ -1,6 +1,11 @@
 name: space-coast-studios
 region: nyc
 
+# NOTE: Only the API backend is hosted on DigitalOcean.
+# The dashboard (dashboard.spacecoaststudios.com) and marketing site
+# (spacecoaststudios.com) are both hosted on Netlify.
+# DNS for both is managed in GoDaddy with CNAME records pointing to Netlify.
+
 services:
   # ── FastAPI Backend ───────────────────────────────────────────────────────
   - name: api
@@ -38,34 +43,9 @@ services:
       - key: BASE_URL
         value: https://api.spacecoaststudios.com
       - key: ALLOWED_ORIGINS
-        value: https://dashboard.spacecoaststudios.com,https://spacecoaststudios.com
+        value: https://dashboard.spacecoaststudios.com,https://spacecoaststudios.com,http://localhost:5173
       - key: CONTACT_AUTO_RESPOND
         value: "true"
-
-  # ── React Dashboard (static site) ────────────────────────────────────────
-  - name: dashboard
-    source_dir: frontend/dashboard
-    github:
-      branch: main
-      deploy_on_push: true
-    build_command: npm install && npm run build
-    output_dir: dist
-    environment_slug: node-js
-    routes:
-      - path: /
-    envs:
-      - key: VITE_API_URL
-        value: https://api.spacecoaststudios.com
-
-  # ── Marketing Site (static site) ─────────────────────────────────────────
-  - name: marketing
-    source_dir: marketing-site
-    github:
-      branch: main
-      deploy_on_push: true
-    output_dir: /
-    routes:
-      - path: /
 
 databases:
   - name: db
@@ -78,11 +58,3 @@ domains:
     type: PRIMARY
     zone: spacecoaststudios.com
     component_name: api
-  - domain: dashboard.spacecoaststudios.com
-    type: PRIMARY
-    zone: spacecoaststudios.com
-    component_name: dashboard
-  - domain: spacecoaststudios.com
-    type: PRIMARY
-    zone: spacecoaststudios.com
-    component_name: marketing
