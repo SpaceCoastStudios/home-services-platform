@@ -46,6 +46,10 @@ services:
         value: https://dashboard.spacecoaststudios.com,https://spacecoaststudios.com,http://localhost:5173
       - key: CONTACT_AUTO_RESPOND
         value: "true"
+      - key: STRIPE_SECRET_KEY
+        type: SECRET
+      - key: STRIPE_WEBHOOK_SECRET
+        type: SECRET
 
 databases:
   - name: db

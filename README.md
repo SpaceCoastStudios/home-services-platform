@@ -39,6 +39,24 @@ Multi-tenant home services scheduling, dispatch, and notifications platform buil
 - Secret key: stored in DigitalOcean API component env vars as `STRIPE_SECRET_KEY`
 - Webhook secret: stored as `STRIPE_WEBHOOK_SECRET` (set after webhook endpoint created)
 
+#### Stripe Product IDs
+| Product | ID |
+|---|---|
+| Starter Plan | `prod_Uail0oXz9jO2Nw` |
+| Professional Plan | `prod_Uailjx0LeRYgYw` |
+
+#### Stripe Price IDs
+| Price | ID | Amount |
+|---|---|---|
+| Starter — Setup Fee | `price_1TbXKM2MJMR8rAcZfEKeo13B` | $1,997 one-time |
+| Starter — Monthly | `price_1TbXKN2MJMR8rAcZ8ageyctL` | $249/month |
+| Starter — Founding Setup | `price_1TbXKN2MJMR8rAcZvreEPLwo` | $497 one-time |
+| Starter — Founding Monthly | `price_1TbXKN2MJMR8rAcZF8PV52FQ` | $99/month |
+| Professional — Setup Fee | `price_1TbXKN2MJMR8rAcZIiW0KPMT` | $2,997 one-time |
+| Professional — Monthly | `price_1TbXKO2MJMR8rAcZh0yQdVOv` | $399/month |
+| Professional — Founding Setup | `price_1TbXKO2MJMR8rAcZ9MRzpF2s` | $997 one-time |
+| Professional — Founding Monthly | `price_1TbXKO2MJMR8rAcZMiHThRka` | $199/month |
+
 ---
 
 ## Infrastructure
