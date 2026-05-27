@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Save, Plus, Trash2, Copy, Check, Star } from 'lucide-react'
+import { Save, Plus, Trash2, Copy, Check, Star, FlaskConical } from 'lucide-react'
 import {
   getBusinessHours, updateBusinessHours,
   getBlockedTimes, createBlockedTime, deleteBlockedTime,
@@ -22,6 +22,25 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('')
   const [reviewUrl, setReviewUrl] = useState('')
   const [savingReviewUrl, setSavingReviewUrl] = useState(false)
+  const [triggerStatus, setTriggerStatus] = useState({})
+
+  const triggerJob = async (job) => {
+    setTriggerStatus(s => ({ ...s, [job]: 'running' }))
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_BASE}/api/admin/trigger/${job}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      setTriggerStatus(s => ({ ...s, [job]: res.ok ? 'ok' : 'error' }))
+      setMessage(data.message || (res.ok ? 'Job triggered' : 'Error'))
+    } catch (err) {
+      setTriggerStatus(s => ({ ...s, [job]: 'error' }))
+      setMessage('Error: ' + err.message)
+    }
+    setTimeout(() => setTriggerStatus(s => ({ ...s, [job]: null })), 4000)
+  }
 
   const load = async () => {
     if (activeBusinessId == null) return
@@ -317,6 +336,59 @@ export default function SettingsPage() {
                 className="w-32 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-right" />
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Developer Tools */}
+      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center gap-2 mb-1">
+          <FlaskConical size={18} className="text-purple-500" />
+          <h2 className="text-lg font-semibold text-gray-900">Developer Tools</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Manually trigger background jobs for testing. Safe to run at any time — all jobs are idempotent and won't double-send.
+        </p>
+        <div className="space-y-3">
+          {[
+            {
+              job: 'reminders',
+              label: 'Send Next-Day Reminders',
+              description: 'Sends reminder SMS + email for all confirmed appointments on the next open business day.',
+            },
+            {
+              job: 'otw-prompts',
+              label: 'Send OTW Tech Prompts',
+              description: 'Texts technicians for appointments starting in 45–75 minutes.',
+            },
+            {
+              job: 'morning-kickoffs',
+              label: 'Send Morning Kickoffs',
+              description: 'Sends the morning kickoff SMS to techs whose first job is within 60 minutes (after 7 AM).',
+            },
+          ].map(({ job, label, description }) => {
+            const status = triggerStatus[job]
+            return (
+              <div key={job} className="flex items-center justify-between gap-4 py-3 border-b border-gray-100 last:border-0">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{label}</p>
+                  <p className="text-xs text-gray-400">{description}</p>
+                </div>
+                <button
+                  onClick={() => triggerJob(job)}
+                  disabled={status === 'running'}
+                  className={`shrink-0 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50
+                    ${status === 'ok' ? 'bg-green-100 text-green-700' :
+                      status === 'error' ? 'bg-red-100 text-red-700' :
+                      'bg-purple-600 text-white hover:bg-purple-700'}`}
+                >
+                  {status === 'running' ? 'Running…' :
+                   status === 'ok' ? '✓ Done' :
+                   status === 'error' ? '✗ Error' :
+                   'Run Now'}
+                </button>
+              </div>
+            )
+          })}
         </div>
       </section>
     </div>
