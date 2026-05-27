@@ -35,13 +35,19 @@ Complete these steps at least 2–3 days before the client's launch date.
 - [ ] ⚠️ Do NOT just add the number to the sender pool — you must also explicitly
       register it to the campaign via the Register button or it stays in pending
 
-### Step 5 — Configure Webhook
-- [ ] On the phone number's configuration page, set the Messaging Service to the
-      client's Messaging Service (NOT the default "Customer Care" service)
-- [ ] Confirm the Messaging Service's Integration webhook is set to:
-      `https://api.spacecoaststudios.com/api/sms/webhook` (HTTP POST)
-- [ ] The number-level webhook URL does not matter once a Messaging Service is assigned —
-      the Messaging Service webhook takes precedence
+### Step 5 — Configure Inbound Webhook (CRITICAL)
+- [ ] Go to **Phone Numbers → Manage → Active Numbers** and click the client's number
+- [ ] In the **Messaging** section, find **"A MESSAGE COMES IN"**
+- [ ] Set it to use the **Messaging Service** (select the client's Messaging Service)
+      OR paste the webhook URL directly:
+      `https://api.spacecoaststudios.com/webhook/sms/inbound` (HTTP POST)
+- [ ] Also confirm the Messaging Service's **Integration** webhook is set to:
+      `https://api.spacecoaststudios.com/webhook/sms/inbound` (HTTP POST)
+- [ ] ⚠️ The number-level "A MESSAGE COMES IN" setting controls inbound routing.
+      Just adding a number to a Messaging Service sender pool is NOT enough — that
+      only affects outbound. Inbound requires the number itself to point at the
+      Messaging Service or the webhook URL. If left blank, Twilio receives replies
+      with no handler and logs "There were no HTTP Requests logged for this event."
 
 ### Step 6 — Platform Configuration
 - [ ] Add the client as a Business in the dashboard
@@ -59,6 +65,11 @@ Complete these steps at least 2–3 days before the client's launch date.
   (check the `MG...` SID on the campaign). The phone number must be in THAT service's
   sender pool, not a different one
 - **Pending never resolves** — if pending for more than 24 hours, contact Twilio support
+- **"No HTTP Requests logged for this event"** — inbound reply received by Twilio but
+  no handler is configured. Go to Active Numbers → click the number → Messaging section →
+  set "A MESSAGE COMES IN" to the Messaging Service or to the webhook URL directly.
+  Adding a number to the sender pool only controls outbound; inbound is always set at
+  the number level.
 
 ---
 
@@ -208,6 +219,20 @@ All require JWT auth. Available in Settings → Developer Tools in the dashboard
 | `POST /api/admin/trigger/otw-prompts` | Fire OTW tech prompt job now |
 | `POST /api/admin/trigger/morning-kickoffs` | Fire morning kickoff job now |
 | `GET /api/admin/scheduler/status` | Show next scheduled run times |
+| `POST /api/admin/appointments/{id}/resend-confirmation` | Resend confirmation SMS + email |
+| `POST /api/admin/appointments/{id}/send-reminder` | Send 24h-style reminder now |
+| `POST /api/admin/appointments/{id}/send-review-request` | Send review request (requires google_review_url on business) |
+
+### Appointments API — Sort Options
+`GET /api/appointments?sort=upcoming` (default)
+
+| Sort value | Behavior |
+|---|---|
+| `upcoming` | Future appointments first (soonest → latest), then past appointments (most recent first) |
+| `newest` | All appointments by `scheduled_start DESC` |
+| `oldest` | All appointments by `scheduled_start ASC` |
+
+The dashboard defaults to `upcoming`. Sort buttons appear in the top-right of the Appointments tab.
 
 ---
 

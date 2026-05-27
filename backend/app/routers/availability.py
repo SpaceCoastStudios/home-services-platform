@@ -58,9 +58,10 @@ def list_appointments(
     technician_id: Optional[int] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    sort: Optional[str] = Query("upcoming", description="upcoming | newest | oldest"),
     business_id: Optional[int] = Query(None),
     skip: int = 0,
-    limit: int = 50,
+    limit: int = 200,
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(get_current_user),
 ):
@@ -80,7 +81,22 @@ def list_appointments(
         ed = date_type.fromisoformat(end_date)
         query = query.filter(Appointment.scheduled_start <= datetime.combine(ed, time.max, tzinfo=timezone.utc))
 
-    appointments = query.order_by(Appointment.scheduled_start.desc()).offset(skip).limit(limit).all()
+    if sort == "oldest":
+        appointments = query.order_by(Appointment.scheduled_start.asc()).offset(skip).limit(limit).all()
+    elif sort == "newest":
+        appointments = query.order_by(Appointment.scheduled_start.desc()).offset(skip).limit(limit).all()
+    else:
+        # "upcoming" — future appointments first (soonest → latest),
+        # then past appointments below (most recent past first).
+        # Fetch all matching rows and split in Python; avoids complex SQL CASE ordering.
+        from datetime import datetime, timezone as tz
+        all_appts = query.offset(skip).limit(limit).all()
+        now = datetime.now(tz.utc)
+        def _aware(dt):
+            return dt.replace(tzinfo=tz.utc) if dt.tzinfo is None else dt
+        future = sorted([a for a in all_appts if _aware(a.scheduled_start) >= now], key=lambda a: _aware(a.scheduled_start))
+        past   = sorted([a for a in all_appts if _aware(a.scheduled_start) <  now], key=lambda a: _aware(a.scheduled_start), reverse=True)
+        appointments = future + past
 
     results = []
     for appt in appointments:

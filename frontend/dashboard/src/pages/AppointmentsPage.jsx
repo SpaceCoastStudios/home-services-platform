@@ -38,6 +38,7 @@ export default function AppointmentsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [showRecurringCreate, setShowRecurringCreate] = useState(false)
   const [filter, setFilter] = useState('')
+  const [sort, setSort] = useState('upcoming')
   const [loading, setLoading] = useState(true)
 
   // Shared lookup data
@@ -77,7 +78,7 @@ export default function AppointmentsPage() {
     if (activeBusinessId == null) return
     setLoading(true)
     try {
-      const params = {}
+      const params = { sort }
       if (filter) params.status = filter
       setAppointments(await getAppointments(params, activeBusinessId))
     } catch (err) { console.error(err) }
@@ -91,7 +92,7 @@ export default function AppointmentsPage() {
     } catch (err) { console.error(err) }
   }
 
-  useEffect(() => { loadAppointments() }, [filter, activeBusinessId])
+  useEffect(() => { loadAppointments() }, [filter, sort, activeBusinessId])
   useEffect(() => { if (tab === 'recurring') loadRecurring() }, [tab, activeBusinessId])
 
   const loadLookups = async () => {
@@ -304,15 +305,32 @@ export default function AppointmentsPage() {
       {/* ── Appointments Tab ─────────────────────────────────────────────── */}
       {tab === 'appointments' && (
         <>
-          <div className="flex gap-2 mb-4">
-            {['', 'pending', 'confirmed', 'in_progress', 'en_route', 'completed', 'cancelled'].map((s) => (
-              <button key={s} onClick={() => setFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                }`}>
-                {s || 'All'}
-              </button>
-            ))}
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex gap-2 flex-wrap">
+              {['', 'pending', 'confirmed', 'in_progress', 'en_route', 'completed', 'cancelled'].map((s) => (
+                <button key={s} onClick={() => setFilter(s)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  }`}>
+                  {s || 'All'}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-xs text-gray-400 mr-1">Sort:</span>
+              {[
+                { key: 'upcoming', label: '↑ Upcoming' },
+                { key: 'newest',   label: '↓ Newest'   },
+                { key: 'oldest',   label: '↑ Oldest'   },
+              ].map(({ key, label }) => (
+                <button key={key} onClick={() => setSort(key)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    sort === key ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
