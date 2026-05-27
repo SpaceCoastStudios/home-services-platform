@@ -70,9 +70,16 @@ Use the platform's existing admin endpoints. You'll need your own platform admin
 #### 2a. Get your admin token
 
 ```bash
+# Mac/Linux
 curl -X POST https://api.spacecoaststudios.com/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "YOUR_ADMIN_USERNAME", "password": "YOUR_ADMIN_PASSWORD"}'
+```
+
+```powershell
+# Windows PowerShell
+$r = Invoke-RestMethod -Method POST -Uri "https://api.spacecoaststudios.com/api/auth/login" -ContentType "application/json" -Body '{"username": "YOUR_ADMIN_USERNAME", "password": "YOUR_ADMIN_PASSWORD"}'
+$r.access_token
 ```
 
 Copy the `access_token` from the response.
