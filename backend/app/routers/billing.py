@@ -122,7 +122,6 @@ def _provision_tenant(db: Session, session: dict):
     """
     customer_id  = session.get("customer")
     subscription_id = session.get("subscription")
-    email        = session.get("customer_email") or ""
     plan         = (session.get("metadata") or {}).get("plan", "starter")
 
     # Pull custom fields
@@ -130,8 +129,11 @@ def _provision_tenant(db: Session, session: dict):
     business_name = custom_fields.get("businessname") or custom_fields.get("business_name") or "New Business"
     phone         = custom_fields.get("phone") or ""
 
-    # Address from customer_details
+    # customer_details holds email, phone, and address from Stripe Checkout
     details = session.get("customer_details") or {}
+
+    # Email: prefer customer_details.email (set by Stripe Checkout), fall back to customer_email
+    email = details.get("email") or session.get("customer_email") or ""
     addr_obj = details.get("address") or {}
     address_parts = [addr_obj.get("line1"), addr_obj.get("city"), addr_obj.get("state"), addr_obj.get("postal_code")]
     address = ", ".join(p for p in address_parts if p)
