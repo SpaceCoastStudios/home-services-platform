@@ -75,6 +75,11 @@ class BusinessResponse(BaseModel):
     google_review_url: Optional[str] = None
     timezone: Optional[str] = None
     route_optimization_enabled: bool = False
+    stripe_customer_id: Optional[str] = None
+    stripe_subscription_id: Optional[str] = None
+    subscription_tier: Optional[str] = None
+    subscription_status: Optional[str] = None
+    subscription_period_end: Optional[datetime] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

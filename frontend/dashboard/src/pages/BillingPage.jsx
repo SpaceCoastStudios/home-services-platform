@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { CreditCard, ExternalLink, CheckCircle, AlertCircle, Clock, XCircle, RefreshCw } from 'lucide-react'
-import { getBillingSubscription, createBillingPortal } from '../services/api'
+import { getBillingSubscription, createBillingPortal, getBusinesses } from '../services/api'
+import { useAuth } from '../hooks/useAuth'
 
 const TIER_LABELS = {
   starter:      'Starter',
   professional: 'Professional',
+  test:         'Test',
 }
 
 const TIER_FEATURES = {
@@ -40,7 +42,131 @@ const STATUS_CONFIG = {
   unpaid:    { icon: AlertCircle,   color: 'text-red-600',    bg: 'bg-red-50',    label: 'Unpaid' },
 }
 
-export default function BillingPage() {
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status]
+  if (!cfg) return null
+  const Icon = cfg.icon
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.color}`}>
+      <Icon size={12} />
+      {cfg.label}
+    </span>
+  )
+}
+
+// ── Platform admin view — all tenants ────────────────────────────────────────
+
+function PlatformBillingView() {
+  const [businesses, setBusinesses] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getBusinesses()
+      .then(setBusinesses)
+      .catch(() => setBusinesses([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw size={24} className="animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
+  const active     = businesses.filter(b => b.subscription_status === 'active').length
+  const pastDue    = businesses.filter(b => b.subscription_status === 'past_due').length
+  const cancelled  = businesses.filter(b => b.subscription_status === 'cancelled').length
+  const noSub      = businesses.filter(b => !b.subscription_tier).length
+
+  return (
+    <div className="max-w-5xl">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Billing Overview</h1>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-4 mb-8 sm:grid-cols-4">
+        {[
+          { label: 'Total Tenants',  value: businesses.length, color: 'text-gray-900' },
+          { label: 'Active',         value: active,            color: 'text-green-600' },
+          { label: 'Past Due',       value: pastDue,           color: 'text-yellow-600' },
+          { label: 'No Plan',        value: noSub,             color: 'text-gray-400' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{label}</p>
+            <p className={`text-3xl font-bold ${color}`}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Tenant table */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50">
+              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Business</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Billing</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stripe</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {businesses.map(b => (
+              <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-5 py-3.5">
+                  <p className="font-medium text-gray-900">{b.name}</p>
+                  <p className="text-xs text-gray-400">{b.email || '—'}</p>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className="text-gray-700">
+                    {TIER_LABELS[b.subscription_tier] || <span className="text-gray-400">—</span>}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5">
+                  {b.subscription_status
+                    ? <StatusBadge status={b.subscription_status} />
+                    : <span className="text-gray-400 text-xs">—</span>
+                  }
+                </td>
+                <td className="px-5 py-3.5 text-gray-500">
+                  {b.subscription_period_end
+                    ? new Date(b.subscription_period_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : <span className="text-gray-400">—</span>
+                  }
+                </td>
+                <td className="px-5 py-3.5">
+                  {b.stripe_customer_id
+                    ? (
+                      <a
+                        href={`https://dashboard.stripe.com/customers/${b.stripe_customer_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
+                      >
+                        View <ExternalLink size={11} />
+                      </a>
+                    )
+                    : <span className="text-gray-400 text-xs">Manual</span>
+                  }
+                </td>
+              </tr>
+            ))}
+            {businesses.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">No businesses yet</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+// ── Business admin view — own plan ───────────────────────────────────────────
+
+function BusinessBillingView() {
   const [sub, setSub] = useState(null)
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -73,16 +199,13 @@ export default function BillingPage() {
     )
   }
 
-  const tier     = sub?.subscription_tier
-  const status   = sub?.subscription_status
-  const periodEnd = sub?.subscription_period_end
-  const hasStripe = sub?.has_stripe
-
-  const statusCfg = STATUS_CONFIG[status] || STATUS_CONFIG['active']
-  const StatusIcon = statusCfg.icon
-
-  const features = TIER_FEATURES[tier] || []
-
+  const tier           = sub?.subscription_tier
+  const status         = sub?.subscription_status
+  const periodEnd      = sub?.subscription_period_end
+  const hasStripe      = sub?.has_stripe
+  const statusCfg      = STATUS_CONFIG[status] || null
+  const StatusIcon     = statusCfg?.icon
+  const features       = TIER_FEATURES[tier] || []
   const periodEndFormatted = periodEnd
     ? new Date(periodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     : null
@@ -118,12 +241,12 @@ export default function BillingPage() {
             <div>
               <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Current Plan</p>
               <h2 className="text-xl font-bold text-gray-900">
-                {tier ? TIER_LABELS[tier] : 'No active plan'}
+                {tier ? (TIER_LABELS[tier] || tier) : 'No active plan'}
               </h2>
             </div>
           </div>
 
-          {status && (
+          {statusCfg && (
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${statusCfg.bg} ${statusCfg.color}`}>
               <StatusIcon size={14} />
               {statusCfg.label}
@@ -186,4 +309,11 @@ export default function BillingPage() {
       )}
     </div>
   )
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+
+export default function BillingPage() {
+  const { user } = useAuth()
+  return user?.isPlatformAdmin ? <PlatformBillingView /> : <BusinessBillingView />
 }
