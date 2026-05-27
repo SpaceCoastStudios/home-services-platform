@@ -99,7 +99,7 @@ def _send_appointment_reminders(force: bool = False):
                     .filter(
                         BusinessHours.business_id == business.id,
                         BusinessHours.day_of_week == weekday,
-                        BusinessHours.is_open == True,
+                        BusinessHours.is_active == True,
                     )
                     .first()
                 )
