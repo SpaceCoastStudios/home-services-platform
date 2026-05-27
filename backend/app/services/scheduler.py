@@ -325,7 +325,11 @@ def _send_otw_morning_kickoffs():
                 first_appt = appts[0]  # already sorted by scheduled_start
 
                 # Only fire if first appointment is within the next 60 minutes
-                if first_appt.scheduled_start > window_end:
+                # DB stores naive UTC datetimes — make timezone-aware before comparing
+                appt_start = first_appt.scheduled_start
+                if appt_start.tzinfo is None:
+                    appt_start = appt_start.replace(tzinfo=timezone.utc)
+                if appt_start > window_end:
                     continue
 
                 # Skip if kickoff already sent for this appointment
