@@ -4,6 +4,64 @@ Multi-tenant home services scheduling, dispatch, and notifications platform buil
 
 ---
 
+## Client Onboarding — A2P 10DLC Checklist
+
+A2P 10DLC registration must be completed **before go-live** — provisioning can take
+hours to days and SMS will fail until the number is fully registered.
+Complete these steps at least 2–3 days before the client's launch date.
+
+### Step 1 — Twilio Account Setup
+- [ ] Purchase a local phone number in the client's area code via Twilio Console
+- [ ] Verify the number appears under **Phone Numbers → Manage → Active Numbers**
+
+### Step 2 — Messaging Service
+- [ ] Go to **Messaging → Services → Create Messaging Service**
+- [ ] Name it after the client (e.g. "Peak HVAC Services")
+- [ ] Under **Sender Pool**, add the purchased phone number
+- [ ] Note the Messaging Service SID (starts with `MG...`) — you'll need it for the campaign
+
+### Step 3 — A2P 10DLC Brand & Campaign
+- [ ] Go to **Messaging → Regulatory Compliance → A2P 10DLC**
+- [ ] Register a **Brand** for the client (business name, EIN, address, contact info)
+- [ ] Once brand is approved, create a **Campaign** linked to the client's Messaging Service
+- [ ] Use campaign use case: **Mixed** or **Notifications** depending on message types
+- [ ] Campaign description should include: appointment confirmations, reminders, on-the-way
+      notifications, and review requests — mention opt-in/opt-out language
+
+### Step 4 — Register the Phone Number to the Campaign
+- [ ] On the Campaign details page, click **Register phone numbers**
+- [ ] Select the client's number and confirm
+- [ ] Wait for status to change from **Pending** to **Registered** before going live
+- [ ] ⚠️ Do NOT just add the number to the sender pool — you must also explicitly
+      register it to the campaign via the Register button or it stays in pending
+
+### Step 5 — Configure Webhook
+- [ ] On the phone number's configuration page, set the Messaging Service to the
+      client's Messaging Service (NOT the default "Customer Care" service)
+- [ ] Confirm the Messaging Service's Integration webhook is set to:
+      `https://api.spacecoaststudios.com/api/sms/webhook` (HTTP POST)
+- [ ] The number-level webhook URL does not matter once a Messaging Service is assigned —
+      the Messaging Service webhook takes precedence
+
+### Step 6 — Platform Configuration
+- [ ] Add the client as a Business in the dashboard
+- [ ] Set `TWILIO_PHONE_NUMBER` for the client's business to their new number (E.164 format)
+- [ ] Confirm phone number is in E.164 format (e.g. `+13215551234`)
+- [ ] Create a test appointment and verify confirmation SMS + email arrive
+- [ ] Wait ~5 minutes and verify the OTW prompt fires correctly
+
+### Common Pitfalls
+- **30034 Unregistered Number** — number is not registered to the campaign; use
+  Register Phone Numbers button on the campaign page
+- **30024 Provisioning Issue** — number was added to sender pool but not explicitly
+  registered to campaign; click Register Phone Numbers
+- **Wrong Messaging Service** — the campaign is linked to a specific Messaging Service
+  (check the `MG...` SID on the campaign). The phone number must be in THAT service's
+  sender pool, not a different one
+- **Pending never resolves** — if pending for more than 24 hours, contact Twilio support
+
+---
+
 ## Pricing Tiers
 
 ### Starter — $1,997 setup + $249/month
