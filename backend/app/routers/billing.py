@@ -57,7 +57,7 @@ PLAN_PRICES = {
     },
     "test": {
         "setup":   "price_1TbkYi2MJMR8rAcZO4iP0oHP",
-        "monthly": "price_1TbkYi2MJMR8rAcZO4iP0oHP",
+        "monthly": "price_1TbkkP2MJMR8rAcZAPo5kJx5",
     },
 }
 
