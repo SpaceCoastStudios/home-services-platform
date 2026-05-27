@@ -1,6 +1,8 @@
 """Authentication endpoints."""
 
-from datetime import datetime, timezone
+import logging
+import secrets
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,11 @@ from app.models.admin_user import AdminUser
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest
 from app.utils.auth import verify_password, create_access_token, create_refresh_token, decode_token, build_token_data, hash_password
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+DASHBOARD_URL = "https://dashboard.spacecoaststudios.com"
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -80,3 +86,76 @@ def set_password(body: dict, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Password set successfully. You can now log in."}
+
+
+@router.post("/forgot-password")
+def forgot_password(body: dict, db: Session = Depends(get_db)):
+    """
+    Request a password reset email.
+    Always returns 200 regardless of whether the email exists (prevents enumeration).
+
+    Body: { "email": "user@example.com" }
+    """
+    email = (body.get("email") or "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    # Find the user — silently succeed even if not found
+    user = db.query(AdminUser).filter(AdminUser.email == email).first()
+
+    if user and user.is_active:
+        reset_token = secrets.token_urlsafe(48)
+        expires = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        user.password_reset_token = reset_token
+        user.password_reset_expires = expires
+        db.commit()
+
+        _send_password_reset_email(email, reset_token)
+        logger.info("Password reset token issued for %s", email)
+    else:
+        logger.info("Forgot-password request for unknown/inactive email: %s", email)
+
+    # Always return success to avoid leaking which emails are registered
+    return {"message": "If that email is registered, a password reset link has been sent."}
+
+
+def _send_password_reset_email(email: str, token: str):
+    """Send a password reset email via SendGrid."""
+    from app.services.notifications import send_email
+    reset_url = f"{DASHBOARD_URL}/set-password?token={token}&mode=reset"
+    subject = "Space Coast Studios — Password Reset Request"
+    plain = (
+        f"Hi,\n\n"
+        f"We received a request to reset the password for your Space Coast Studios account.\n\n"
+        f"Click the link below to choose a new password:\n"
+        f"{reset_url}\n\n"
+        f"This link expires in 1 hour.\n\n"
+        f"If you didn't request a password reset, you can ignore this email — your password won't change.\n\n"
+        f"— Space Coast Studios"
+    )
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;">
+      <h2 style="color:#1e40af;">Password Reset Request</h2>
+      <p>We received a request to reset the password for your Space Coast Studios account.</p>
+      <p>Click the button below to choose a new password:</p>
+      <p style="text-align:center;margin:32px 0;">
+        <a href="{reset_url}"
+           style="background:#2563eb;color:#fff;padding:14px 28px;border-radius:8px;
+                  text-decoration:none;font-weight:bold;font-size:16px;">
+          Reset My Password
+        </a>
+      </p>
+      <p style="color:#6b7280;font-size:13px;">
+        This link expires in <strong>1 hour</strong>.<br>
+        If you didn't request a password reset, you can safely ignore this email.
+      </p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+      <p style="color:#9ca3af;font-size:12px;">Space Coast Studios &mdash; support@spacecoaststudios.com</p>
+    </div>
+    """
+    try:
+        send_email(email, subject, html, plain)
+        logger.info("Password reset email sent to %s", email)
+    except Exception as exc:
+        logger.error("Failed to send password reset email to %s: %s", email, exc)

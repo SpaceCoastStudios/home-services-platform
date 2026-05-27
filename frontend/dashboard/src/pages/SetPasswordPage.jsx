@@ -10,6 +10,7 @@ export default function SetPasswordPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const token = searchParams.get('token') || ''
+  const isReset = searchParams.get('mode') === 'reset'
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -52,7 +53,9 @@ export default function SetPasswordPage() {
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={28} className="text-green-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Password set!</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {isReset ? 'Password reset!' : 'Password set!'}
+          </h2>
           <p className="text-gray-500 text-sm mb-6">You can now log in to your dashboard.</p>
           <button
             onClick={() => navigate('/login')}
@@ -71,7 +74,9 @@ export default function SetPasswordPage() {
         {/* Logo / branding */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Space Coast Studios</h1>
-          <p className="text-gray-500 text-sm mt-1">Set your account password to get started</p>
+          <p className="text-gray-500 text-sm mt-1">
+            {isReset ? 'Choose a new password for your account' : 'Set your account password to get started'}
+          </p>
         </div>
 
         {error && (
@@ -120,7 +125,7 @@ export default function SetPasswordPage() {
             disabled={loading || !token}
             className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Setting password…' : 'Set Password & Continue'}
+            {loading ? 'Saving…' : (isReset ? 'Reset Password' : 'Set Password & Continue')}
           </button>
         </form>
 

@@ -232,7 +232,7 @@ def create_checkout_session(body: dict):
         custom_fields=[
             {
                 "key": "businessname",
-                "label": {"type": "custom", "custom": "Business Name"},
+                "label": {"type": "custom", "custom": "Business / DBA Name"},
                 "type": "text",
             },
         ],

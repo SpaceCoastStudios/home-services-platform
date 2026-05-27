@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 export default function LoginPage() {
@@ -68,6 +68,15 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <div className="text-center mt-4">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </div>
 
       </div>
     </div>
