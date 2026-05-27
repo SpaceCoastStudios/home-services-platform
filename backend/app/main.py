@@ -134,7 +134,7 @@ def run_migrations(db):
     # Add recurring_schedule_id to appointments if it doesn't exist yet
     try:
         db.execute(text(
-            "ALTER TABLE appointments ADD COLUMN recurring_schedule_id INTEGER "
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS recurring_schedule_id INTEGER "
             "REFERENCES recurring_schedules(id)"
         ))
         db.commit()
@@ -263,8 +263,8 @@ def run_migrations(db):
 
     # Add emergency fee fields to oncall_configs
     for col_sql in [
-        "ALTER TABLE oncall_configs ADD COLUMN emergency_fee_enabled BOOLEAN NOT NULL DEFAULT FALSE",
-        "ALTER TABLE oncall_configs ADD COLUMN emergency_fee NUMERIC(8,2)",
+        "ALTER TABLE oncall_configs ADD COLUMN IF NOT EXISTS emergency_fee_enabled BOOLEAN NOT NULL DEFAULT FALSE",
+        "ALTER TABLE oncall_configs ADD COLUMN IF NOT EXISTS emergency_fee NUMERIC(8,2)",
     ]:
         try:
             db.execute(text(col_sql))
@@ -276,7 +276,7 @@ def run_migrations(db):
     # Add ai_response_mode to businesses if it doesn't exist
     try:
         db.execute(text(
-            "ALTER TABLE businesses ADD COLUMN ai_response_mode VARCHAR(20) NOT NULL DEFAULT 'auto_send'"
+            "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS ai_response_mode VARCHAR(20) NOT NULL DEFAULT 'auto_send'"
         ))
         db.commit()
         logger.info("Migration: added ai_response_mode to businesses")
@@ -286,7 +286,7 @@ def run_migrations(db):
     # Add preferred_contact_method to contact_submissions if it doesn't exist
     try:
         db.execute(text(
-            "ALTER TABLE contact_submissions ADD COLUMN preferred_contact_method VARCHAR(20)"
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS preferred_contact_method VARCHAR(20)"
         ))
         db.commit()
         logger.info("Migration: added preferred_contact_method to contact_submissions")
@@ -296,7 +296,7 @@ def run_migrations(db):
     # Add google_review_url to businesses if it doesn't exist
     try:
         db.execute(text(
-            "ALTER TABLE businesses ADD COLUMN google_review_url VARCHAR(500)"
+            "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS google_review_url VARCHAR(500)"
         ))
         db.commit()
         logger.info("Migration: added google_review_url to businesses")
@@ -306,7 +306,7 @@ def run_migrations(db):
     # Add timezone column to businesses (used for morning kickoff "not before 7 AM" rule)
     try:
         db.execute(text(
-            "ALTER TABLE businesses ADD COLUMN timezone VARCHAR(60) NOT NULL DEFAULT 'America/New_York'"
+            "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS timezone VARCHAR(60) NOT NULL DEFAULT 'America/New_York'"
         ))
         db.commit()
         logger.info("Migration: added timezone to businesses")
@@ -316,7 +316,7 @@ def run_migrations(db):
     # Add route_optimization_enabled flag to businesses (deferred build — column placeholder)
     try:
         db.execute(text(
-            "ALTER TABLE businesses ADD COLUMN route_optimization_enabled BOOLEAN NOT NULL DEFAULT FALSE"
+            "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS route_optimization_enabled BOOLEAN NOT NULL DEFAULT FALSE"
         ))
         db.commit()
         logger.info("Migration: added route_optimization_enabled to businesses")
@@ -325,8 +325,8 @@ def run_migrations(db):
 
     # Add city and state columns to customers
     for col_sql in [
-        "ALTER TABLE customers ADD COLUMN city VARCHAR(100)",
-        "ALTER TABLE customers ADD COLUMN state VARCHAR(50)",
+        "ALTER TABLE customers ADD COLUMN IF NOT EXISTS city VARCHAR(100)",
+        "ALTER TABLE customers ADD COLUMN IF NOT EXISTS state VARCHAR(50)",
     ]:
         try:
             db.execute(text(col_sql))
@@ -337,11 +337,11 @@ def run_migrations(db):
 
     # Stripe billing fields on businesses
     for col_sql in [
-        "ALTER TABLE businesses ADD COLUMN stripe_customer_id VARCHAR(100) UNIQUE",
-        "ALTER TABLE businesses ADD COLUMN stripe_subscription_id VARCHAR(100)",
-        "ALTER TABLE businesses ADD COLUMN subscription_tier VARCHAR(20)",
-        "ALTER TABLE businesses ADD COLUMN subscription_status VARCHAR(20)",
-        "ALTER TABLE businesses ADD COLUMN subscription_period_end TIMESTAMP",
+        "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(100) UNIQUE",
+        "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(100)",
+        "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR(20)",
+        "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20)",
+        "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS subscription_period_end TIMESTAMP",
     ]:
         try:
             db.execute(text(col_sql))
@@ -352,9 +352,9 @@ def run_migrations(db):
 
     # Password reset + email fields on admin_users
     for col_sql in [
-        "ALTER TABLE admin_users ADD COLUMN email VARCHAR(255)",
-        "ALTER TABLE admin_users ADD COLUMN password_reset_token VARCHAR(128)",
-        "ALTER TABLE admin_users ADD COLUMN password_reset_expires TIMESTAMP",
+        "ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS email VARCHAR(255)",
+        "ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_reset_token VARCHAR(128)",
+        "ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS password_reset_expires TIMESTAMP",
     ]:
         try:
             db.execute(text(col_sql))
