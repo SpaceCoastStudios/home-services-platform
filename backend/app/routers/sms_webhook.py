@@ -59,7 +59,12 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
     # --- Validate Twilio signature (skip in dev if no token set) ---
     if settings.TWILIO_AUTH_TOKEN:
         signature = request.headers.get("X-Twilio-Signature", "")
+        # DO's load balancer terminates SSL and forwards as HTTP internally,
+        # so request.url has http:// but Twilio signed with https://.
+        # Force https:// for signature validation.
         url = str(request.url)
+        if url.startswith("http://"):
+            url = "https://" + url[7:]
         if not _validate_twilio_signature(settings.TWILIO_AUTH_TOKEN, url, dict(form), signature):
             logger.warning("sms_webhook: invalid Twilio signature — rejecting")
             return Response(content=_twiml(""), media_type="application/xml", status_code=403)
