@@ -19,6 +19,7 @@ import BillingPage from './pages/BillingPage'
 import SetPasswordPage from './pages/SetPasswordPage'
 import WelcomePage from './pages/WelcomePage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import SetupPage from './pages/SetupPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -41,6 +42,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/set-password" element={<SetPasswordPage />} />
       <Route path="/welcome" element={<WelcomePage />} />
+      <Route path="/setup" element={<SetupPage />} />
       <Route
         element={
           <ProtectedRoute>

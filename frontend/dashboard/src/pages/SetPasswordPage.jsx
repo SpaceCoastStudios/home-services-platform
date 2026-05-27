@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
 
 const API_ROOT = (typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
@@ -9,6 +10,7 @@ const API_ROOT = (typeof window !== 'undefined' &&
 export default function SetPasswordPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { login: authLogin } = useAuth()
   const token = searchParams.get('token') || ''
   const isReset = searchParams.get('mode') === 'reset'
 
@@ -39,6 +41,14 @@ export default function SetPasswordPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Something went wrong')
+
+      // Auto-login with the tokens returned from set-password
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token)
+        if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token)
+        // Password resets go to dashboard; initial account setup goes to the setup wizard
+        setTimeout(() => navigate(isReset ? '/' : '/setup', { replace: true }), 800)
+      }
       setDone(true)
     } catch (err) {
       setError(err.message)

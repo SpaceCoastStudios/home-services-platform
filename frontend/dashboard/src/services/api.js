@@ -223,4 +223,7 @@ export const adminSendReviewRequest = (id) => adminAppt(id, 'send-review-request
 export const impersonateBusiness = (businessId) =>
   request(`/api/businesses/${businessId}/impersonate`, { method: 'POST' })
 
+// ── My business (business admin self-service) ─────────────────
+export const getMyBusiness = () => request('/api/businesses/me')
+
 export default api

@@ -12,7 +12,7 @@ from app.models.business import Business
 from app.models.admin_user import AdminUser
 from app.models.business_hours import BusinessHours
 from app.models.system_settings import SystemSetting
-from app.utils.auth import get_platform_admin, hash_password, create_access_token
+from app.utils.auth import get_platform_admin, get_current_user, hash_password, create_access_token
 
 router = APIRouter(prefix="/api/businesses", tags=["businesses"])
 
@@ -44,6 +44,7 @@ class BusinessUpdate(BaseModel):
     website: Optional[str] = None
     industry: Optional[str] = None
     brand_color: Optional[str] = None
+    logo_url: Optional[str] = None
     plan: Optional[str] = None
     is_active: Optional[bool] = None
     ai_agent_name: Optional[str] = None
@@ -54,6 +55,7 @@ class BusinessUpdate(BaseModel):
     google_review_url: Optional[str] = None
     timezone: Optional[str] = None
     route_optimization_enabled: Optional[bool] = None
+    has_completed_setup: Optional[bool] = None
 
 
 class BusinessResponse(BaseModel):
@@ -66,15 +68,18 @@ class BusinessResponse(BaseModel):
     website: Optional[str] = None
     industry: Optional[str] = None
     brand_color: Optional[str] = None
+    logo_url: Optional[str] = None
     plan: str
     is_active: bool
     is_demo: bool
     ai_agent_name: Optional[str] = None
+    ai_system_prompt: Optional[str] = None
     from_email: Optional[str] = None
     ai_response_mode: Optional[str] = None
     google_review_url: Optional[str] = None
     timezone: Optional[str] = None
     route_optimization_enabled: bool = False
+    has_completed_setup: bool = False
     stripe_customer_id: Optional[str] = None
     stripe_subscription_id: Optional[str] = None
     subscription_tier: Optional[str] = None
@@ -83,6 +88,27 @@ class BusinessResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+@router.get("/me", response_model=BusinessResponse)
+def get_my_business(
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """
+    Return the authenticated user's own business.
+    Used by business admins to fetch their full business record
+    (e.g. during the first-login setup wizard).
+    """
+    if current_user.is_platform_admin or not current_user.business_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Platform admins don't have a single business. Use /api/businesses/{id} instead.",
+        )
+    b = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Business not found")
+    return b
 
 
 @router.get("", response_model=list[BusinessResponse])
@@ -188,8 +214,20 @@ def update_business(
     business_id: int,
     body: BusinessUpdate,
     db: Session = Depends(get_db),
-    current_user: AdminUser = Depends(get_platform_admin),
+    current_user: AdminUser = Depends(get_current_user),
 ):
+    # Platform admins can update any business.
+    # Business admins can only update their own business.
+    if not current_user.is_platform_admin and current_user.business_id != business_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    # Business admins cannot change plan, is_active, is_demo, or Stripe fields
+    if not current_user.is_platform_admin:
+        protected = {"plan", "is_active", "is_demo", "stripe_customer_id",
+                     "stripe_subscription_id", "subscription_tier", "subscription_status"}
+        for field in protected:
+            body.__dict__.pop(field, None)
+
     b = db.query(Business).filter(Business.id == business_id).first()
     if not b:
         raise HTTPException(status_code=404, detail="Business not found")

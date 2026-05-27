@@ -363,6 +363,26 @@ def run_migrations(db):
             db.rollback()
     logger.info("Migration: admin_users password reset columns ready")
 
+    # First-login setup wizard completion flag
+    try:
+        db.execute(text(
+            "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS has_completed_setup BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        db.commit()
+        logger.info("Migration: added has_completed_setup to businesses")
+    except Exception:
+        db.rollback()
+
+    # Logo URL on businesses (column existed in model but may be missing from older DBs)
+    try:
+        db.execute(text(
+            "ALTER TABLE businesses ADD COLUMN IF NOT EXISTS logo_url VARCHAR(500)"
+        ))
+        db.commit()
+        logger.info("Migration: businesses logo_url column ready")
+    except Exception:
+        db.rollback()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

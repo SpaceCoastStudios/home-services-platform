@@ -85,7 +85,14 @@ def set_password(body: dict, db: Session = Depends(get_db)):
     user.password_reset_expires = None
     db.commit()
 
-    return {"message": "Password set successfully. You can now log in."}
+    # Return tokens so the frontend can auto-log the user in without
+    # requiring them to re-enter their credentials on the login page.
+    token_data = build_token_data(user)
+    return {
+        "message": "Password set successfully.",
+        "access_token": create_access_token(token_data),
+        "refresh_token": create_refresh_token(token_data),
+    }
 
 
 @router.post("/forgot-password")

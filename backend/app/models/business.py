@@ -64,6 +64,9 @@ class Business(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # First-login setup wizard — False until the business admin completes (or skips) the wizard
+    has_completed_setup: Mapped[bool] = mapped_column(Boolean, default=False)
+
     # Stripe billing
     stripe_customer_id: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
