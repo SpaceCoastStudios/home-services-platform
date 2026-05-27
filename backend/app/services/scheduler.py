@@ -44,53 +44,113 @@ def _generate_recurring_appointments():
 
 def _send_appointment_reminders():
     """
-    Hourly job: send 24-hour reminder to any customer whose appointment falls
-    in the 23h–25h window from now.  Idempotent — skips appointments that
-    already have a reminder_24h log entry.
+    Hourly job: around noon in each business's local timezone, send reminders for
+    all confirmed appointments on the NEXT OPEN business day.
+
+    "Next open day" = the nearest future date (starting from tomorrow) that has
+    a business_hours row with is_open=True.  This means:
+      - Mon–Thu noon  → reminds about the following day
+      - Fri noon      → if Sat/Sun are closed, reminds about Monday
+      - Any day before a long closure → jumps to the next open day (up to 4 days)
+
+    Idempotent — skips appointments that already have a reminder_24h log entry.
+    Late-night-safe — only fires between 11:00 and 13:00 in the business's
+    local timezone, so customers never receive messages at odd hours.
     """
+    import pytz
+    from datetime import date as date_type, time as time_type
     from app.database import SessionLocal
     from app.models.appointment import Appointment
+    from app.models.business import Business
+    from app.models.business_hours import BusinessHours
     from app.models.notification import NotificationLog
     from app.services.notifications import send_reminder
 
     db = SessionLocal()
     try:
-        now = datetime.now(timezone.utc)
-        window_start = now + timedelta(hours=23)
-        window_end   = now + timedelta(hours=25)
-
-        # Appointments in the 24h window that aren't cancelled
-        upcoming = (
-            db.query(Appointment)
-            .filter(
-                Appointment.scheduled_start >= window_start,
-                Appointment.scheduled_start <= window_end,
-                Appointment.status.notin_(["cancelled", "completed"]),
-            )
-            .all()
-        )
+        now_utc = datetime.now(timezone.utc)
+        businesses = db.query(Business).filter(Business.is_active == True).all()
 
         sent_count = 0
-        for appt in upcoming:
-            # Skip if we already sent a 24h reminder for this appointment
-            already_sent = (
-                db.query(NotificationLog)
-                .filter(
-                    NotificationLog.appointment_id == appt.id,
-                    NotificationLog.event == "reminder_24h",
-                    NotificationLog.status == "sent",
-                )
-                .first()
-            )
-            if already_sent:
+        for business in businesses:
+            # Resolve the business's local timezone
+            biz_tz_str = getattr(business, "timezone", None) or "America/New_York"
+            try:
+                biz_tz = pytz.timezone(biz_tz_str)
+            except Exception:
+                biz_tz = pytz.utc
+
+            now_local = now_utc.astimezone(biz_tz)
+
+            # Only fire the reminder logic between 11:00 and 13:00 local time
+            # (catches the noon run even if server clock drifts slightly)
+            if not (11 <= now_local.hour < 13):
                 continue
 
-            results = send_reminder(db, appt)
-            logger.info(
-                "Reminder sent for appt %d — SMS: %s, Email: %s",
-                appt.id, results.get("sms"), results.get("email"),
+            # Find the next open day: scan tomorrow onward, up to 4 days ahead
+            target_date = None
+            for days_ahead in range(1, 5):
+                candidate = (now_local + timedelta(days=days_ahead)).date()
+                weekday = candidate.weekday()  # 0=Monday … 6=Sunday
+                has_hours = (
+                    db.query(BusinessHours)
+                    .filter(
+                        BusinessHours.business_id == business.id,
+                        BusinessHours.day_of_week == weekday,
+                        BusinessHours.is_open == True,
+                    )
+                    .first()
+                )
+                if has_hours:
+                    target_date = candidate
+                    break
+
+            if target_date is None:
+                logger.info(
+                    "Reminder job: no open day found in next 4 days for business %d — skipping",
+                    business.id,
+                )
+                continue
+
+            # Build UTC bounds for the entire target date in the business's timezone
+            day_start_utc = biz_tz.localize(
+                datetime.combine(target_date, time_type.min)
+            ).astimezone(timezone.utc)
+            day_end_utc = biz_tz.localize(
+                datetime.combine(target_date, time_type.max)
+            ).astimezone(timezone.utc)
+
+            upcoming = (
+                db.query(Appointment)
+                .filter(
+                    Appointment.business_id == business.id,
+                    Appointment.scheduled_start >= day_start_utc,
+                    Appointment.scheduled_start <= day_end_utc,
+                    Appointment.status.notin_(["cancelled", "completed"]),
+                )
+                .all()
             )
-            sent_count += 1
+
+            for appt in upcoming:
+                # Skip if we already sent a reminder for this appointment
+                already_sent = (
+                    db.query(NotificationLog)
+                    .filter(
+                        NotificationLog.appointment_id == appt.id,
+                        NotificationLog.event == "reminder_24h",
+                        NotificationLog.status == "sent",
+                    )
+                    .first()
+                )
+                if already_sent:
+                    continue
+
+                results = send_reminder(db, appt)
+                logger.info(
+                    "Reminder sent for appt %d (target: %s) — SMS: %s, Email: %s",
+                    appt.id, target_date, results.get("sms"), results.get("email"),
+                )
+                sent_count += 1
 
         if sent_count:
             logger.info("Reminder job: sent reminders for %d appointments", sent_count)
