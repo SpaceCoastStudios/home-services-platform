@@ -55,6 +55,10 @@ PLAN_PRICES = {
         "setup":   settings.STRIPE_PRICE_PRO_SETUP,
         "monthly": settings.STRIPE_PRICE_PRO_MONTHLY,
     },
+    "test": {
+        "setup":   "price_1TbkYi2MJMR8rAcZO4iP0oHP",
+        "monthly": "price_1TbkYi2MJMR8rAcZO4iP0oHP",
+    },
 }
 
 
