@@ -28,7 +28,9 @@ export default function SettingsPage() {
     setTriggerStatus(s => ({ ...s, [job]: 'running' }))
     try {
       const token = localStorage.getItem('access_token')
-      const res = await fetch(`${API_BASE}/api/admin/trigger/${job}`, {
+      const apiRoot = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? '' : API_BASE
+      const res = await fetch(`${apiRoot}/api/admin/trigger/${job}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
