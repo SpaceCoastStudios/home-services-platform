@@ -42,10 +42,11 @@ def _generate_recurring_appointments():
         db.close()
 
 
-def _send_appointment_reminders():
+def _send_appointment_reminders(force: bool = False):
     """
     Hourly job: around noon in each business's local timezone, send reminders for
     all confirmed appointments on the NEXT OPEN business day.
+    Pass force=True to bypass the noon window check (used by the admin test endpoint).
 
     "Next open day" = the nearest future date (starting from tomorrow) that has
     a business_hours row with is_open=True.  This means:
@@ -84,7 +85,8 @@ def _send_appointment_reminders():
 
             # Only fire the reminder logic between 11:00 and 13:00 local time
             # (catches the noon run even if server clock drifts slightly)
-            if not (11 <= now_local.hour < 13):
+            # force=True bypasses this check for manual admin triggers
+            if not force and not (11 <= now_local.hour < 13):
                 continue
 
             # Find the next open day: scan tomorrow onward, up to 4 days ahead
@@ -375,10 +377,10 @@ def start_scheduler():
         replace_existing=True,
     )
 
-    # Every hour — send 24h reminders for upcoming appointments
+    # Every 30 minutes — send next-day reminders (fires during 11am–1pm local window)
     _scheduler.add_job(
         _send_appointment_reminders,
-        trigger=IntervalTrigger(hours=1),
+        trigger=IntervalTrigger(minutes=30),
         id="send_reminders",
         replace_existing=True,
     )
@@ -402,7 +404,7 @@ def start_scheduler():
     _scheduler.start()
     logger.info(
         "Background scheduler started "
-        "(recurring: daily 06:00 | reminders: hourly | "
+        "(recurring: daily 06:00 | reminders: every 30 min / noon-window | "
         "OTW prompts: every 15 min | morning kickoffs: every 15 min)"
     )
 

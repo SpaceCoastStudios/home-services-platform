@@ -25,6 +25,7 @@ from app.utils.auth import hash_password
 
 # Routers
 from app.routers import (
+    admin,
     auth,
     customers,
     services,
@@ -372,6 +373,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(businesses.router)   # Platform admin: manage tenants
 app.include_router(customers.router)
