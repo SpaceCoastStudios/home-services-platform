@@ -84,6 +84,7 @@ def _send_welcome_email(email: str, business_name: str, token: str):
     plain = (
         f"Hi,\n\n"
         f"Your account for {business_name} has been created on the Space Coast Studios platform.\n\n"
+        f"Your login username is: {email}\n\n"
         f"Click the link below to set your password and access your dashboard:\n"
         f"{set_password_url}\n\n"
         f"This link expires in 72 hours.\n\n"
@@ -94,6 +95,10 @@ def _send_welcome_email(email: str, business_name: str, token: str):
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;">
       <h2 style="color:#1e40af;">Welcome to Space Coast Studios!</h2>
       <p>Your account for <strong>{business_name}</strong> has been created.</p>
+      <p style="margin:20px 0;padding:16px;background:#f0f9ff;border-radius:8px;border-left:4px solid #2563eb;">
+        <span style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Your login username</span><br>
+        <strong style="font-size:16px;color:#1e293b;">{email}</strong>
+      </p>
       <p>Click the button below to set your password and access your dashboard:</p>
       <p style="text-align:center;margin:32px 0;">
         <a href="{set_password_url}"
