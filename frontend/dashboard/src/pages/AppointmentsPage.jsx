@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Plus, X, ChevronLeft, ChevronRight, Clock, User, Calendar, Search, Repeat, RefreshCw } from 'lucide-react'
+import { Plus, X, ChevronLeft, ChevronRight, Clock, User, Calendar, Search, Repeat, RefreshCw,
+         Send, Bell, Star, CheckCircle, Ban } from 'lucide-react'
 import {
   getAppointments, createAppointment, cancelAppointment, updateAppointment,
   getCustomers, getServices, getTechnicians, getAvailability,
   getRecurringSchedules, createRecurringSchedule, updateRecurringSchedule, deactivateRecurringSchedule,
+  adminResendConfirmation, adminSendReminder, adminSendReviewRequest,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
+import RowMenu from '../components/RowMenu'
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -173,6 +176,54 @@ export default function AppointmentsPage() {
     loadAppointments()
   }
 
+  const [actionMsg, setActionMsg] = useState('')
+  const apptAction = async (label, fn) => {
+    try {
+      await fn()
+      setActionMsg(`✓ ${label} sent`)
+      setTimeout(() => setActionMsg(''), 3000)
+    } catch (err) {
+      setActionMsg(`✗ ${err.message}`)
+      setTimeout(() => setActionMsg(''), 4000)
+    }
+  }
+
+  const buildApptMenu = (appt) => {
+    const active = !['cancelled', 'completed'].includes(appt.status)
+    return [
+      {
+        label: 'Resend Confirmation',
+        icon: <Send size={14} />,
+        onClick: () => apptAction('Confirmation', () => adminResendConfirmation(appt.id)),
+      },
+      {
+        label: 'Send Reminder',
+        icon: <Bell size={14} />,
+        disabled: !active,
+        onClick: () => apptAction('Reminder', () => adminSendReminder(appt.id)),
+      },
+      {
+        label: 'Send Review Request',
+        icon: <Star size={14} />,
+        onClick: () => apptAction('Review request', () => adminSendReviewRequest(appt.id)),
+      },
+      { label: 'Divider' },
+      {
+        label: 'Mark Complete',
+        icon: <CheckCircle size={14} />,
+        disabled: !['confirmed', 'in_progress', 'en_route', 'pending'].includes(appt.status),
+        onClick: () => handleStatusChange(appt.id, 'completed'),
+      },
+      {
+        label: 'Cancel Appointment',
+        icon: <Ban size={14} />,
+        disabled: !active,
+        danger: true,
+        onClick: () => handleCancel(appt.id),
+      },
+    ]
+  }
+
   // ── Recurring create submit ──────────────────────────────────────────────
   const handleRecurringCreate = async () => {
     setRecError(''); setRecLoading(true)
@@ -215,6 +266,15 @@ export default function AppointmentsPage() {
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div>
+      {/* Toast notification for appointment actions */}
+      {actionMsg && (
+        <div className={`fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all ${
+          actionMsg.startsWith('✓') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+        }`}>
+          {actionMsg}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
         <div className="flex gap-2">
@@ -298,9 +358,7 @@ export default function AppointmentsPage() {
                         </select>
                       </td>
                       <td className="px-6 py-4">
-                        {appt.status !== 'cancelled' && appt.status !== 'completed' && (
-                          <button onClick={() => handleCancel(appt.id)} className="text-red-600 hover:text-red-800 text-sm">Cancel</button>
-                        )}
+                        <RowMenu items={buildApptMenu(appt)} />
                       </td>
                     </tr>
                   ))}

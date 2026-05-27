@@ -4,7 +4,7 @@ All endpoints require a logged-in admin user.
 """
 
 import logging
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -55,6 +55,60 @@ def trigger_morning_kickoffs(
     from app.services.scheduler import _send_otw_morning_kickoffs
     _send_otw_morning_kickoffs()
     return {"status": "ok", "message": "Morning kickoff job executed"}
+
+
+# ---------------------------------------------------------------------------
+# Per-appointment notification triggers
+# ---------------------------------------------------------------------------
+
+def _get_appointment_or_404(db: Session, appointment_id: int):
+    from app.models.appointment import Appointment
+    appt = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return appt
+
+
+@router.post("/appointments/{appointment_id}/resend-confirmation")
+def resend_confirmation(
+    appointment_id: int,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """Re-send the booking confirmation SMS + email to the customer."""
+    from app.services.notifications import send_confirmation
+    appt = _get_appointment_or_404(db, appointment_id)
+    results = send_confirmation(db, appt)
+    logger.info("Admin resend confirmation for appt %d: %s", appointment_id, results)
+    return {"status": "ok", "results": results}
+
+
+@router.post("/appointments/{appointment_id}/send-reminder")
+def send_reminder_now(
+    appointment_id: int,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """Send a 24h-style reminder SMS + email for this appointment right now."""
+    from app.services.notifications import send_reminder
+    appt = _get_appointment_or_404(db, appointment_id)
+    results = send_reminder(db, appt)
+    logger.info("Admin send reminder for appt %d: %s", appointment_id, results)
+    return {"status": "ok", "results": results}
+
+
+@router.post("/appointments/{appointment_id}/send-review-request")
+def send_review_request_now(
+    appointment_id: int,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """Manually send a review request SMS + email for a completed appointment."""
+    from app.services.notifications import send_review_request
+    appt = _get_appointment_or_404(db, appointment_id)
+    results = send_review_request(db, appt)
+    logger.info("Admin send review request for appt %d: %s", appointment_id, results)
+    return {"status": "ok", "results": results}
 
 
 @router.get("/scheduler/status")

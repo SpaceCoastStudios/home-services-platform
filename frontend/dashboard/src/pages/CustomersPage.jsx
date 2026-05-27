@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search, X, Pencil } from 'lucide-react'
+import { Plus, Search, X, Pencil, CalendarDays } from 'lucide-react'
 import { getCustomers, createCustomer, updateCustomer } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
+import RowMenu from '../components/RowMenu'
+import { useNavigate } from 'react-router-dom'
 
 const EMPTY_FORM = { first_name: '', last_name: '', phone: '', email: '', address: '', city: '', state: '', zip_code: '' }
 
@@ -60,6 +62,7 @@ function CustomerForm({ title, form, setForm, onSubmit, onClose, error, submitLa
 
 export default function CustomersPage() {
   const { activeBusinessId } = useBusinessContext()
+  const navigate = useNavigate()
   const [customers, setCustomers] = useState([])
   const [search, setSearch] = useState('')
 
@@ -114,6 +117,15 @@ export default function CustomersPage() {
     } catch (err) { setEditError(err.message) }
   }
 
+  const buildCustomerMenu = (c) => [
+    { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(c) },
+    {
+      label: 'View Appointments',
+      icon: <CalendarDays size={14} />,
+      onClick: () => navigate(`/appointments?customer_id=${c.id}`),
+    },
+  ]
+
   if (activeBusinessId == null) {
     return <div className="flex items-center justify-center h-64 text-gray-400">Select a business to view customers.</div>
   }
@@ -164,9 +176,7 @@ export default function CustomersPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.created_at).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
-                    <button onClick={() => openEdit(c)} className="text-gray-400 hover:text-blue-600 transition-colors" title="Edit customer">
-                      <Pencil size={15} />
-                    </button>
+                    <RowMenu items={buildCustomerMenu(c)} />
                   </td>
                 </tr>
               ))}

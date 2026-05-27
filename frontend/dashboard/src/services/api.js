@@ -204,4 +204,11 @@ export const saveNotificationTemplates = (templates, businessId = null) =>
 export const resetNotificationTemplates = (businessId = null) =>
   api.post(`notification-templates/reset${qs({ business_id: businessId })}`, {})
 
+// ── Admin: per-appointment notification triggers ──────────────
+const adminAppt = (id, action) =>
+  request(`/api/admin/appointments/${id}/${action}`, { method: 'POST' })
+export const adminResendConfirmation = (id) => adminAppt(id, 'resend-confirmation')
+export const adminSendReminder      = (id) => adminAppt(id, 'send-reminder')
+export const adminSendReviewRequest = (id) => adminAppt(id, 'send-review-request')
+
 export default api

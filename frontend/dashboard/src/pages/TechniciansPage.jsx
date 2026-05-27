@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Plus, X, Pencil } from 'lucide-react'
+import { Plus, X, Pencil, PowerOff, Power } from 'lucide-react'
 import { getTechnicians, createTechnician, updateTechnician } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
+import RowMenu from '../components/RowMenu'
 
 const SKILL_OPTIONS = ['plumbing', 'electrical', 'hvac', 'cleaning', 'landscaping', 'general']
 
@@ -21,6 +22,21 @@ export default function TechniciansPage() {
 
   const openCreate = () => { setEditing(null); setForm({ name: '', phone: '', email: '', skills: [] }); setShowModal(true) }
   const openEdit = (t) => { setEditing(t); setForm({ name: t.name, phone: t.phone || '', email: t.email || '', skills: t.skills || [] }); setShowModal(true) }
+
+  const toggleActive = async (t) => {
+    await updateTechnician(t.id, { is_active: !t.is_active }, activeBusinessId)
+    load()
+  }
+
+  const buildTechMenu = (t) => [
+    { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(t) },
+    {
+      label: t.is_active ? 'Deactivate' : 'Activate',
+      icon: t.is_active ? <PowerOff size={14} /> : <Power size={14} />,
+      danger: t.is_active,
+      onClick: () => toggleActive(t),
+    },
+  ]
 
   const toggleSkill = (skill) => {
     setForm(f => ({
@@ -58,7 +74,7 @@ export default function TechniciansPage() {
                 {t.phone && <p className="text-sm text-gray-500 mt-0.5">{t.phone}</p>}
                 {t.email && <p className="text-sm text-gray-500">{t.email}</p>}
               </div>
-              <button onClick={() => openEdit(t)} className="text-gray-400 hover:text-gray-600"><Pencil size={16} /></button>
+              <RowMenu items={buildTechMenu(t)} align="right" />
             </div>
             <div className="flex flex-wrap gap-1.5 mt-3">
               {(t.skills || []).map(s => (
