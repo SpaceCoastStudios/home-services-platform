@@ -221,7 +221,6 @@ def create_checkout_session(body: dict):
             {"price": prices["monthly"], "quantity": 1},
         ],
         billing_address_collection="required",
-        customer_creation="always",
         phone_number_collection={"enabled": True},
         custom_fields=[
             {
