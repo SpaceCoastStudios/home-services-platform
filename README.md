@@ -68,8 +68,8 @@ home-services-platform/
 │   │   │   └── ...
 │   │   ├── routers/            # FastAPI route handlers
 │   │   │   ├── billing.py      # Stripe checkout, webhook, portal, subscription
-│   │   │   ├── businesses.py   # Business CRUD (platform admin only)
-│   │   │   ├── auth.py         # Login, set-password
+│   │   │   ├── businesses.py   # Business CRUD + /me + impersonate endpoints
+│   │   │   ├── auth.py         # Login, set-password, forgot-password, refresh
 │   │   │   ├── appointments.py
 │   │   │   ├── sms_webhook.py  # Twilio inbound SMS handler
 │   │   │   └── ...
@@ -86,6 +86,8 @@ home-services-platform/
 │   │   │   ├── TechniciansPage.jsx   # 3-dot row menu
 │   │   │   ├── BillingPage.jsx       # Plan info (client) / tenant overview (platform admin)
 │   │   │   ├── SetPasswordPage.jsx   # Token-based password setup (/set-password?token=)
+│   │   │   ├── ForgotPasswordPage.jsx  # Request password reset email (/forgot-password)
+│   │   │   ├── SetupPage.jsx          # First-login setup wizard (/setup, 3-step + done screen)
 │   │   │   ├── WelcomePage.jsx       # Post-checkout landing (/welcome?session_id=)
 │   │   │   └── ...
 │   │   ├── components/
@@ -93,7 +95,7 @@ home-services-platform/
 │   │   │   ├── RowMenu.jsx           # Reusable 3-dot dropdown (portal-based)
 │   │   │   └── ...
 │   │   ├── services/api.js           # API client with JWT auth
-│   │   └── hooks/                    # useAuth, useBusinessContext
+│   │   └── hooks/                    # useAuth (incl. impersonation), useBusinessContext
 │   ├── netlify.toml
 │   └── public/_redirects             # SPA fallback routing
 ├── marketing-site/             # Static HTML marketing site (deployed to Netlify)
@@ -216,8 +218,12 @@ Subscription status changes (upgrades, cancellations, payment failures) update i
 2. Completes Stripe Checkout (collects name, email, address, phone, business name)
 3. Tenant is provisioned automatically — no manual steps required
 4. Client receives welcome email with their username (email address) and set-password link
-5. Client sets password, logs into dashboard at `dashboard.spacecoaststudios.com`
-6. Complete A2P 10DLC setup and platform configuration (see sections below)
+5. Client sets password → automatically redirected to the **First-Login Setup Wizard** (`/setup`)
+6. Setup wizard (3 steps): Business Info → Look & Feel (brand color, logo) → AI & Notifications (persona name, Google Review URL)
+7. On completion, `has_completed_setup` is set to `true` on the Business record; wizard no longer appears on subsequent logins
+8. Complete A2P 10DLC setup and platform configuration (see sections below)
+
+> **Platform admin tip:** Use the **Log in as** button on the Businesses page (`/businesses`) to impersonate any client and see their dashboard exactly as they do. An amber banner appears during the session; click **Exit impersonation** to return to your platform admin account.
 
 ### Manual (founding clients at introductory pricing)
 
@@ -303,7 +309,7 @@ Complete these steps at least 2–3 days before the client's launch date.
 ### OTW Reply Flow (Technician SMS)
 
 1. Scheduler fires `otw_tech_prompt` → tech receives "Reply YES when leaving for [Customer]"
-2. Tech replies YES → `checkout.session.completed` webhook → customer gets "On The Way" SMS
+2. Tech replies YES → inbound SMS webhook (`/webhook/sms/inbound`) → customer gets "On The Way" SMS
 3. Tech receives "Reply YES when job is complete"
 4. Tech replies YES → if more appointments today → next stop prompt; if last job → review request sent to customer + "Great work! That's a wrap!" to tech
 
@@ -324,8 +330,10 @@ Complete these steps at least 2–3 days before the client's launch date.
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/login` | none | Username + password login, returns JWT |
-| `POST` | `/api/auth/set-password` | none | Set password via reset token (from welcome email) |
+| `POST` | `/api/auth/login` | none | Username + password login; returns `access_token` + `refresh_token` |
+| `POST` | `/api/auth/refresh` | none | Exchange a refresh token for a new token pair |
+| `POST` | `/api/auth/set-password` | none | Set/reset password via token; returns `access_token` + `refresh_token` for auto-login. Body: `{"token","password","confirm_password"}` |
+| `POST` | `/api/auth/forgot-password` | none | Request a password-reset email. Body: `{"email"}`. Always returns 200 (prevents enumeration). |
 
 ### Billing
 
@@ -337,14 +345,16 @@ Complete these steps at least 2–3 days before the client's launch date.
 | `GET` | `/api/billing/subscription` | JWT | Get current plan/status for active business |
 | `POST` | `/api/billing/portal` | JWT | Create Stripe Customer Portal session |
 
-### Businesses (platform admin only)
+### Businesses
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/businesses` | JWT (admin) | List all businesses with billing fields |
-| `POST` | `/api/businesses` | JWT (admin) | Create business |
-| `GET` | `/api/businesses/{id}` | JWT (admin) | Get business |
-| `PUT` | `/api/businesses/{id}` | JWT (admin) | Update business |
+| `GET` | `/api/businesses` | JWT (platform admin) | List all businesses with billing fields |
+| `POST` | `/api/businesses` | JWT (platform admin) | Create business |
+| `GET` | `/api/businesses/me` | JWT (business admin) | Get the caller's own business record |
+| `GET` | `/api/businesses/{id}` | JWT (platform admin) | Get business by ID |
+| `PUT` | `/api/businesses/{id}` | JWT | Update business — platform admins can update any field; business admins can only update their own business and cannot change `plan`, `is_active`, `is_demo`, or Stripe fields |
+| `POST` | `/api/businesses/{id}/impersonate` | JWT (platform admin) | Mint a 2-hour impersonation token for a business's admin user; returns `{"access_token", "business_name"}` |
 
 ### Appointments
 

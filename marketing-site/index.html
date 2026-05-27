@@ -879,8 +879,8 @@
       <div class="promo-tag">Limited Time — Founding Client Offer</div>
       <p>
         We're onboarding our first clients at a special introductory rate.
-        <strong>Starter:</strong> <span class="price-strikethrough">$1,997</span><strong>$497 setup</strong> + $99/mo for your first 3 months. &nbsp;
-        <strong>Professional:</strong> <span class="price-strikethrough">$2,997</span><strong>$997 setup</strong> + $199/mo for your first 3 months.
+        <strong>Starter:</strong> <span class="price-strikethrough">$1,997</span><strong>$497 setup</strong> + $99/mo for your first 3 months, then $249/mo. &nbsp;
+        <strong>Professional:</strong> <span class="price-strikethrough">$2,997</span><strong>$997 setup</strong> + $199/mo for your first 3 months, then $399/mo.
         <br>Mention this offer when you reach out.
       </p>
     </div>
@@ -1024,10 +1024,6 @@
     <p>Join the home service businesses on the Space Coast that never miss a lead.</p>
     <div class="cta-btns">
       <a href="#contact" class="btn-primary">Schedule a Free Demo</a>
-      <a href="tel:+13215550100" class="btn-cta-light">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 11.5c0 .3-.07.6-.22.88a2.92 2.92 0 0 1-.6.82c-.38.38-.8.58-1.25.58-.33 0-.68-.08-1.07-.25a10.6 10.6 0 0 1-1.07-.62 16.8 16.8 0 0 1-1.03-.85 16.5 16.5 0 0 1-.85-1.02 10.6 10.6 0 0 1-.62-1.07C7.08 9.6 7 9.25 7 8.93c0-.33.07-.65.2-.93.14-.29.35-.55.63-.78.33-.27.7-.4 1.08-.4.15 0 .3.03.43.1.14.06.26.16.36.3l1.2 1.7c.1.13.17.25.22.37.05.11.08.22.08.32 0 .13-.04.26-.11.38-.07.13-.17.26-.3.39l-.4.42c-.06.06-.09.13-.09.2 0 .04.01.07.02.11.02.04.04.07.05.1.1.18.27.42.52.7.25.28.52.57.8.85.3.28.58.54.87.78.28.24.51.4.7.5l.1.04c.03.01.06.02.1.02.08 0 .15-.03.21-.1l.4-.4c.14-.13.27-.23.4-.3.12-.07.25-.1.38-.1.1 0 .2.02.32.07.12.05.24.12.37.22l1.72 1.22c.14.1.24.22.3.36.05.14.08.28.08.44z" stroke="white" stroke-width="1.2"/></svg>
-        Call Us
-      </a>
     </div>
   </div>
 </section>
@@ -1064,6 +1060,11 @@
     nav.style.boxShadow = window.scrollY > 20 ? '0 2px 20px rgba(15,23,42,0.08)' : 'none';
   });
 
+  // API base URL — used by checkout buttons and the demo form
+  const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://api.spacecoaststudios.com';
+
   // Stripe checkout — "Get Started" buttons
   document.querySelectorAll('[data-checkout-plan]').forEach(btn => {
     btn.addEventListener('click', async function () {
@@ -1095,10 +1096,6 @@
   });
 
   // Demo booking widget form handler
-  const API_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:8000'
-    : 'https://api.spacecoaststudios.com';
-
   const demoForm = document.getElementById('demoForm');
   if (demoForm) {
     demoForm.addEventListener('submit', async function(e) {
@@ -1155,7 +1152,7 @@
       } catch (err) {
         submitBtn.textContent = 'Request My Free Demo →';
         submitBtn.disabled = false;
-        formErr.textContent = 'Something went wrong — please try again or email ryan@spacecoaststudios.com';
+        formErr.textContent = 'Something went wrong — please try again or email hello@spacecoaststudios.com';
         formErr.style.display = 'block';
       }
     });
