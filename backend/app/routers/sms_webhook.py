@@ -69,10 +69,15 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
             return Response(content=_twiml(""), media_type="application/xml")
 
     # --- Find business by Twilio number ---
-    # Normalize to E.164 (+1XXXXXXXXXX) for comparison
+    # Try all common storage formats in case the DB value isn't E.164.
+    to_digits   = to_phone.lstrip("+")
+    to_ten      = to_digits[-10:]
+    to_e164     = f"+{to_digits}"
+    to_variants = list({to_phone, to_e164, to_digits, to_ten})
+
     business = (
         db.query(Business)
-        .filter(Business.twilio_phone_number == to_phone, Business.is_active == True)
+        .filter(Business.twilio_phone_number.in_(to_variants), Business.is_active == True)
         .first()
     )
     if not business:
@@ -120,10 +125,18 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
 
     now = datetime.now(timezone.utc)
 
+    # Normalize the inbound phone to match however it may be stored in the DB.
+    # Twilio sends E.164 (+13215551234) but some records are stored as 10-digit
+    # (3215551234) or 11-digit without plus (13215551234).
+    digits_only = tech_phone.lstrip("+")          # "13215551234"
+    ten_digit   = digits_only[-10:]                # "3215551234"
+    e164        = f"+{digits_only}"                # "+13215551234"
+    phone_variants = list({tech_phone, e164, digits_only, ten_digit})
+
     # Find technician by phone number across all businesses
     tech = (
         db.query(Technician)
-        .filter(Technician.phone == tech_phone, Technician.is_active == True)
+        .filter(Technician.phone.in_(phone_variants), Technician.is_active == True)
         .first()
     )
     if not tech:
