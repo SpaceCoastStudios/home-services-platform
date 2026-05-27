@@ -24,7 +24,7 @@ DEFAULTS: dict[tuple[str, str], dict] = {
         "subject": None,
         "body": (
             "Hi {{customer_name}}! Your {{service_name}} appointment is confirmed "
-            "for {{date_time}} with {{technician_name}}. "
+            "for {{date_time}} with {{technician_name}} from {{business_name}}. "
             "Add to calendar: {{calendar_link}}. "
             "Reply STOP to opt out."
         ),

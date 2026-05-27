@@ -8,6 +8,7 @@ Usage:
 
 import re
 import logging
+import pytz
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -50,20 +51,28 @@ def _build_vars(business: Business, appointment: Appointment) -> dict:
     service = appointment.service_type
     tech = appointment.technician
 
-    # Format date/time nicely
+    # Format date/time in the business's local timezone (stored as UTC in DB)
     dt = appointment.scheduled_start
+    biz_tz_str = getattr(business, "timezone", None) or "America/New_York"
     try:
-        date_time_str = dt.strftime("%A, %B %-d at %-I:%M %p")
+        biz_tz = pytz.timezone(biz_tz_str)
+    except Exception:
+        biz_tz = pytz.utc
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=pytz.utc)
+    dt_local = dt.astimezone(biz_tz)
+    try:
+        date_time_str = dt_local.strftime("%A, %B %-d at %-I:%M %p")
     except ValueError:
         # Windows doesn't support %-d / %-I
-        date_time_str = dt.strftime("%A, %B %d at %I:%M %p").replace(" 0", " ")
+        date_time_str = dt_local.strftime("%A, %B %d at %I:%M %p").replace(" 0", " ")
 
-    # Calendar link
+    # Calendar links
     try:
         cal_links = get_all_calendar_links(appointment.calendar_token)
-        calendar_link = cal_links.get("landing_page", "")
     except Exception:
-        calendar_link = ""
+        cal_links = {}
+    calendar_link = cal_links.get("landing_page", "")
 
     return {
         "customer_name": customer.first_name if customer else "there",
@@ -73,6 +82,7 @@ def _build_vars(business: Business, appointment: Appointment) -> dict:
         "technician_name": tech.name if tech else "a technician",
         "address": appointment.address or (customer.address if customer and hasattr(customer, "address") else "") or "",
         "calendar_link": calendar_link,
+        "cal_links": cal_links,
         "business_phone": business.phone or "",
     }
 
@@ -124,12 +134,12 @@ def render_email(
 
     subject = _render(subject_tpl or "", vars)
     plain = _render(body_tpl or "", vars)
-    html = _build_html_email(plain, subject, business)
+    html = _build_html_email(plain, subject, business, vars.get("cal_links"))
 
     return subject, plain, html
 
 
-def _build_html_email(plain_body: str, title: str, business: Business) -> str:
+def _build_html_email(plain_body: str, title: str, business: Business, cal_links: dict | None = None) -> str:
     """Wrap plain text email body in a branded HTML envelope."""
     brand_color = business.brand_color or "#2563eb"
     business_name = business.name or "Space Coast Studios"
@@ -138,8 +148,35 @@ def _build_html_email(plain_body: str, title: str, business: Business) -> str:
     paragraphs = [p.strip() for p in plain_body.split("\n\n") if p.strip()]
     body_html = ""
     for para in paragraphs:
+        # Skip the "Use the calendar buttons below" line — we render real buttons instead
+        if "calendar buttons below" in para.lower():
+            continue
         lines = para.replace("\n", "<br>")
         body_html += f'<p style="margin:0 0 14px 0;">{lines}</p>\n'
+
+    # Calendar buttons
+    cal_html = ""
+    if cal_links:
+        btn_style = (
+            f"display:inline-block;margin:4px;padding:10px 18px;border-radius:6px;"
+            f"background:{brand_color};color:white;text-decoration:none;"
+            f"font-size:13px;font-weight:600;"
+        )
+        ghost_style = (
+            f"display:inline-block;margin:4px;padding:10px 18px;border-radius:6px;"
+            f"border:1px solid {brand_color};color:{brand_color};text-decoration:none;"
+            f"font-size:13px;font-weight:600;"
+        )
+        cal_html = f"""
+        <div style="margin:20px 0;padding:20px;background:#f8fafc;border-radius:8px;text-align:center;">
+          <p style="margin:0 0 14px;font-size:14px;font-weight:600;color:#374151;">Add to your calendar</p>
+          <div>
+            <a href="{cal_links.get('google','')}" target="_blank" style="{btn_style}">Google Calendar</a>
+            <a href="{cal_links.get('ical','')}" target="_blank" style="{ghost_style}">Apple / iCal</a>
+            <a href="{cal_links.get('outlook','')}" target="_blank" style="{ghost_style}">Outlook</a>
+            <a href="{cal_links.get('yahoo','')}" target="_blank" style="{ghost_style}">Yahoo</a>
+          </div>
+        </div>"""
 
     contact_line = ""
     if business.phone:
@@ -158,6 +195,7 @@ def _build_html_email(plain_body: str, title: str, business: Business) -> str:
     </div>
     <div style="background:white;padding:28px;border:1px solid #e5e7eb;border-top:none;color:#374151;font-size:15px;line-height:1.6;">
       {body_html}
+      {cal_html}
     </div>
     <div style="background:#f9fafb;padding:16px 28px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;text-align:center;">
       <p style="margin:0;font-size:12px;color:#9ca3af;">{contact_line}</p>
