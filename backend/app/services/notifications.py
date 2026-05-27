@@ -410,7 +410,7 @@ def send_otw_morning_kickoff(db, appointment, tech, appointment_count: int) -> b
 
     body = render_sms_raw(
         "otw_morning_kickoff", db, business,
-        tech_name=tech.first_name or tech.full_name or "there",
+        tech_name=tech.name or "there",
         appointment_count=str(appointment_count),
         customer_name=appointment.customer.full_name if appointment.customer else "your customer",
         address=appointment.address or (appointment.customer.address if appointment.customer else "the job site"),
@@ -491,7 +491,7 @@ def send_otw_day_complete(db, tech, business, last_appointment) -> bool:
 
     body = render_sms_raw(
         "otw_day_complete", db, business,
-        tech_name=tech.first_name or tech.full_name or "there",
+        tech_name=tech.name or "there",
     )
 
     ok = send_sms(tech.phone, body, from_number=twilio_from)
