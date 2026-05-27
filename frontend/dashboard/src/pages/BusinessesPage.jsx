@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getBusinesses, updateBusiness } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
-import { Building2, Plus, X, Check, Users, Calendar, Globe, Wrench } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth'
+import { Building2, Plus, X, Check, Users, Calendar, Globe, Wrench, LogIn } from 'lucide-react'
 
 const INDUSTRIES = ['hvac', 'plumbing', 'electrical', 'landscaping', 'cleaning', 'roofing', 'general']
 const PLANS = ['full', 'mini']
@@ -245,8 +246,22 @@ export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null) // null | business object (edit only)
+  const [impersonatingId, setImpersonatingId] = useState(null)
   const { selectBusiness } = useBusinessContext()
+  const { impersonate } = useAuth()
   const navigate = useNavigate()
+
+  const handleImpersonate = async (b) => {
+    setImpersonatingId(b.id)
+    try {
+      await impersonate(b.id)
+      navigate('/')
+    } catch (err) {
+      alert(`Could not impersonate: ${err.message}`)
+    } finally {
+      setImpersonatingId(null)
+    }
+  }
 
   const load = () => {
     setLoading(true)
@@ -350,14 +365,17 @@ export default function BusinessesPage() {
                 {/* Actions */}
                 <div className="flex gap-2 mt-auto pt-3 border-t">
                   <button
-                    onClick={() => { selectBusiness(b) }}
-                    className="flex-1 text-center text-sm py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors font-medium"
+                    onClick={() => handleImpersonate(b)}
+                    disabled={impersonatingId === b.id || !b.is_active}
+                    className="flex-1 flex items-center justify-center gap-1.5 text-sm py-1.5 rounded-lg border border-violet-200 text-violet-700 hover:bg-violet-50 transition-colors font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                    title="Log in as this business's admin"
                   >
-                    View Dashboard
+                    <LogIn size={13} />
+                    {impersonatingId === b.id ? 'Opening…' : 'Log in as'}
                   </button>
                   <button
                     onClick={() => setModal(b)}
-                    className="flex-1 text-center text-sm py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
                   >
                     Edit
                   </button>

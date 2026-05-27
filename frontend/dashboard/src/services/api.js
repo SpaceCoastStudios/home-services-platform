@@ -219,4 +219,8 @@ export const adminResendConfirmation = (id) => adminAppt(id, 'resend-confirmatio
 export const adminSendReminder      = (id) => adminAppt(id, 'send-reminder')
 export const adminSendReviewRequest = (id) => adminAppt(id, 'send-review-request')
 
+// ── Admin: impersonation ──────────────────────────────────────
+export const impersonateBusiness = (businessId) =>
+  request(`/api/businesses/${businessId}/impersonate`, { method: 'POST' })
+
 export default api

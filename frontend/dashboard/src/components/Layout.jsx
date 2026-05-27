@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 import {
@@ -16,6 +16,8 @@ import {
   PhoneCall,
   Bell,
   CreditCard,
+  Eye,
+  X,
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
@@ -99,8 +101,9 @@ function BusinessSelector() {
 }
 
 export default function Layout() {
-  const { user, logout } = useAuth()
+  const { user, logout, isImpersonating, impersonatedBizName, exitImpersonation } = useAuth()
   const { activeBusiness } = useBusinessContext()
+  const navigate = useNavigate()
 
   // Platform admins get a Businesses link at the top of nav
   const platformNav = user?.isPlatformAdmin
@@ -205,8 +208,24 @@ export default function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto bg-gray-50">
-        <div className="p-8">
+      <main className="flex-1 overflow-auto bg-gray-50 flex flex-col">
+        {/* Impersonation banner */}
+        {isImpersonating && (
+          <div className="bg-amber-400 text-amber-900 px-6 py-2.5 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Eye size={16} />
+              <span>Viewing as <strong>{impersonatedBizName}</strong> — changes you make affect this client's real data</span>
+            </div>
+            <button
+              onClick={() => { exitImpersonation(); navigate('/businesses') }}
+              className="flex items-center gap-1.5 text-sm font-semibold bg-amber-900/15 hover:bg-amber-900/25 px-3 py-1 rounded-lg transition-colors"
+            >
+              <X size={14} />
+              Exit impersonation
+            </button>
+          </div>
+        )}
+        <div className="p-8 flex-1">
           <Outlet />
         </div>
       </main>

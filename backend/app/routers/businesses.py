@@ -1,6 +1,6 @@
 """Business (tenant) management — platform admin only."""
 
-from datetime import datetime, time, timezone
+from datetime import datetime, time, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -12,7 +12,7 @@ from app.models.business import Business
 from app.models.admin_user import AdminUser
 from app.models.business_hours import BusinessHours
 from app.models.system_settings import SystemSetting
-from app.utils.auth import get_platform_admin, hash_password
+from app.utils.auth import get_platform_admin, hash_password, create_access_token
 
 router = APIRouter(prefix="/api/businesses", tags=["businesses"])
 
@@ -200,3 +200,61 @@ def update_business(
     db.commit()
     db.refresh(b)
     return b
+
+
+# ---------------------------------------------------------------------------
+# POST /api/businesses/{business_id}/impersonate
+# ---------------------------------------------------------------------------
+
+@router.post("/{business_id}/impersonate")
+def impersonate_business(
+    business_id: int,
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_platform_admin),
+):
+    """
+    Mint a short-lived impersonation token scoped to a tenant's admin user.
+    Platform admin only.  Returns a 2-hour access token that behaves exactly
+    like the business admin's own token, plus extra claims the frontend uses
+    to show the impersonation banner and restore the original session.
+    """
+    business = db.query(Business).filter(Business.id == business_id).first()
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+
+    # Find the first active admin user for this business
+    admin_user = (
+        db.query(AdminUser)
+        .filter(
+            AdminUser.business_id == business_id,
+            AdminUser.is_active == True,
+        )
+        .order_by(AdminUser.id)
+        .first()
+    )
+    if not admin_user:
+        raise HTTPException(
+            status_code=404,
+            detail="No active admin user found for this business. "
+                   "Create one via the Businesses page first.",
+        )
+
+    token_data = {
+        "sub":                  admin_user.id,
+        "username":             admin_user.username,
+        "role":                 admin_user.role,
+        "business_id":          business.id,
+        "is_platform_admin":    False,
+        # Extra claims — used only by the frontend, ignored by all API endpoints
+        "impersonating":        True,
+        "impersonated_by_id":   current_user.id,
+        "impersonated_by_name": current_user.username,
+        "business_name":        business.name,
+    }
+
+    token = create_access_token(token_data, expires_delta=timedelta(hours=2))
+
+    return {
+        "access_token": token,
+        "business_name": business.name,
+    }
