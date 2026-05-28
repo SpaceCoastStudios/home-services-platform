@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: May 2026
+> Last substantive update: 2026-05-27
 
 ---
 
@@ -953,7 +953,10 @@ $result.url  # open in browser — $2 total, refund immediately after
 - Scheduled task `scs-context-update` updated: now targets CLAUDE.md (was SCS_PROJECT_CONTEXT.md), section references corrected, added limitation warning explaining it only captures git commits — non-code events (A2P status, attorney responses, client signups) require manual input
 - End-of-session habit established: say "Update CLAUDE.md with everything that happened today" to capture the full session, or "Update CLAUDE.md — [specific event]" for non-code updates (e.g. A2P approved, client signed)
 
+**2026-05-27 (automated daily check — end of day):**
+- No new commits since session-close update. CLAUDE.md current. Date stamp updated.
+
 ### Pending Monitoring Items
 - **A2P approval:** 5th submission under review. Check Twilio Console → Regulatory Compliance for status updates.
 - **Morning kickoff delivery:** If techs report not receiving kickoff SMS, check that (1) the appointment exists and is confirmed, (2) the time is after 7am local, (3) it's within the 60-min lookahead window. Use manual trigger to test.
-- **Contact queue / AI responder:** End-to-end test not yet confirmed. Run a test contact form submission and verify AI response is generated and sent (or drafted if `draft_only` mode).
+- **Contact queue / AI responder:** End-to-e
