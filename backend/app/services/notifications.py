@@ -388,38 +388,103 @@ def send_otw_customer_notification(db, appointment) -> bool:
     return ok
 
 
-def send_otw_morning_kickoff(db, appointment, tech, appointment_count: int) -> bool:
+def _build_kickoff_body(tech, all_appts: list, schedule_url: str | None) -> str:
     """
-    Send the morning kickoff SMS to a technician ~1 hour before their first appointment.
-    Greets them by name, tells them how many jobs they have, and prompts them to reply
-    YES when heading to their first stop.
+    Build the morning kickoff SMS body showing all of today's appointments.
 
-    Never called before 07:00 business local time — enforced in the scheduler.
+    Format:
+      Good morning [Name]! You have X jobs today:
+
+      1. 9:00 AM – AC Repair
+         John · 123 Main St
+         Problem: Compressor not running…
+
+      Full details:
+      https://...
+
+      Reply YES when heading to stop 1.
+    """
+    from zoneinfo import ZoneInfo
+    from datetime import timezone as _tz
+
+    appt_count = len(all_appts)
+    tech_first = tech.name.split()[0] if tech.name else "there"
+
+    # Determine business timezone for time formatting
+    business = all_appts[0].business if all_appts else None
+    tz_str = getattr(business, "timezone", "America/New_York") or "America/New_York"
+    try:
+        tz = ZoneInfo(tz_str)
+    except Exception:
+        tz = ZoneInfo("America/New_York")
+
+    lines = [f"Good morning {tech_first}! You have {appt_count} job{'s' if appt_count != 1 else ''} today:"]
+
+    for i, appt in enumerate(all_appts, start=1):
+        local_dt = appt.scheduled_start.replace(tzinfo=_tz.utc).astimezone(tz)
+        time_str = local_dt.strftime("%-I:%M %p")
+
+        customer = appt.customer
+        cust_name = customer.name if customer else "Customer"
+        cust_first = cust_name.split()[0] if cust_name else cust_name
+
+        service = appt.service_type
+        svc_name = service.name if service else "Service"
+
+        address = appt.address or (
+            getattr(customer, "address", "") if customer else ""
+        ) or ""
+        short_addr = address.split(",")[0].strip() if address else ""
+
+        problem = appt.problem_description or ""
+        if problem and len(problem) > 52:
+            problem = problem[:50].rstrip() + "…"
+
+        entry_lines = [f"\n{i}. {time_str} – {svc_name}"]
+        detail = " · ".join(filter(None, [cust_first, short_addr]))
+        if detail:
+            entry_lines.append(f"   {detail}")
+        if problem:
+            entry_lines.append(f"   Problem: {problem}")
+
+        lines.append("\n".join(entry_lines))
+
+    if schedule_url:
+        lines.append(f"\nFull details:\n{schedule_url}")
+
+    lines.append("\nReply YES when heading to stop 1.")
+
+    return "\n".join(lines)
+
+
+def send_otw_morning_kickoff(
+    db, first_appt, tech, all_appts: list, schedule_url: str | None = None
+) -> bool:
+    """
+    Send the morning kickoff SMS to a technician ~2 hours before their first appointment.
+    Shows a numbered summary of ALL of today's appointments with service, customer first
+    name, address, and problem description (truncated to ~50 chars).
+    Includes a link to the tech's public no-login schedule page.
+    Prompts tech to reply YES when heading to stop 1.
+
     Idempotency is handled by the caller checking notification_logs before calling.
     """
     from app.models.notification import NotificationLog
-    from app.services.template_renderer import render_sms_raw
 
-    business = appointment.business
+    business = first_appt.business
 
     if not tech or not tech.phone:
-        logger.warning("Morning kickoff skipped — no tech phone for appt %d", appointment.id)
+        logger.warning("Morning kickoff skipped — no tech phone for appt %d", first_appt.id)
         return False
 
     twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
-
-    body = render_sms_raw(
-        "otw_morning_kickoff", db, business,
-        tech_name=tech.name or "there",
-        appointment_count=str(appointment_count),
-        customer_name=appointment.customer.full_name if appointment.customer else "your customer",
-        address=appointment.address or (appointment.customer.address if appointment.customer else "the job site"),
-    )
+    body = _build_kickoff_body(tech, all_appts, schedule_url)
 
     ok = send_sms(tech.phone, body, from_number=twilio_from)
 
     db.add(NotificationLog(
-        appointment_id=appointment.id,
+        appointment_id=first_appt.id,
+        technician_id=tech.id,
         type="sms",
         event="otw_morning_kickoff",
         sent_at=datetime.now(timezone.utc),
@@ -429,7 +494,45 @@ def send_otw_morning_kickoff(db, appointment, tech, appointment_count: int) -> b
 
     logger.info(
         "Morning kickoff %s → tech %s (%d jobs) for appt %d",
-        "sent" if ok else "failed", tech.phone, appointment_count, appointment.id,
+        "sent" if ok else "failed", tech.phone, len(all_appts), first_appt.id,
+    )
+    return ok
+
+
+def send_otw_morning_no_appointments(db, tech, business) -> bool:
+    """
+    Send "no appointments today" morning message to a technician.
+    Logged against technician_id only (appointment_id = NULL).
+    Fired once between 07:00–08:00 local business time.
+    """
+    from app.models.notification import NotificationLog
+
+    if not tech or not tech.phone:
+        return False
+
+    twilio_from = (business.twilio_phone_number if business else None) or settings.TWILIO_PHONE_NUMBER
+
+    tech_first = tech.name.split()[0] if tech.name else "there"
+    body = (
+        f"Good morning {tech_first}! No appointments scheduled for you today. "
+        f"Enjoy your day off! \U0001f334"
+    )
+
+    ok = send_sms(tech.phone, body, from_number=twilio_from)
+
+    db.add(NotificationLog(
+        appointment_id=None,
+        technician_id=tech.id,
+        type="sms",
+        event="otw_morning_kickoff",
+        sent_at=datetime.now(timezone.utc),
+        status="sent" if ok else "failed",
+    ))
+    db.commit()
+
+    logger.info(
+        "No-appointments morning message %s → tech %s",
+        "sent" if ok else "failed", tech.phone,
     )
     return ok
 

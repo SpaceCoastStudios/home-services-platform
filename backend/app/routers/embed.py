@@ -145,7 +145,22 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
 
     textarea {{
       resize: vertical;
-      min-height: 90px;
+      min-height: 80px;
+    }}
+
+    .char-counter {{
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: right;
+      margin-top: 2px;
+    }}
+
+    .char-counter.near-limit {{
+      color: #f59e0b;
+    }}
+
+    .char-counter.at-limit {{
+      color: #ef4444;
     }}
 
     .contact-method-group {{
@@ -322,6 +337,12 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       </div>
 
       <div class="form-group full">
+        <label for="problemDescription">Describe the problem <span style="font-size:12px;color:#6b7280;font-weight:400;">(optional)</span></label>
+        <textarea id="problemDescription" name="problem_description" maxlength="200" placeholder="What's going on? Any details help our technician come prepared…" style="min-height:70px;"></textarea>
+        <div class="char-counter" id="problemCounter">0 / 200</div>
+      </div>
+
+      <div class="form-group full">
         <div class="sms-consent-group">
           <label class="sms-consent-label">
             <input type="checkbox" id="smsConsent" name="sms_consent" required />
@@ -350,6 +371,18 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
     const BUSINESS_ID = {business_id};
     const API_BASE    = "{api_base}";
 
+    // Character counter for problem description
+    (function() {{
+      const textarea = document.getElementById("problemDescription");
+      const counter  = document.getElementById("problemCounter");
+      const MAX = 200;
+      textarea.addEventListener("input", function() {{
+        const len = textarea.value.length;
+        counter.textContent = len + " / " + MAX;
+        counter.className = "char-counter" + (len >= MAX ? " at-limit" : len >= 170 ? " near-limit" : "");
+      }});
+    }})();
+
     document.getElementById("contactForm").addEventListener("submit", async function(e) {{
       e.preventDefault();
 
@@ -371,6 +404,8 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
 
       const contactMethod = document.querySelector('input[name="contact_method"]:checked')?.value || null;
 
+      const problemText = document.getElementById("problemDescription").value.trim();
+
       const payload = {{
         name:                     document.getElementById("name").value.trim(),
         email:                    document.getElementById("email").value.trim(),
@@ -378,6 +413,7 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
         service_requested:        document.getElementById("service").value || null,
         preferred_contact_method: contactMethod,
         message:                  document.getElementById("message").value.trim(),
+        problem_description:      problemText || null,
       }};
 
       try {{

@@ -34,8 +34,11 @@ class AppointmentResponse(BaseModel):
     source: str
     address: Optional[str] = None
     notes: Optional[str] = None
+    problem_description: Optional[str] = None
+    media_urls: Optional[list] = None
     calendar_token: str
     calendar_links_sent: bool
+    recurring_schedule_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

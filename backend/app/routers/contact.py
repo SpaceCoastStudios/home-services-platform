@@ -55,6 +55,7 @@ def submit_contact_form(
         phone=body.phone,
         service_requested=body.service_requested,
         message=body.message,
+        problem_description=body.problem_description,
         preferred_date=body.preferred_date,
         preferred_time=body.preferred_time,
         status="new",

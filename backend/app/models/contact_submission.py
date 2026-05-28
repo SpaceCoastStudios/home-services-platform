@@ -22,6 +22,7 @@ class ContactSubmission(Base):
     service_requested: Mapped[str | None] = mapped_column(String(100), nullable=True)
     preferred_contact_method: Mapped[str | None] = mapped_column(String(20), nullable=True)  # call, text, email
     message: Mapped[str] = mapped_column(Text, nullable=False)
+    problem_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     preferred_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     preferred_time: Mapped[str | None] = mapped_column(String(20), nullable=True)
     ai_response: Mapped[str | None] = mapped_column(Text, nullable=True)

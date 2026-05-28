@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, ChevronLeft, ChevronRight, Clock, User, Calendar, Search, Repeat, RefreshCw,
-         Send, Bell, Star, CheckCircle, Ban } from 'lucide-react'
+         Send, Bell, Star, CheckCircle, Ban, ChevronDown, ChevronUp, MapPin, FileText, AlertCircle } from 'lucide-react'
 import {
   getAppointments, createAppointment, cancelAppointment, updateAppointment,
   getCustomers, getServices, getTechnicians, getAvailability,
@@ -72,6 +72,7 @@ export default function AppointmentsPage() {
     address: '',
   })
   const [recError, setRecError] = useState('')
+  const [expandedApptId, setExpandedApptId] = useState(null)
   const [recLoading, setRecLoading] = useState(false)
 
   const loadAppointments = async () => {
@@ -351,35 +352,90 @@ export default function AppointmentsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {appointments.map((appt) => (
-                    <tr key={appt.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm">
-                        <div className="font-medium">{new Date(appt.scheduled_start).toLocaleDateString()}</div>
-                        <div className="text-gray-500">{new Date(appt.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(appt.scheduled_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium">{appt.customer_name || '—'}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-1.5">
-                          {appt.service_name || '—'}
-                          {appt.recurring_schedule_id && (
-                            <span title="Recurring appointment" className="inline-flex items-center gap-0.5 bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded-full">
-                              <Repeat size={10} /> Recurring
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm">{appt.technician_name || 'Unassigned'}</td>
-                      <td className="px-6 py-4">
-                        <select value={appt.status} onChange={(e) => handleStatusChange(appt.id, e.target.value)}
-                          className={`text-xs font-medium rounded-full px-2.5 py-1 border-0 cursor-pointer ${STATUS_COLORS[appt.status] || 'bg-gray-100'}`}>
-                          {Object.keys(STATUS_COLORS).map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      </td>
-                      <td className="px-6 py-4">
-                        <RowMenu items={buildApptMenu(appt)} />
-                      </td>
-                    </tr>
-                  ))}
+                  {appointments.map((appt) => {
+                    const isExpanded = expandedApptId === appt.id
+                    const hasDetail = appt.address || appt.notes || appt.problem_description
+                    return (
+                      <>
+                        <tr key={appt.id}
+                          className={`hover:bg-gray-50 ${hasDetail ? 'cursor-pointer' : ''}`}
+                          onClick={hasDetail ? () => setExpandedApptId(isExpanded ? null : appt.id) : undefined}
+                        >
+                          <td className="px-6 py-4 text-sm">
+                            <div className="font-medium">{new Date(appt.scheduled_start).toLocaleDateString()}</div>
+                            <div className="text-gray-500">{new Date(appt.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(appt.scheduled_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm font-medium">{appt.customer_name || '—'}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="flex items-center gap-1.5">
+                              {appt.service_name || '—'}
+                              {appt.recurring_schedule_id && (
+                                <span title="Recurring appointment" className="inline-flex items-center gap-0.5 bg-purple-100 text-purple-700 text-xs px-1.5 py-0.5 rounded-full">
+                                  <Repeat size={10} /> Recurring
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm">{appt.technician_name || 'Unassigned'}</td>
+                          <td className="px-6 py-4">
+                            <select value={appt.status} onChange={(e) => { e.stopPropagation(); handleStatusChange(appt.id, e.target.value) }}
+                              className={`text-xs font-medium rounded-full px-2.5 py-1 border-0 cursor-pointer ${STATUS_COLORS[appt.status] || 'bg-gray-100'}`}>
+                              {Object.keys(STATUS_COLORS).map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              {hasDetail && (
+                                <button onClick={(e) => { e.stopPropagation(); setExpandedApptId(isExpanded ? null : appt.id) }}
+                                  className="text-gray-400 hover:text-gray-600 transition-colors" title="View details">
+                                  {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                </button>
+                              )}
+                              <RowMenu items={buildApptMenu(appt)} />
+                            </div>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr key={`${appt.id}-detail`} className="bg-blue-50/40">
+                            <td colSpan={6} className="px-6 py-3">
+                              <div className="flex flex-wrap gap-4 text-sm">
+                                {appt.address && (
+                                  <div className="flex items-start gap-1.5">
+                                    <MapPin size={14} className="text-gray-400 mt-0.5 shrink-0" />
+                                    <div>
+                                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Address</div>
+                                      <a href={`https://maps.google.com/?q=${encodeURIComponent(appt.address)}`}
+                                        target="_blank" rel="noopener noreferrer"
+                                        onClick={e => e.stopPropagation()}
+                                        className="text-blue-600 hover:underline">{appt.address}</a>
+                                    </div>
+                                  </div>
+                                )}
+                                {appt.problem_description && (
+                                  <div className="flex items-start gap-1.5">
+                                    <AlertCircle size={14} className="text-amber-500 mt-0.5 shrink-0" />
+                                    <div>
+                                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Problem Description</div>
+                                      <div className="text-gray-700 max-w-md">{appt.problem_description}</div>
+                                    </div>
+                                  </div>
+                                )}
+                                {appt.notes && (
+                                  <div className="flex items-start gap-1.5">
+                                    <FileText size={14} className="text-gray-400 mt-0.5 shrink-0" />
+                                    <div>
+                                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Notes</div>
+                                      <div className="text-gray-700 max-w-md">{appt.notes}</div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    )
+                  })}
                 </tbody>
               </table>
             )}

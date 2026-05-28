@@ -41,6 +41,7 @@ from app.routers import (
     sms_webhook,
     notification_templates,
     embed,
+    schedule,
 )
 from app.services.scheduler import start_scheduler, stop_scheduler
 
@@ -383,6 +384,76 @@ def run_migrations(db):
     except Exception:
         db.rollback()
 
+    # Make appointment_id nullable on notification_logs (needed for tech-level events like "no appointments today")
+    # PostgreSQL: alter column to drop NOT NULL constraint
+    try:
+        db.execute(text(
+            "ALTER TABLE notification_logs ALTER COLUMN appointment_id DROP NOT NULL"
+        ))
+        db.commit()
+        logger.info("Migration: notification_logs.appointment_id now nullable")
+    except Exception:
+        db.rollback()
+
+    # Add technician_id to notification_logs (for tech-level events without an appointment)
+    try:
+        db.execute(text(
+            "ALTER TABLE notification_logs ADD COLUMN IF NOT EXISTS "
+            "technician_id INTEGER REFERENCES technicians(id)"
+        ))
+        db.commit()
+        logger.info("Migration: notification_logs technician_id column ready")
+    except Exception:
+        db.rollback()
+
+    # Problem description on contact_submissions (captured from contact form widget)
+    try:
+        db.execute(text(
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS problem_description TEXT"
+        ))
+        db.commit()
+        logger.info("Migration: contact_submissions problem_description column ready")
+    except Exception:
+        db.rollback()
+
+    # Problem description and media URLs on appointments (customer-reported issue capture)
+    for col_sql in [
+        "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS problem_description TEXT",
+        "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS media_urls JSONB",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()
+    logger.info("Migration: appointments problem_description and media_urls ready")
+
+    # Schedule token on technicians (public daily schedule page, no login required)
+    try:
+        db.execute(text(
+            "ALTER TABLE technicians ADD COLUMN IF NOT EXISTS schedule_token VARCHAR(64) UNIQUE"
+        ))
+        db.commit()
+        logger.info("Migration: technicians schedule_token column ready")
+    except Exception:
+        db.rollback()
+
+    # Backfill schedule_token for any existing technicians that don't have one
+    try:
+        rows = db.execute(text(
+            "SELECT id FROM technicians WHERE schedule_token IS NULL"
+        )).fetchall()
+        for row in rows:
+            import secrets as _secrets
+            db.execute(text(
+                "UPDATE technicians SET schedule_token = :token WHERE id = :id"
+            ), {"token": _secrets.token_urlsafe(48), "id": row[0]})
+        if rows:
+            db.commit()
+            logger.info("Migration: backfilled schedule_token for %d technician(s)", len(rows))
+    except Exception:
+        db.rollback()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -438,6 +509,7 @@ app.include_router(oncall.router)
 app.include_router(sms_webhook.router)
 app.include_router(notification_templates.router)
 app.include_router(embed.router)
+app.include_router(schedule.router)
 
 
 @app.get("/")

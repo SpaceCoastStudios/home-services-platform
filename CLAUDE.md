@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-27
+> Last substantive update: 2026-05-28
 
 ---
 
@@ -755,7 +755,7 @@ The API does not differentiate impersonation — it's a valid JWT for the busine
 ## 21. Platform Capability Status
 
 ### ✅ Fully Built
-Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view, customer records (inline edit), service types, technician management, settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override
+Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows), customer records (inline edit), service types, technician management, settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant)
 
 ### ⚠️ Partially Built
 - **Online self-booking widget** — availability engine at `/api/availability` fully built; no public-facing booking widget UI yet (Professional plan feature)
@@ -953,10 +953,28 @@ $result.url  # open in browser — $2 total, refund immediately after
 - Scheduled task `scs-context-update` updated: now targets CLAUDE.md (was SCS_PROJECT_CONTEXT.md), section references corrected, added limitation warning explaining it only captures git commits — non-code events (A2P status, attorney responses, client signups) require manual input
 - End-of-session habit established: say "Update CLAUDE.md with everything that happened today" to capture the full session, or "Update CLAUDE.md — [specific event]" for non-code updates (e.g. A2P approved, client signed)
 
+**2026-05-28 (problem description + tech schedule feature — Pass 1):**
+- `Appointment` model: added `problem_description` (Text, nullable) and `media_urls` (JSONB, nullable). Migration in `run_migrations()`.
+- `Technician` model: added `schedule_token` (String 64, unique, default=`secrets.token_urlsafe(48)`). Migration backfills existing techs.
+- `NotificationLog` model: made `appointment_id` nullable (was NOT NULL); added `technician_id` FK (nullable). Needed for "no appointments today" kickoff variant.
+- `ContactSubmission` model: added `problem_description` (Text, nullable). Schema + endpoint updated. Migration added.
+- `AppointmentResponse` schema: added `problem_description`, `media_urls`, `recurring_schedule_id`.
+- `ContactFormSubmit` / `ContactSubmissionResponse` schemas: added `problem_description`.
+- New router: `GET /schedule/tech/{token}` — public mobile-first daily schedule page for a single tech. No login. Shows all today's appointments (time, service, customer first name, address link, problem description). Dynamic query — no nightly cron.
+- `embed.py` contact form: added "Describe the problem" textarea (200 char max, live character counter with near-limit/at-limit color warnings). `problem_description` sent in payload to `/contact/submit`.
+- `AppointmentsPage.jsx`: expandable table rows — clicking a row with detail data reveals address (Google Maps link), problem description (amber icon), notes. Added `ChevronDown/Up`, `MapPin`, `FileText`, `AlertCircle` icons.
+- Morning kickoff overhaul (`scheduler.py` + `notifications.py`):
+  - **Removed 7am floor** — early texts are fine.
+  - **Trigger: 2 hours before first appointment** (±15 min window, prevents re-firing every run).
+  - **Techs WITH appointments**: numbered daily summary showing time, service, customer first name, short address, truncated problem description (~50 chars). Public schedule page URL at bottom. "Reply YES when heading to stop 1."
+  - **Techs WITHOUT appointments**: fires once between 7–8 AM local. "Good morning [Name]! No appointments scheduled for you today. Enjoy your day off! 🌴". Logged to `notification_logs` with `appointment_id=NULL` keyed to `technician_id` + today date.
+  - New `_build_kickoff_body()` helper formats the multi-appointment message.
+  - New `send_otw_morning_no_appointments()` function handles the no-jobs variant.
+
 **2026-05-27 (automated daily check — end of day):**
 - No new commits since session-close update. CLAUDE.md current. Date stamp updated.
 
 ### Pending Monitoring Items
 - **A2P approval:** 5th submission under review. Check Twilio Console → Regulatory Compliance for status updates.
-- **Morning kickoff delivery:** If techs report not receiving kickoff SMS, check that (1) the appointment exists and is confirmed, (2) the time is after 7am local, (3) it's within the 60-min lookahead window. Use manual trigger to test.
+- **Morning kickoff delivery:** Kickoff now fires 2 hours before first appointment (±15 min window), no time-of-day floor. Techs with no appointments get a "day off" text between 7–8 AM local. If a tech reports missing kickoff: check (1) appointment exists and is not cancelled/completed, (2) scheduler.py `_send_otw_morning_kickoffs` ran, (3) `notification_logs` for an existing `otw_morning_kickoff` entry. Use admin manual trigger to force-send.
 - **Contact queue / AI responder:** End-to-e

@@ -13,6 +13,7 @@ class ContactFormSubmit(BaseModel):
     service_requested: Optional[str] = None
     preferred_contact_method: Optional[str] = None  # call, text, email
     message: str
+    problem_description: Optional[str] = None
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None
 
@@ -26,6 +27,7 @@ class ContactSubmissionResponse(BaseModel):
     service_requested: Optional[str] = None
     preferred_contact_method: Optional[str] = None
     message: str
+    problem_description: Optional[str] = None
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None
     ai_response: Optional[str] = None

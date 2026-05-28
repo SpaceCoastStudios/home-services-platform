@@ -10,13 +10,16 @@ class NotificationLog(Base):
     __tablename__ = "notification_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    appointment_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("appointments.id"), nullable=False
+    appointment_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("appointments.id"), nullable=True
+    )
+    technician_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("technicians.id"), nullable=True
     )
     type: Mapped[str] = mapped_column(String(10), nullable=False)  # sms, email
     event: Mapped[str] = mapped_column(
         String(30), nullable=False
-    )  # confirmation, reminder_24h, reminder_1h, cancellation, reschedule
+    )  # confirmation, reminder_24h, reminder_1h, cancellation, reschedule, otw_morning_kickoff
     sent_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )
@@ -26,3 +29,4 @@ class NotificationLog(Base):
 
     # Relationships
     appointment = relationship("Appointment", back_populates="notifications")
+    technician = relationship("Technician")

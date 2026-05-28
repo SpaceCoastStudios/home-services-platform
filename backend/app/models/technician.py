@@ -1,5 +1,6 @@
 """Technician model."""
 
+import secrets
 from sqlalchemy import String, Boolean, JSON, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
@@ -17,6 +18,10 @@ class Technician(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     skills: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    schedule_token: Mapped[str] = mapped_column(
+        String(64), unique=True, nullable=False,
+        default=lambda: secrets.token_urlsafe(48)
+    )
 
     # Relationships
     business = relationship("Business", back_populates="technicians")
