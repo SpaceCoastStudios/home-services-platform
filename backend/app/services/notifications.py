@@ -593,7 +593,7 @@ def send_otw_day_complete(db, tech, business, last_appointment) -> bool:
 
     body = render_sms_raw(
         "otw_day_complete", db, business,
-        tech_name=tech.name or "there",
+        tech_name=tech.name.split()[0] if tech.name else "there",
     )
 
     ok = send_sms(tech.phone, body, from_number=twilio_from)
