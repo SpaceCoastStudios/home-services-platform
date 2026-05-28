@@ -11,7 +11,7 @@ export default function TechniciansPage() {
   const [technicians, setTechnicians] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', phone: '', email: '', skills: [] })
+  const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', email: '', skills: [] })
   const [error, setError] = useState('')
 
   const load = async () => {
@@ -20,8 +20,15 @@ export default function TechniciansPage() {
   }
   useEffect(() => { load() }, [activeBusinessId])
 
-  const openCreate = () => { setEditing(null); setForm({ name: '', phone: '', email: '', skills: [] }); setShowModal(true) }
-  const openEdit = (t) => { setEditing(t); setForm({ name: t.name, phone: t.phone || '', email: t.email || '', skills: t.skills || [] }); setShowModal(true) }
+  const openCreate = () => { setEditing(null); setForm({ first_name: '', last_name: '', phone: '', email: '', skills: [] }); setShowModal(true) }
+  const openEdit = (t) => {
+    setEditing(t)
+    const parts = (t.name || '').trim().split(' ')
+    const first = parts[0] || ''
+    const last = parts.slice(1).join(' ')
+    setForm({ first_name: first, last_name: last, phone: t.phone || '', email: t.email || '', skills: t.skills || [] })
+    setShowModal(true)
+  }
 
   const toggleActive = async (t) => {
     await updateTechnician(t.id, { is_active: !t.is_active }, activeBusinessId)
@@ -48,9 +55,12 @@ export default function TechniciansPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    const fullName = [form.first_name.trim(), form.last_name.trim()].filter(Boolean).join(' ')
+    if (!fullName) { setError('First name is required'); return }
+    const payload = { name: fullName, phone: form.phone, email: form.email, skills: form.skills }
     try {
-      if (editing) { await updateTechnician(editing.id, form, activeBusinessId) }
-      else { await createTechnician(form, activeBusinessId) }
+      if (editing) { await updateTechnician(editing.id, payload, activeBusinessId) }
+      else { await createTechnician(payload, activeBusinessId) }
       setShowModal(false)
       load()
     } catch (err) { setError(err.message) }
@@ -94,9 +104,17 @@ export default function TechniciansPage() {
             </div>
             {error && <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
             <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" required />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name <span className="text-red-500">*</span></label>
+                  <input type="text" value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                  <input type="text" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
