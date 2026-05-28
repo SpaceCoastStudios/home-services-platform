@@ -85,7 +85,7 @@ def tech_daily_schedule(token: str, db: Session = Depends(get_db)):
         customer = appt.customer
         service = appt.service_type
 
-        customer_name = customer.name if customer else "Unknown Customer"
+        customer_name = customer.full_name if customer else "Unknown Customer"
         customer_phone = customer.phone if customer else None
         service_name = service.name if service else "Service"
         start_time = _format_time(appt.scheduled_start, tz)

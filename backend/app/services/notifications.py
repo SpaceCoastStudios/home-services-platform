@@ -425,7 +425,7 @@ def _build_kickoff_body(tech, all_appts: list, schedule_url: str | None) -> str:
         time_str = local_dt.strftime("%-I:%M %p")
 
         customer = appt.customer
-        cust_name = customer.name if customer else "Customer"
+        cust_name = customer.full_name if customer else "Customer"
 
         service = appt.service_type
         svc_name = service.name if service else "Service"
