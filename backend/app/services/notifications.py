@@ -396,7 +396,7 @@ def _build_kickoff_body(tech, all_appts: list, schedule_url: str | None) -> str:
       Good morning [Name]! You have X jobs today:
 
       1. 9:00 AM – AC Repair
-         John · 123 Main St
+         John Smith · 123 Main St
          Problem: Compressor not running…
 
       Full details:
@@ -426,7 +426,6 @@ def _build_kickoff_body(tech, all_appts: list, schedule_url: str | None) -> str:
 
         customer = appt.customer
         cust_name = customer.name if customer else "Customer"
-        cust_first = cust_name.split()[0] if cust_name else cust_name
 
         service = appt.service_type
         svc_name = service.name if service else "Service"
@@ -441,7 +440,7 @@ def _build_kickoff_body(tech, all_appts: list, schedule_url: str | None) -> str:
             problem = problem[:50].rstrip() + "…"
 
         entry_lines = [f"\n{i}. {time_str} – {svc_name}"]
-        detail = " · ".join(filter(None, [cust_first, short_addr]))
+        detail = " · ".join(filter(None, [cust_name, short_addr]))
         if detail:
             entry_lines.append(f"   {detail}")
         if problem:
