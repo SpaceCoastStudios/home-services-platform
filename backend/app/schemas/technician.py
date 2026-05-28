@@ -26,5 +26,6 @@ class TechnicianResponse(BaseModel):
     email: Optional[str] = None
     skills: list[str]
     is_active: bool
+    schedule_token: Optional[str] = None
 
     model_config = {"from_attributes": True}
