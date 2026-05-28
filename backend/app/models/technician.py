@@ -19,8 +19,8 @@ class Technician(Base):
     skills: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     schedule_token: Mapped[str] = mapped_column(
-        String(64), unique=True, nullable=False,
-        default=lambda: secrets.token_urlsafe(48)
+        String(24), unique=True, nullable=False,
+        default=lambda: secrets.token_urlsafe(12)
     )
 
     # Relationships

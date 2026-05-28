@@ -431,26 +431,40 @@ def run_migrations(db):
     # Schedule token on technicians (public daily schedule page, no login required)
     try:
         db.execute(text(
-            "ALTER TABLE technicians ADD COLUMN IF NOT EXISTS schedule_token VARCHAR(64) UNIQUE"
+            "ALTER TABLE technicians ADD COLUMN IF NOT EXISTS schedule_token VARCHAR(24) UNIQUE"
         ))
         db.commit()
         logger.info("Migration: technicians schedule_token column ready")
     except Exception:
         db.rollback()
 
-    # Backfill schedule_token for any existing technicians that don't have one
+    # Resize schedule_token column to VARCHAR(24) if it was previously VARCHAR(64)
     try:
+        db.execute(text(
+            "ALTER TABLE technicians ALTER COLUMN schedule_token TYPE VARCHAR(24)"
+        ))
+        db.commit()
+        logger.info("Migration: technicians schedule_token resized to VARCHAR(24)")
+    except Exception:
+        db.rollback()
+
+    # Backfill/regenerate schedule_token for all technicians using the shorter 16-char format.
+    # Regenerates any existing long tokens (64 chars) so URLs in SMS are shorter.
+    try:
+        import secrets as _secrets
         rows = db.execute(text(
-            "SELECT id FROM technicians WHERE schedule_token IS NULL"
+            "SELECT id, schedule_token FROM technicians"
         )).fetchall()
+        regenerated = 0
         for row in rows:
-            import secrets as _secrets
-            db.execute(text(
-                "UPDATE technicians SET schedule_token = :token WHERE id = :id"
-            ), {"token": _secrets.token_urlsafe(48), "id": row[0]})
-        if rows:
+            if row[1] is None or len(row[1]) > 20:
+                db.execute(text(
+                    "UPDATE technicians SET schedule_token = :token WHERE id = :id"
+                ), {"token": _secrets.token_urlsafe(12), "id": row[0]})
+                regenerated += 1
+        if regenerated:
             db.commit()
-            logger.info("Migration: backfilled schedule_token for %d technician(s)", len(rows))
+            logger.info("Migration: regenerated short schedule_token for %d technician(s)", regenerated)
     except Exception:
         db.rollback()
 
