@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, ChevronLeft, ChevronRight, Clock, User, Calendar, Search, Repeat, RefreshCw,
-         Send, Bell, Star, CheckCircle, Ban, ChevronDown, ChevronUp, MapPin, FileText, AlertCircle } from 'lucide-react'
+         Send, Bell, Star, CheckCircle, Ban, ChevronDown, ChevronUp, MapPin, FileText, AlertCircle, Pencil } from 'lucide-react'
 import {
   getAppointments, createAppointment, cancelAppointment, updateAppointment,
   getCustomers, getServices, getTechnicians, getAvailability,
@@ -178,6 +178,42 @@ export default function AppointmentsPage() {
     loadAppointments()
   }
 
+  // Edit details modal
+  const [editAppt, setEditAppt] = useState(null)   // the appointment being edited
+  const [editForm, setEditForm] = useState({})
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState('')
+
+  const openEdit = (appt) => {
+    setEditAppt(appt)
+    setEditForm({
+      address: appt.address || '',
+      notes: appt.notes || '',
+      problem_description: appt.problem_description || '',
+      technician_id: appt.technician_id || '',
+    })
+    setEditError('')
+  }
+
+  const handleEditSave = async () => {
+    setEditSaving(true)
+    setEditError('')
+    try {
+      await updateAppointment(editAppt.id, {
+        address: editForm.address || null,
+        notes: editForm.notes || null,
+        problem_description: editForm.problem_description || null,
+        technician_id: editForm.technician_id ? Number(editForm.technician_id) : null,
+      }, activeBusinessId)
+      setEditAppt(null)
+      loadAppointments()
+    } catch (err) {
+      setEditError(err.message || 'Save failed')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
   const [actionMsg, setActionMsg] = useState('')
   const apptAction = async (label, fn) => {
     try {
@@ -193,6 +229,12 @@ export default function AppointmentsPage() {
   const buildApptMenu = (appt) => {
     const active = !['cancelled', 'completed'].includes(appt.status)
     return [
+      {
+        label: 'Edit Details',
+        icon: <Pencil size={14} />,
+        onClick: () => openEdit(appt),
+      },
+      { label: 'Divider' },
       {
         label: 'Resend Confirmation',
         icon: <Send size={14} />,
@@ -508,6 +550,89 @@ export default function AppointmentsPage() {
               </tbody>
             </table>
           )}
+        </div>
+      )}
+
+      {/* ── Edit Appointment Details Modal ────────────────────────────────── */}
+      {editAppt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Edit Appointment Details</h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {editAppt.customer_name} · {new Date(editAppt.scheduled_start).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at {new Date(editAppt.scheduled_start).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                </p>
+              </div>
+              <button onClick={() => setEditAppt(null)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Problem Description</label>
+                <textarea
+                  rows={3}
+                  maxLength={500}
+                  placeholder="What's the issue? Any details help the tech come prepared…"
+                  value={editForm.problem_description}
+                  onChange={e => setEditForm(f => ({ ...f, problem_description: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                />
+                <div className="text-xs text-gray-400 text-right mt-0.5">{editForm.problem_description.length} / 500</div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Service Address</label>
+                <input
+                  type="text"
+                  placeholder="123 Main St, Cocoa FL 32922"
+                  value={editForm.address}
+                  onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+                <select
+                  value={editForm.technician_id}
+                  onChange={e => setEditForm(f => ({ ...f, technician_id: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="">— Unassigned —</option>
+                  {technicians.filter(t => t.is_active).map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
+                <textarea
+                  rows={2}
+                  placeholder="Gate code, parking instructions, special requests…"
+                  value={editForm.notes}
+                  onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            {editError && <p className="text-sm text-red-600 mt-3">{editError}</p>}
+
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setEditAppt(null)}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Cancel
+              </button>
+              <button onClick={handleEditSave} disabled={editSaving}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                {editSaving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -21,6 +21,7 @@ class AppointmentUpdate(BaseModel):
     status: Optional[str] = None
     address: Optional[str] = None
     notes: Optional[str] = None
+    problem_description: Optional[str] = None
 
 
 class AppointmentResponse(BaseModel):
