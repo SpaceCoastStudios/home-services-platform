@@ -304,7 +304,7 @@ Complete these steps at least 2–3 days before the client's launch date.
 | `otw_customer` | When technician replies YES to OTW prompt |
 | `complete_prompt` | After OTW customer notification — texts tech asking if job is done |
 | `review_request` | When technician replies YES to complete prompt (or manually triggered) |
-| `morning_kickoff` | After 7am — texts tech with first job details if not yet sent |
+| `otw_morning_kickoff` | 2 hours before first appointment (±15 min). Full numbered daily summary: all jobs, customer full name, address, problem description, schedule page link. "No appointments today" variant fires 7–8am local for techs with no jobs. |
 
 ### OTW Reply Flow (Technician SMS)
 
@@ -319,7 +319,7 @@ Complete these steps at least 2–3 days before the client's launch date.
 |---|---|---|
 | `send_reminders` | Every 30 min | Fires during 11am–1pm local window |
 | `send_otw_prompts` | Every 15 min | Texts techs for appointments in 45–75 min window |
-| `send_otw_morning_kickoffs` | Every 15 min | Morning kickoff SMS to techs for first job (after 7am) |
+| `send_otw_morning_kickoffs` | Every 15 min | Morning kickoff SMS: 2h before first appt (full daily summary + schedule URL); "no appointments" variant at 7–8am local |
 | `generate_recurring` | Daily 6am | Pre-generates recurring appointment instances |
 
 ---
@@ -378,6 +378,12 @@ All require JWT auth.
 | `POST` | `/api/admin/appointments/{id}/resend-confirmation` | Resend confirmation SMS + email |
 | `POST` | `/api/admin/appointments/{id}/send-reminder` | Send reminder now |
 | `POST` | `/api/admin/appointments/{id}/send-review-request` | Send review request (requires `google_review_url` on business) |
+
+### Tech Daily Schedule Page (Public)
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/schedule/tech/{token}` | none | Mobile daily schedule page for one technician. Shows today's appointments: time, service, customer full name, address (Maps link), problem description. Token is per-tech and permanent. |
 
 ### Appointments — Sort Options
 
