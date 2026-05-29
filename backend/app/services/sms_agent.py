@@ -415,16 +415,30 @@ def _tool_create_booking(
 
     # Enrich customer record with email/address from contact form if available
     if contact_submission:
+        _enriched = False
         if contact_submission.email and not customer.email:
             customer.email = contact_submission.email
-        addr_parts = [p for p in [
-            getattr(contact_submission, "street_address", None),
-            getattr(contact_submission, "city", None),
-            getattr(contact_submission, "state", None),
-            getattr(contact_submission, "zip_code", None),
-        ] if p]
+            _enriched = True
+        # Also store split address fields on customer
+        _cs_street = getattr(contact_submission, "street_address", None)
+        _cs_city = getattr(contact_submission, "city", None)
+        _cs_state = getattr(contact_submission, "state", None)
+        _cs_zip = getattr(contact_submission, "zip_code", None)
+        addr_parts = [p for p in [_cs_street, _cs_city, _cs_state, _cs_zip] if p]
         if addr_parts and not customer.address:
             customer.address = ", ".join(addr_parts)
+            _enriched = True
+        if _cs_city and not customer.city:
+            customer.city = _cs_city
+            _enriched = True
+        if _cs_state and not customer.state:
+            customer.state = _cs_state
+            _enriched = True
+        if _cs_zip and not customer.zip_code:
+            customer.zip_code = _cs_zip
+            _enriched = True
+        if _enriched:
+            db.flush()  # Persist enrichment before appointment is created
 
     # Update learned name on the conversation
     convo.customer_name = inp.get("customer_name") or convo.customer_name
