@@ -348,7 +348,7 @@ def _tool_check_availability(db: Session, business: Business, inp: dict) -> dict
 
 
 def _tool_create_booking(
-    db: Session, business: Business, convo: SmsConversation, inp: dict
+    db: Session, business: Business, convo: SmsConversation, inp: dict, contact_submission=None
 ) -> dict:
     services = _get_active_services(db, business.id)
 
