@@ -18,6 +18,7 @@ from app.schemas.contact import (
     ManualResponseRequest,
 )
 from app.utils.auth import get_current_user, get_business_id_for_user
+from app.services.notifications import _normalize_phone as _norm_phone
 
 router = APIRouter(tags=["contact"])
 
@@ -35,10 +36,16 @@ def submit_contact_form(
     """
     # Try to match to existing customer by phone or email, scoped to this business
     customer = None
+    _lookup_phone = body.phone
+    try:
+        from app.services.notifications import _normalize_phone as _np2
+        _lookup_phone = _np2(body.phone) if body.phone else None
+    except Exception:
+        pass
     if body.phone:
         customer = (
             db.query(Customer)
-            .filter(Customer.phone == body.phone, Customer.business_id == business_id)
+            .filter(Customer.phone == _lookup_phone, Customer.business_id == business_id)
             .first()
         )
     if not customer and body.email:
@@ -48,12 +55,19 @@ def submit_contact_form(
             .first()
         )
 
+    _phone = None
+    if body.phone:
+        try:
+            _phone = _norm_phone(body.phone)
+        except Exception:
+            _phone = body.phone
+
     submission = ContactSubmission(
         business_id=business_id,
         customer_id=customer.id if customer else None,
         name=body.name,
         email=body.email,
-        phone=body.phone,
+        phone=_phone,
         service_requested=body.service_requested,
         preferred_contact_method=body.preferred_contact_method,
         sms_consent=body.sms_consent,
