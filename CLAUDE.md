@@ -314,10 +314,13 @@ home-services-platform/
 Test Project/
 ├── SCS-Client-Services-Agreement-Template.docx  # Signed CSA template
 ├── SCS-Client-Services-Agreement-Template.pdf   # PDF version
-├── Platform Capability Checklist.docx           # Feature status tracker
+├── Platform Capability Checklist.docx           # Feature status tracker — KEEP CURRENT (see note below)
+├── SCS Platform Roadmap.docx                     # Roadmap: Completed / Near-Term / Later — KEEP CURRENT
 ├── SCS_Onboarding_Checklist.docx                # Client onboarding + smoke test steps
 └── SpaceCoastStudios_SystemGuide.docx           # Full system SOPs
 ```
+
+> **Keep the two status trackers current.** Whenever a feature ships, is tested, or changes status, update **both** `Platform Capability Checklist.docx` (capability status + notes + summary counts) and `SCS Platform Roadmap.docx` (move items between Completed / Near-Term / Later). These are the canonical *non-technical* status docs and are expected to stay in sync with this file and the README. **How to edit:** npm/docx-js is blocked in this environment, so regenerate them with **pandoc** from Markdown — `pandoc file.md -o "Test Project/<file>.docx"`. This is how both were rebuilt on 2026-05-29.
 
 ---
 
