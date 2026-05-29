@@ -11,6 +11,7 @@ import { useBusinessContext } from '../hooks/useBusinessContext'
 import RowMenu from '../components/RowMenu'
 
 const STATUS_COLORS = {
+  emergency: 'bg-red-600 text-white',
   pending: 'bg-yellow-100 text-yellow-700',
   confirmed: 'bg-green-100 text-green-700',
   in_progress: 'bg-blue-100 text-blue-700',
@@ -268,7 +269,7 @@ export default function AppointmentsPage() {
       {
         label: 'Mark Complete',
         icon: <CheckCircle size={14} />,
-        disabled: !['confirmed', 'in_progress', 'en_route', 'pending'].includes(appt.status),
+        disabled: !['confirmed', 'in_progress', 'en_route', 'pending', 'emergency'].includes(appt.status),
         onClick: () => handleStatusChange(appt.id, 'completed'),
       },
       {
@@ -369,7 +370,7 @@ export default function AppointmentsPage() {
         <>
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex gap-2 flex-wrap">
-              {['', 'pending', 'confirmed', 'in_progress', 'en_route', 'completed', 'cancelled'].map((s) => (
+              {['', 'emergency', 'pending', 'confirmed', 'in_progress', 'en_route', 'completed', 'cancelled'].map((s) => (
                 <button key={s} onClick={() => setFilter(s)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'

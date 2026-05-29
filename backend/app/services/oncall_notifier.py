@@ -116,6 +116,112 @@ def _load_dispatch_template(business_id: int, db: Session) -> str:
     return DEFAULTS.get(("emergency_dispatch", "sms"), {}).get("body", DISPATCH_DEFAULT)
 
 
+def _create_emergency_appointment(
+    db: Session,
+    business: Business,
+    customer_phone: str,
+    customer_name: str,
+    issue_summary: str,
+    tech_id: Optional[int],
+) -> Optional[int]:
+    """
+    Create an appointment record for a dispatched emergency.
+
+    Status is "emergency" and scheduled_start is now. NO notifications are fired
+    here (confirmation/OTW/reminders) — the tech was already alerted by the
+    dispatch SMS and told to contact the customer immediately. The scheduler
+    jobs explicitly skip "emergency" status appointments.
+
+    Returns the new appointment id, or None on failure.
+    """
+    try:
+        from datetime import datetime, timezone, timedelta
+        import secrets
+        from app.models.service_type import ServiceType
+        from app.models.customer import Customer
+        from app.models.appointment import Appointment
+        from app.models.contact_submission import ContactSubmission
+
+        # 1. Dedicated "Emergency Service" type (create once per business)
+        service = db.query(ServiceType).filter(
+            ServiceType.business_id == business.id,
+            ServiceType.name == "Emergency Service",
+        ).first()
+        if not service:
+            service = ServiceType(
+                business_id=business.id,
+                name="Emergency Service",
+                category="Emergency",
+                description="Auto-created for emergency dispatches handled via the SMS agent.",
+                duration_minutes=120,
+                is_active=True,
+            )
+            db.add(service)
+            db.flush()
+
+        # 2. Find or create the customer by phone
+        customer = db.query(Customer).filter(
+            Customer.phone == customer_phone,
+            Customer.business_id == business.id,
+        ).first()
+        if not customer:
+            parts = (customer_name or "Emergency Caller").split(None, 1)
+            customer = Customer(
+                business_id=business.id,
+                first_name=parts[0],
+                last_name=parts[1] if len(parts) > 1 else "",
+                phone=customer_phone,
+            )
+            db.add(customer)
+            db.flush()
+
+        # 3. Enrich address from the most recent (non-deleted) contact submission
+        address = None
+        cs = db.query(ContactSubmission).filter(
+            ContactSubmission.business_id == business.id,
+            ContactSubmission.phone == customer_phone,
+            ContactSubmission.deleted_at == None,
+        ).order_by(ContactSubmission.id.desc()).first()
+        if cs:
+            addr_parts = [getattr(cs, f, None) for f in ("street_address", "city", "state", "zip_code")]
+            addr_parts = [p for p in addr_parts if p]
+            if addr_parts:
+                address = ", ".join(addr_parts)
+                if not customer.address:
+                    customer.address = address
+                    db.flush()
+        if not address and getattr(customer, "address", None):
+            address = customer.address
+
+        # 4. Create the appointment
+        now = datetime.now(timezone.utc)
+        appt = Appointment(
+            business_id=business.id,
+            customer_id=customer.id,
+            service_type_id=service.id,
+            technician_id=tech_id,
+            scheduled_start=now,
+            scheduled_end=now + timedelta(minutes=service.duration_minutes),
+            status="emergency",
+            source="emergency_sms",
+            address=address,
+            notes="Emergency dispatch — on-call tech alerted via SMS and instructed to contact the customer immediately.",
+            problem_description=issue_summary or None,
+            calendar_token=secrets.token_urlsafe(48),
+        )
+        db.add(appt)
+        db.commit()
+        logger.info(
+            "oncall_notifier: emergency appointment %s created (business %s, tech %s)",
+            appt.id, business.id, tech_id,
+        )
+        return appt.id
+    except Exception as e:
+        logger.error("oncall_notifier: failed to create emergency appointment: %s", e)
+        db.rollback()
+        return None
+
+
 def dispatch_emergency(
     db: Session,
     business: Business,
@@ -143,10 +249,12 @@ def dispatch_emergency(
     # Fall back to configured fallback phone if no tech resolved
     tech_name = None
     tech_phone = None
+    tech_id = None
 
     if tech and tech.phone:
         tech_name  = tech.name
         tech_phone = tech.phone
+        tech_id    = tech.id
     else:
         # Try fallback from on-call config
         config = db.query(OnCallConfig).filter(
@@ -196,9 +304,13 @@ def dispatch_emergency(
             "oncall_notifier: dispatched emergency for business %s to %s (%s)",
             business.id, tech_name, tech_phone,
         )
+        appt_id = _create_emergency_appointment(
+            db, business, customer_phone, customer_name, issue_summary, tech_id
+        )
         return {
             "dispatched": True,
             "tech_name":  tech_name,
+            "appointment_id": appt_id,
             "message":    f"Emergency dispatched to {tech_name}. They will contact the customer shortly.",
         }
     except Exception as e:
