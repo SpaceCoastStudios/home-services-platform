@@ -1,279 +1,174 @@
-# Founder Client Onboarding — Manual Process Guide
+# Founder Client Onboarding Guide
 
-This guide covers how to manually onboard a founding client who has agreed to the introductory
-pricing offer. Since the Stripe Checkout flow creates the tenant automatically at full price, founding clients
-are handled out-of-band so you can apply discounted prices. This is a one-time setup per client and
-takes about 10 minutes.
+Manual provisioning steps for founding clients at introductory pricing.
 
----
-
-## Overview
-
-The flow is:
-1. Create the client in Stripe with a custom subscription at founding prices
-2. Create the Business + Admin User record in the platform database
-3. Send the client their set-password link
+**Last updated:** 2026-05-29
 
 ---
 
-## Step 1 — Create the Customer and Subscription in Stripe
+## When to Use This Guide
 
-### 1a. Create a Customer
+Use this guide for founding clients who receive the introductory pricing offer ($497/$997 setup, $99/$199/month for first 3 months). These clients are provisioned manually rather than through the automated Stripe Checkout flow.
 
-1. Go to [Stripe Dashboard → Customers](https://dashboard.stripe.com/customers)
-2. Click **+ Add customer**
-3. Fill in:
-   - **Email** — the client's email address
-   - **Name** — the owner's full name
-   - **Phone** — the client's phone number
-   - **Description** — e.g. `Founding client – Starter`
-   - **Address** — billing address (optional but recommended)
-4. Click **Add customer**
-
-### 1b. Create a Subscription with Founding Prices
-
-1. Open the customer you just created
-2. Click **+ Create subscription**
-3. Under **Product or price**, search for the founding price products:
-   - **Starter founding**: one-time setup $497 + $99/month  
-   - **Professional founding**: one-time setup $997 + $199/month
-   
-   > **Note:** These prices must exist in your Stripe product catalog. If they don't yet, go to
-   > **Products → + Add product** and create them first, then come back.
-
-4. Add both line items (setup fee + monthly):
-   - Click **Add another item**, search for and select the appropriate monthly price
-5. Set **Billing start date** to today
-6. Under **Payment collection**, choose **Charge automatically**
-7. Click **Start subscription**
-
-### 1c. Record the IDs
-
-Copy these two values from the subscription detail page — you'll need them in Step 2:
-- **Customer ID** — format `cus_XXXXXXXXXX` (in the Customer panel on the right)
-- **Subscription ID** — format `sub_XXXXXXXXXX` (at the top of the subscription detail)
+Maximum **5 founding clients** — kept intentionally small for exclusivity and manageable real-world testing.
 
 ---
 
-## Step 2 — Create the Business and Admin User in the Platform
+## Step 1 — Create Stripe Customer & Subscription (Manual)
 
-There are two methods: using the Django-style admin (if available) or directly via a database command.
+1. Log in to Stripe Dashboard
+2. Go to **Customers → + Create customer**
+   - Name: client's business name
+   - Email: client's email
+   - Phone: client's phone
+3. Add a payment method for the customer
+4. Go to **Subscriptions → + Create subscription**
+   - Attach to the customer you just created
+   - Add line items:
+     - Founding setup price (one-time): `price_1TbXKN2MJMR8rAcZvreEPLwo` (Starter) or `price_1TbXKO2MJMR8rAcZ9MRzpF2s` (Pro)
+     - Founding monthly price: `price_1TbXKN2MJMR8rAcZF8PV52FQ` (Starter $99) or `price_1TbXKO2MJMR8rAcZMiHThRka` (Pro $199)
+   - Note the Stripe Customer ID (`cus_...`) and Subscription ID (`sub_...`)
 
-### Method A — Via the Platform Admin Dashboard (Recommended once the admin panel exists)
+---
 
-> This section will be updated once a platform admin Create Business UI is built.
+## Step 2 — Create Business & Admin User in the Database
 
-### Method B — Via the Backend API (current approach)
-
-Use the platform's existing admin endpoints. You'll need your own platform admin JWT token.
-
-#### 2a. Get your admin token
-
+Connect to the database:
 ```bash
-# Mac/Linux
-curl -X POST https://api.spacecoaststudios.com/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "YOUR_ADMIN_USERNAME", "password": "YOUR_ADMIN_PASSWORD"}'
+psql "postgresql://doadmin:PASSWORD@host.db.ondigitalocean.com:25060/defaultdb?sslmode=require"
 ```
 
-```powershell
-# Windows PowerShell
-$r = Invoke-RestMethod -Method POST -Uri "https://api.spacecoaststudios.com/api/auth/login" -ContentType "application/json" -Body '{"username": "YOUR_ADMIN_USERNAME", "password": "YOUR_ADMIN_PASSWORD"}'
-$r.access_token
-```
-
-Copy the `access_token` from the response.
-
-#### 2b. Create the Business
-
-```bash
-curl -X POST https://api.spacecoaststudios.com/api/businesses \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "name": "Client Business Name",
-    "slug": "client-business-slug",
-    "email": "client@example.com",
-    "phone": "3215550100",
-    "address": "123 Main St, Melbourne, FL 32901",
-    "plan": "starter",
-    "stripe_customer_id": "cus_XXXXXXXXXX",
-    "stripe_subscription_id": "sub_XXXXXXXXXX",
-    "subscription_tier": "starter",
-    "subscription_status": "active",
-    "is_active": true
-  }'
-```
-
-Note the returned `id` (e.g. `5`) — you'll use it in the next step.
-
-> **Slug rules:** lowercase letters, numbers, and hyphens only. Must be unique. Example:
-> `smith-hvac-cooling` for "Smith HVAC & Cooling".
-
-#### 2c. Create the Admin User
-
-```bash
-curl -X POST https://api.spacecoaststudios.com/api/businesses/5/admin-users \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "username": "client@example.com",
-    "email": "client@example.com",
-    "role": "admin"
-  }'
-```
-
-> If this endpoint doesn't exist yet, use Method C below.
-
-### Method C — Direct Database (via DO console or psql)
-
-SSH into the database or use the DigitalOcean managed DB query editor.
-
+Insert the business record:
 ```sql
--- 1. Insert the business
 INSERT INTO businesses (
-  name, slug, email, phone, address,
-  stripe_customer_id, stripe_subscription_id,
-  subscription_tier, subscription_status,
-  is_active, is_demo, created_at
+  name, slug, plan, is_active,
+  stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier,
+  ai_agent_name, timezone, has_completed_setup
 ) VALUES (
-  'Smith HVAC & Cooling',
-  'smith-hvac-cooling',
-  'owner@smithhvac.com',
-  '3215550100',
-  '123 Main St, Melbourne, FL 32901',
-  'cus_XXXXXXXXXX',
-  'sub_XXXXXXXXXX',
-  'starter',
+  'Client Business Name',
+  'client-slug',          -- URL-safe, lowercase, hyphens (e.g. 'peak-hvac')
+  'professional',         -- 'starter' or 'professional'
+  true,
+  'cus_XXXX',             -- Stripe Customer ID from Step 1
+  'sub_XXXX',             -- Stripe Subscription ID from Step 1
   'active',
-  true,
-  false,
-  NOW()
+  'professional',
+  'Scout',                -- AI agent name (customize per client)
+  'America/New_York',
+  false
 ) RETURNING id;
-
--- Note the returned id (e.g. 5)
-
--- 2. Generate a reset token (do this in Python to get a secure token)
--- Run this in any Python shell:
---   import secrets; print(secrets.token_urlsafe(48))
--- Copy the output as YOUR_TOKEN_VALUE below
-
--- 3. Insert the admin user
-INSERT INTO admin_users (
-  business_id, username, email, password_hash, role,
-  is_active, password_reset_token, password_reset_expires, created_at
-) VALUES (
-  5,                              -- business id from above
-  'owner@smithhvac.com',          -- username = email
-  'owner@smithhvac.com',
-  'UNUSABLE_HASH',                -- will be replaced when they set their password
-  'admin',
-  true,
-  'YOUR_TOKEN_VALUE',             -- token from secrets.token_urlsafe(48)
-  NOW() + INTERVAL '72 hours',   -- link expires in 72 hours
-  NOW()
-);
 ```
 
----
-
-## Step 3 — Send the Set-Password Email
-
-Once the admin user record exists with a valid `password_reset_token`, send the client their
-welcome email manually.
-
-The set-password URL is:
-
-```
-https://dashboard.spacecoaststudios.com/set-password?token=YOUR_TOKEN_VALUE
-```
-
-**Email template:**
-
-> Subject: Welcome to Space Coast Studios — Set up your account
->
-> Hi [Owner Name],
->
-> Your Space Coast Studios dashboard for **[Business Name]** is ready!
->
-> Click the link below to set your password and log in:
-> https://dashboard.spacecoaststudios.com/set-password?token=YOUR_TOKEN_VALUE
->
-> This link expires in 72 hours.
->
-> Once you're in, I'll schedule your onboarding call to walk you through the full setup.
->
-> Welcome aboard!
-> Ryan
-> Space Coast Studios
-> ryan@spacecoaststudios.com
-
----
-
-## Step 4 — Post-Onboarding Checklist
-
-After the client logs in, make sure these are configured in their Settings page:
-
-- [ ] Business name, logo, and brand color
-- [ ] Twilio phone number assigned (update `twilio_phone_number` in the DB or admin panel)
-- [ ] Business hours set
-- [ ] At least one service type created
-- [ ] At least one technician added
-- [ ] Google Review URL set (for automated review requests)
-- [ ] Notification templates reviewed and customized
-- [ ] AI persona configured (Professional plan)
-- [ ] Contact form / booking widget embedded on their website
-
----
-
-## Troubleshooting
-
-### "Invalid or missing link" on set-password page
-
-The token may have expired (72-hour window) or already been used. Generate a new one:
-
-```python
-import secrets
-print(secrets.token_urlsafe(48))
-```
-
-Then update the DB:
-
+Note the returned `business_id`. Then create the admin user:
 ```sql
-UPDATE admin_users
-SET password_reset_token = 'NEW_TOKEN',
-    password_reset_expires = NOW() + INTERVAL '72 hours'
-WHERE email = 'client@example.com';
+INSERT INTO admin_users (
+  username, password_hash, role, business_id,
+  email, password_reset_token, password_reset_expires
+) VALUES (
+  'client@email.com',
+  'UNUSABLE_PASSWORD_HASH',   -- placeholder; client sets real password via token
+  'admin',
+  <business_id from above>,
+  'client@email.com',
+  encode(gen_random_bytes(48), 'base64'),   -- generates reset token
+  NOW() + INTERVAL '72 hours'
+) RETURNING id, password_reset_token;
 ```
 
-And resend the email with the new token.
-
-### Client can't receive SMS
-
-The Twilio number's "A message comes in" webhook must point to:
-`https://api.spacecoaststudios.com/webhook/sms/inbound`
-
-See the main README for full Twilio configuration instructions.
-
-### Password was set but client can't log in
-
-Verify the `username` in `admin_users` matches exactly what they're typing (it's the email address,
-case-sensitive in login).
+Note the `password_reset_token`.
 
 ---
 
-## Creating Founding Prices in Stripe (One-time Setup)
+## Step 3 — Send Welcome Email
 
-If the founding price products don't exist yet in your Stripe catalog:
+Send the client a welcome email with:
+- Their username (their email address)
+- Password set link: `https://dashboard.spacecoaststudios.com/set-password?token=<password_reset_token>`
+- Link expires in 72 hours
 
-1. Go to **Products → + Add product**
-2. Create **"Starter Setup Fee (Founding)"**: one-time, $497
-3. Create **"Starter Monthly (Founding)"**: recurring monthly, $99
-4. Create **"Professional Setup Fee (Founding)"**: one-time, $997
-5. Create **"Professional Monthly (Founding)"**: recurring monthly, $199
+Template:
+```
+Subject: Your Space Coast Studios Platform is Ready
 
-You don't need to wire these into the checkout API — they're used only for manual subscriptions.
+Hi [Name],
+
+Your platform is set up and ready to go. Here's how to log in:
+
+Username: [their email]
+Set your password: https://dashboard.spacecoaststudios.com/set-password?token=<TOKEN>
+
+This link expires in 72 hours. Once you set your password, you'll be walked through a quick setup wizard to configure your business info, branding, and AI settings.
+
+If you have any questions, reply to this email or call/text Ryan at [your number].
+
+Welcome aboard!
+Ryan
+Space Coast Studios
+```
 
 ---
 
-*Last updated: May 2026*
+## Step 4 — A2P 10DLC Registration (Day 1)
+
+Submit immediately — approval takes 2–4 weeks. Platform goes live on everything except SMS while you wait.
+
+See the **A2P 10DLC Checklist** in the README for the full step-by-step.
+
+Key steps:
+1. Purchase a local Twilio number in the client's area code
+2. Create Messaging Service + add number to sender pool
+3. Register A2P Brand (client's EIN, business info)
+4. Create CUSTOMER_CARE campaign
+5. Register phone number to campaign
+6. Configure inbound webhook on the number itself
+
+---
+
+## Step 5 — Platform Configuration
+
+Once the client completes the setup wizard, finish the platform configuration:
+
+- [ ] Set `twilio_phone_number` on the Business record in **Settings** (platform admin view)
+- [ ] Configure business hours (Settings → Business Hours)
+- [ ] Add service types (Services page)
+- [ ] Add technicians with phone numbers (Technicians page)
+- [ ] Set Google Review URL (Settings → Review Requests)
+- [ ] Customize notification templates if needed (Notification Templates page)
+- [ ] Verify AI persona name and system prompt (Settings)
+
+---
+
+## Step 6 — Smoke Test (Before Client Goes Live)
+
+Run through the full smoke test checklist in `SCS_Onboarding_Checklist.docx`. Key tests:
+
+**Contact form + AI flow:**
+1. Go to `https://api.spacecoaststudios.com/embed/{client-slug}/contact`
+2. Fill out form with a real phone number and address — check SMS consent box
+3. Verify: contact submission appears in dashboard Contact Queue
+4. Verify: AI reply SMS arrives with 2 slot options, correct times in local timezone
+5. Reply to SMS with a slot choice
+6. Verify: agent books appointment (no "hiccup"), correct time displayed in dashboard
+
+**OTW flow (once A2P approved):**
+1. Create a test appointment with a tech whose phone is your real number
+2. Go to Settings → Developer Tools → Trigger Morning Kickoffs
+3. Verify: kickoff SMS arrives with correct job summary and schedule URL
+4. Go to Settings → Developer Tools → Trigger OTW Prompts
+5. Reply YES to OTW prompt from tech phone
+6. Verify: customer OTW SMS arrives, appointment → en_route
+7. Reply YES to complete prompt
+8. Verify: review request sent to customer, appointment → completed
+
+**What to tell the client about SMS timing:**
+> "Your platform goes live with all features within one week. SMS features require a one-time carrier registration that takes 2–4 weeks — we submit it on Day 1. Everything else (email confirmations, dashboard, contact form) works immediately while we wait."
+
+---
+
+## Step 7 — Transition Pricing (Month 4)
+
+After 3 months at the founding rate, Stripe automatically bills at the standard rate ($249/month Starter or $399/month Professional) because the founding monthly prices do not have trial period limits — you must manually update the subscription in Stripe at the 3-month mark.
+
+**Calendar reminder:** Set a reminder for Month 3 to either:
+- Update the Stripe subscription to the standard monthly price, OR
+- Communicate the price change to the client before it takes effect
