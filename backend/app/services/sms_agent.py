@@ -126,7 +126,7 @@ def _run_agent(db: Session, business: Business, convo: SmsConversation, contact_
         # Execute each tool call and collect results
         tool_results = []
         for tc in tool_calls:
-            result = _execute_tool(db, business, convo, tc.name, tc.input)
+            result = _execute_tool(db, business, convo, tc.name, tc.input, contact_submission)
             tool_results.append({
                 "type": "tool_result",
                 "tool_use_id": tc.id,
@@ -134,6 +134,11 @@ def _run_agent(db: Session, business: Business, convo: SmsConversation, contact_
             })
 
         # Append assistant turn + tool results, then loop
+        # Check if any tool returned a hard error
+        for tr in tool_results:
+            result_data = json.loads(tr["content"])
+            if isinstance(result_data, dict) and result_data.get("error"):
+                logger.warning("sms_agent: tool error: %s", result_data["error"])
         messages.append({"role": "assistant", "content": response.content})
         messages.append({"role": "user", "content": tool_results})
 
@@ -190,7 +195,7 @@ def _define_tools(services: list[ServiceType]) -> list[dict]:
                     },
                     "appointment_datetime": {
                         "type": "string",
-                        "description": "ISO 8601 datetime string (e.g. 2026-04-15T10:00:00).",
+                        "description": "Datetime in format YYYY-MM-DD HH:MM using the EXACT date offered to the customer (e.g. 2026-06-01 12:00). Never infer the date from a day name alone.",
                     },
                     "address": {
                         "type": "string",
@@ -259,6 +264,7 @@ def _execute_tool(
     convo: SmsConversation,
     tool_name: str,
     tool_input: dict,
+    contact_submission=None,
 ) -> dict:
     logger.info("sms_agent: executing tool %s for convo %s", tool_name, convo.id)
 
@@ -266,7 +272,7 @@ def _execute_tool(
         return _tool_check_availability(db, business, tool_input)
 
     elif tool_name == "create_booking":
-        return _tool_create_booking(db, business, convo, tool_input)
+        return _tool_create_booking(db, business, convo, tool_input, contact_submission)
 
     elif tool_name == "escalate_to_human":
         convo.status = "escalated"
@@ -358,14 +364,16 @@ def _tool_create_booking(
     if not service:
         return {"error": "Could not find a matching service."}
 
-    # Parse datetime
+    # Parse datetime — accept ISO format or natural language (e.g. "2026-06-01 12:00")
     try:
-        appt_start = datetime.fromisoformat(inp["appointment_datetime"])
-        # Ensure UTC-aware
+        raw_dt = inp.get("appointment_datetime", "")
+        # Strip common natural-language noise so fromisoformat has a better chance
+        raw_dt = raw_dt.replace("T", " ").replace("Z", "").strip()
+        appt_start = datetime.fromisoformat(raw_dt)
         if appt_start.tzinfo is None:
             appt_start = appt_start.replace(tzinfo=timezone.utc)
     except (ValueError, KeyError) as exc:
-        return {"error": f"Invalid appointment datetime: {exc}"}
+        return {"error": "Could not parse the appointment date/time. Use YYYY-MM-DD HH:MM format, e.g. 2026-06-01 12:00."}
 
     appt_end = appt_start + timedelta(minutes=service.duration_minutes)
 
@@ -387,6 +395,19 @@ def _tool_create_booking(
         )
         db.add(customer)
         db.flush()
+
+    # Enrich customer record with email/address from contact form if available
+    if contact_submission:
+        if contact_submission.email and not customer.email:
+            customer.email = contact_submission.email
+        addr_parts = [p for p in [
+            getattr(contact_submission, "street_address", None),
+            getattr(contact_submission, "city", None),
+            getattr(contact_submission, "state", None),
+            getattr(contact_submission, "zip_code", None),
+        ] if p]
+        if addr_parts and not customer.address:
+            customer.address = ", ".join(addr_parts)
 
     # Update learned name on the conversation
     convo.customer_name = inp.get("customer_name") or convo.customer_name
