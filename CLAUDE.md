@@ -1107,10 +1107,10 @@ $result.url  # open in browser — $2 total, refund immediately after
 - No new commits since session-close update. CLAUDE.md current. Date stamp updated.
 
 ### Pending Monitoring Items
-- **A2P approval:** 5th submission under review. Check Twilio Console → Regulatory Compliance for status updates.
+- **A2P approval:** ✅ APPROVED (CUSTOMER_CARE use case). See Section 25 for full verified campaign details. No further action needed unless consent language or CTA URL changes.
 - **Morning kickoff delivery:** Kickoff now fires 2 hours before first appointment (±15 min window), no time-of-day floor. Techs with no appointments get a "day off" text between 7–8 AM local. If a tech reports missing kickoff: check (1) appointment exists and is not cancelled/completed, (2) scheduler.py `_send_otw_morning_kickoffs` ran, (3) `notification_logs` for an existing `otw_morning_kickoff` entry. Use admin manual trigger to force-send.
-- **Contact queue / AI responder:** End-to-end flow is built and deployed. Monitor `contact_submissions` table for `status = 'error'` entries. If AI replies fail, check DigitalOcean Runtime Logs for `404 not_found_error` (bad model string) or `anthropic.AuthenticationError` (bad API key). See Section 22 for model maintenance guide.
-- **Soft delete:** All three soft-delete models (`appointments`, `customers`, `contact_submissions`) use an `is_deleted` boolean column. Dashboard UI shows delete buttons; records disappear from all list views and availability checks immediately. No hard-delete path — recovery requires direct DB access if needed.
+- **Contact queue / AI responder — NEEDS ATTENTION:** Channel routing and SMS consent logic deployed but a new bug appeared during testing (session ended before diagnosis). Symptoms TBD — start next session by checking DO Runtime Logs for the latest contact form submission error. See Section 14 for full contact responder architecture.
+- **Soft delete:** All three soft-delete models (`appointments`, `customers`, `contact_submissions`) use a `deleted_at` TIMESTAMP column (not a boolean — set to current UTC time on delete, `NULL` = active). Dashboard UI shows delete buttons with confirmation modal; records disappear from all list views and availability checks immediately. No hard-delete path — recovery requires direct DB access if needed.
 
 ---
 
