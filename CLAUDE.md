@@ -864,7 +864,8 @@ These are recurring tasks that keep the platform running correctly. Most are low
 
 | Task | What to Check | Where |
 |------|--------------|-------|
-| **LLM model string** | Verify `claude-haiku-4-5-20251001` (or current value) is still a valid, non-deprecated model at https://docs.anthropic.com/en/docs/about-claude/models | Update in DO env vars + `config.py` if changed |
+| **LLM model string** | Verify `claude-haiku-4-5-20251001` (or current value) is still valid at https://docs.anthropic.com/en/docs/about-claude/models | Update `LLM_MODEL` in DO env vars + `config.py` if changed |
+| **SMS_AGENT_MODEL** | Verify `claude-sonnet-4-6` (or current value) is still valid at same URL | Update default in `config.py`; optionally add `SMS_AGENT_MODEL` to DO env vars to override |
 | **Python dependencies** | `pip list --outdated` in backend; review security advisories | `backend/` |
 | **npm dependencies** | `npm outdated` in frontend; watch for breaking changes | `frontend/dashboard/` |
 | **A2P 10DLC campaign status** | Confirm campaign is still active; carriers can deactivate campaigns without notice | Twilio Console → Messaging → Regulatory Compliance |
