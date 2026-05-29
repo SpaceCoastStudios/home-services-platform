@@ -101,7 +101,7 @@ def _call_llm(business: Business, submission: ContactSubmission, context_block: 
         closing_instruction = (
             "They prefer text messages and your reply will be sent as an SMS. "
             "Keep the ENTIRE reply under 400 characters -- be warm but brief. "
-            "Skip a long acknowledgment; get straight to 1-2 available slots and a CTA. "
+            "Skip a long acknowledgment; offer exactly 2 available slots (no more) and a CTA. "
             "When listing slots, include the full date (e.g. 'Friday, May 30 at 6:30 PM') not just the day name. "
             "Close by inviting them to reply to this text with their preferred slot. Do NOT mention email."
         )
@@ -431,7 +431,7 @@ def _build_context_block(business: Business, services: list, available_slots: li
         lines.append("AVAILABLE APPOINTMENT SLOTS (next 7 days):")
         slot_count = 0
         for day in available_slots:
-            if slot_count >= settings.CONTACT_MAX_SUGGESTED_SLOTS * 2:
+            if slot_count >= 4:  # Cap context at 4 slots for SMS brevity
                 break
             day_slots = day.get("slots", [])
             if not day_slots:
@@ -443,7 +443,7 @@ def _build_context_block(business: Business, services: list, available_slots: li
             except Exception:
                 pass
             for slot in day_slots[:3]:
-                if slot_count >= settings.CONTACT_MAX_SUGGESTED_SLOTS * 2:
+                if slot_count >= 4:  # Cap context at 4 slots for SMS brevity
                     break
                 start_dt = slot["start"]
                 end_dt = slot["end"]
