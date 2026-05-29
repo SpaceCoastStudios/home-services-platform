@@ -90,6 +90,7 @@ export default function OnCallPage() {
     try {
       const payload = {
         ...form,
+        rolling_start_date: form.rolling_start_date || null,
         emergency_fee: form.emergency_fee !== '' ? parseFloat(form.emergency_fee) : null,
       }
       await updateOnCallConfig(payload, businessId)
