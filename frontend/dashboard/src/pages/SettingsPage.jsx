@@ -13,7 +13,7 @@ const API_BASE = 'https://api.spacecoaststudios.com'
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export default function SettingsPage() {
-  const { activeBusinessId, activeBusiness } = useBusinessContext()
+  const { activeBusinessId, activeBusiness, refreshBusinesses } = useBusinessContext()
   const { user } = useAuth()
   const [copied, setCopied] = useState(false)
   const [hours, setHours] = useState([])
@@ -123,6 +123,7 @@ export default function SettingsPage() {
     setSavingTwilio(true)
     try {
       await updateBusiness(activeBusinessId, { twilio_phone_number: twilioNumber || null })
+      await refreshBusinesses()
       setMessage('Twilio number saved')
     } catch (err) { setMessage('Error: ' + err.message) }
     setSavingTwilio(false)
