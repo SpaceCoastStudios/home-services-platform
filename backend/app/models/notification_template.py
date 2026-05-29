@@ -69,6 +69,7 @@ DEFAULTS: dict[tuple[str, str], dict] = {
             "🚨 EMERGENCY — {{business_name}}\n"
             "Customer: {{customer_name}}\n"
             "Phone: {{customer_phone}}\n"
+            "Address: {{address}}\n"
             "Issue: {{issue_summary}}\n\n"
             "Respond immediately."
         ),
@@ -160,7 +161,9 @@ TOKENS = {
         ("{{calendar_link}}", "Add-to-calendar link (email/SMS)"),
     ],
     "emergency_dispatch": [
+        ("{{customer_name}}", "Customer's name"),
         ("{{customer_phone}}", "Customer's phone number"),
+        ("{{address}}", "Customer's service address"),
         ("{{issue_summary}}", "Brief description of the emergency"),
     ],
     "review_request": [

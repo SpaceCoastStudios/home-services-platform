@@ -247,6 +247,10 @@ def _define_tools(services: list[ServiceType]) -> list[dict]:
                         "type": "string",
                         "description": "One or two sentence description of the emergency.",
                     },
+                    "service_address": {
+                        "type": "string",
+                        "description": "The customer's service address (street and city) so the technician knows where to go. Collect this before dispatching unless it is already known. Leave blank only if the customer will not provide it.",
+                    },
                 },
                 "required": ["customer_name", "issue_summary"],
             },
@@ -288,6 +292,7 @@ def _execute_tool(
             customer_phone=convo.customer_phone,
             customer_name=tool_input.get("customer_name", convo.customer_name or "Unknown"),
             issue_summary=tool_input.get("issue_summary", ""),
+            service_address=tool_input.get("service_address", "") or "",
         )
         convo.status = "escalated"
         logger.info("sms_agent: emergency dispatch for convo %s — %s", convo.id, result)
@@ -551,8 +556,9 @@ If a customer describes an emergency (no AC in heat, no heat in cold, flooding, 
 or any safety-critical issue), follow these steps:
 1. Ask 1-2 quick clarifying questions to understand the situation (e.g. "Is the unit completely off or just not cooling?" or "How long has this been happening?").
 2. Based on their answers, confirm it is a genuine emergency.{fee_line}
-3. Use the emergency_dispatch tool to alert the on-call technician.
-4. Tell the customer a technician has been alerted and will contact them shortly.
+3. Make sure you have the service address. If it is already shown in the customer info above, confirm it; otherwise ask for the street and city so the technician knows where to go.
+4. Use the emergency_dispatch tool to alert the on-call technician (pass the service address).
+5. Tell the customer a technician has been alerted and will contact them shortly.
 Do NOT skip the clarifying questions — they help the technician arrive prepared."""
 
 

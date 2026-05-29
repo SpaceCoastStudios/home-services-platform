@@ -26,6 +26,7 @@ DISPATCH_DEFAULT = (
     "🚨 EMERGENCY — {{business_name}}\n"
     "Customer: {{customer_name}}\n"
     "Phone: {{customer_phone}}\n"
+    "Address: {{address}}\n"
     "Issue: {{issue_summary}}\n\n"
     "Respond immediately."
 )
@@ -123,6 +124,7 @@ def _create_emergency_appointment(
     customer_name: str,
     issue_summary: str,
     tech_id: Optional[int],
+    collected_address: Optional[str] = None,
 ) -> Optional[int]:
     """
     Create an appointment record for a dispatched emergency.
@@ -175,21 +177,23 @@ def _create_emergency_appointment(
             db.add(customer)
             db.flush()
 
-        # 3. Enrich address from the most recent (non-deleted) contact submission
-        address = None
-        cs = db.query(ContactSubmission).filter(
-            ContactSubmission.business_id == business.id,
-            ContactSubmission.phone == customer_phone,
-            ContactSubmission.deleted_at == None,
-        ).order_by(ContactSubmission.id.desc()).first()
-        if cs:
-            addr_parts = [getattr(cs, f, None) for f in ("street_address", "city", "state", "zip_code")]
-            addr_parts = [p for p in addr_parts if p]
-            if addr_parts:
-                address = ", ".join(addr_parts)
-                if not customer.address:
-                    customer.address = address
-                    db.flush()
+        # 3. Address - prefer what the agent collected in chat; otherwise enrich
+        #    from the most recent (non-deleted) contact submission for this phone.
+        address = (collected_address or "").strip() or None
+        if not address:
+            cs = db.query(ContactSubmission).filter(
+                ContactSubmission.business_id == business.id,
+                ContactSubmission.phone == customer_phone,
+                ContactSubmission.deleted_at == None,
+            ).order_by(ContactSubmission.id.desc()).first()
+            if cs:
+                addr_parts = [getattr(cs, f, None) for f in ("street_address", "city", "state", "zip_code")]
+                addr_parts = [p for p in addr_parts if p]
+                if addr_parts:
+                    address = ", ".join(addr_parts)
+        if address and not customer.address:
+            customer.address = address
+            db.flush()
         if not address and getattr(customer, "address", None):
             address = customer.address
 
@@ -228,6 +232,7 @@ def dispatch_emergency(
     customer_phone: str,
     customer_name: str,
     issue_summary: str,
+    service_address: str = "",
 ) -> dict:
     """
     Send an emergency dispatch SMS to the current on-call technician.
@@ -281,6 +286,7 @@ def dispatch_emergency(
         "customer_phone": customer_phone,
         "issue_summary":  issue_summary,
         "tech_name":      tech_name,
+        "address":        (service_address.strip() if service_address else "") or "Not provided - please call customer",
     })
 
     # Send via Twilio
@@ -305,7 +311,8 @@ def dispatch_emergency(
             business.id, tech_name, tech_phone,
         )
         appt_id = _create_emergency_appointment(
-            db, business, customer_phone, customer_name, issue_summary, tech_id
+            db, business, customer_phone, customer_name, issue_summary, tech_id,
+            collected_address=service_address,
         )
         return {
             "dispatched": True,
