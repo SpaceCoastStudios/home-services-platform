@@ -29,9 +29,10 @@
 19. [First-Login Setup Wizard](#19-first-login-setup-wizard)
 20. [Platform Admin Impersonation](#20-platform-admin-impersonation)
 21. [Platform Capability Status](#21-platform-capability-status)
-22. [Build Roadmap](#22-build-roadmap)
-23. [A2P 10DLC Compliance](#23-a2p-10dlc-compliance)
-24. [Client Services Agreement](#24-client-services-agreement)
+22. [AI Model Maintenance](#22-ai-model-maintenance)
+23. [Build Roadmap](#23-build-roadmap)
+24. [A2P 10DLC Compliance](#24-a2p-10dlc-compliance)
+25. [Client Services Agreement](#25-client-services-agreement)
 25. [Client Onboarding Process](#25-client-onboarding-process)
 26. [Common Pitfalls](#26-common-pitfalls)
 27. [Local Development](#27-local-development)
@@ -168,7 +169,7 @@ git push
 - **Stripe Python SDK** (`stripe==11.1.0`)
 - **Twilio** for SMS (A2P 10DLC)
 - **SendGrid** for email
-- **Anthropic Python SDK** for AI responses (`claude-sonnet-4-5` model)
+- **Anthropic Python SDK** for AI responses (`claude-haiku-4-5-20251001` model — see model maintenance note below)
 - **bcrypt** for password hashing
 - **PyJWT** for JWT tokens
 - **pydantic-settings** for config (`app/config.py`)
@@ -326,7 +327,7 @@ Set on the **api component** in DigitalOcean App Platform. Sensitive values must
 | `SENDGRID_FROM_EMAIL` | ✅ | Default sender address (`noreply@spacecoaststudios.com`) |
 | `FROM_NAME` | — | Default sender name (`Space Coast Studios`) |
 | `ANTHROPIC_API_KEY` | ✅ | Claude API — SMS booking agent + contact AI responder |
-| `LLM_MODEL` | — | Default: `claude-sonnet-4-5` |
+| `LLM_MODEL` | — | Default: `claude-haiku-4-5-20251001` — **must be a valid Anthropic model string** (see model maintenance note) |
 | `STRIPE_SECRET_KEY` | ✅ | Stripe live secret key (`sk_live_...`) |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe webhook signing secret (`whsec_...`) |
 | `STRIPE_PRICE_STARTER_SETUP` | ✅ | Stripe price ID — Starter setup ($1,997) |
@@ -544,7 +545,7 @@ These are also accessible via the Developer Tools panel in the dashboard Setting
 ## 14. AI Systems
 
 ### SMS Booking Agent (`services/sms_agent.py`)
-- Model: `claude-sonnet-4-5` via Anthropic API with `tool_use`
+- Model: set by `LLM_MODEL` env var (default `claude-haiku-4-5-20251001`) via Anthropic API with `tool_use`
 - Runs up to **5 tool-call iterations** per inbound message
 - Maintains last **20 messages** of conversation history per thread
 - **4 Tools:** `check_availability`, `create_booking`, `escalate_to_human`, `emergency_dispatch`
@@ -771,7 +772,36 @@ Contact form + AI auto-responder, emergency SMS call routing, business hours con
 
 ---
 
-## 22. Build Roadmap
+## 22. AI Model Maintenance
+
+### Current Model
+`LLM_MODEL` is set to `claude-haiku-4-5-20251001` in both `backend/app/config.py` (default fallback) and the DigitalOcean App-Level Environment Variables (production value).
+
+This model is used by:
+- **Contact form auto-responder** (`services/contact_responder.py`) — AI replies to customer inquiries
+- **SMS booking agent** (`services/sms_agent.py`) — AI handles inbound SMS conversations
+
+### What Breaks When the Model String is Wrong
+A 404 `not_found_error` from Anthropic's API silently sets contact submissions to **"Error"** status. The customer receives no reply and staff must follow up manually. The error appears in DigitalOcean Runtime Logs as:
+```
+anthropic.NotFoundError: Error code: 404 - model: <model-string>
+```
+
+### How to Update the Model
+1. Check current valid model strings at https://docs.anthropic.com/en/docs/about-claude/models
+2. Update `LLM_MODEL` in DigitalOcean → App → Settings → App-Level Environment Variables
+3. Also update the default in `backend/app/config.py` line `LLM_MODEL: str = "..."`
+4. Commit and push the config.py change
+
+### How Often to Check
+Anthropic publishes deprecation notices 3–6 months in advance. Check https://docs.anthropic.com/en/docs/about-claude/models every **3 months** or when you see "Error" status appearing on new contact submissions. A startup validation log line (`LLM model validated OK`) confirms the model is reachable on each deploy.
+
+### Startup Health Check
+`main.py` runs a lightweight Anthropic API call at startup to validate the model string. If it fails, a **prominent WARNING** is logged — visible in the DigitalOcean Runtime Logs immediately after deploy, before any customer traffic hits. This means a bad model string surfaces at deploy time, not on the first customer submission.
+
+---
+
+## 23. Build Roadmap
 
 ### Next Build Priorities
 1. **Self-scheduling booking widget** (Professional plan) — Phase 1: internal availability engine only (no external calendar API). Phase 2: Google Calendar API. Phase 3: Exchange/Outlook API.
@@ -795,7 +825,7 @@ Contact form + AI auto-responder, emergency SMS call routing, business hours con
 
 ---
 
-## 23. A2P 10DLC Compliance
+## 24. A2P 10DLC Compliance
 
 ### Current Status (as of May 2026)
 Campaign submitted for 5th time, under carrier review. Latest fix: SMS consent checkbox made **optional** (not required) — carriers reject campaigns where consent is a condition of service.
@@ -828,7 +858,7 @@ Rejected 5 times for "issues verifying the CTA." Root causes:
 
 ---
 
-## 24. Client Services Agreement
+## 25. Client Services Agreement
 
 **File:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`)
 

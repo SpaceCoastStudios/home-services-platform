@@ -125,6 +125,7 @@ All variables are set on the **api component** in DigitalOcean App Platform. Sen
 | `SENDGRID_API_KEY` | ✅ | SendGrid API key |
 | `SENDGRID_FROM_EMAIL` | ✅ | Sender email address |
 | `ANTHROPIC_API_KEY` | ✅ | Claude API key (AI agent) |
+| `LLM_MODEL` | — | Anthropic model string. Default: `claude-haiku-4-5-20251001`. **Must be a current valid model** — check https://docs.anthropic.com/en/docs/about-claude/models every ~3 months. A wrong value silently sets contact submissions to "Error" status. The startup log prints `LLM model validated OK` or a warning if invalid. |
 | `STRIPE_SECRET_KEY` | ✅ | Stripe live secret key (`sk_live_...`) |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe webhook signing secret (`whsec_...`) |
 | `STRIPE_PRICE_STARTER_SETUP` | ✅ | Stripe price ID — Starter one-time setup fee |

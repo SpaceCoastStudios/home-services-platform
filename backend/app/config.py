@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "anthropic"  # "anthropic" or "openai"
     ANTHROPIC_API_KEY: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
-    LLM_MODEL: str = "claude-sonnet-4-20250514"
+    LLM_MODEL: str = "claude-haiku-4-5-20251001"
 
     # Stripe
     STRIPE_SECRET_KEY: Optional[str] = None

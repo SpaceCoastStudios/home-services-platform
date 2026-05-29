@@ -482,6 +482,34 @@ def run_migrations(db):
     logger.info("Migration: soft-delete deleted_at columns ready")
 
 
+def _validate_llm_model():
+    """
+    Ping Anthropic at startup with a minimal message to confirm the configured
+    model string is valid.  Logs a prominent WARNING if it fails so the issue
+    surfaces in deploy logs before any customer traffic hits.
+    """
+    if not settings.ANTHROPIC_API_KEY:
+        logger.warning("ANTHROPIC_API_KEY not set — AI contact responder and SMS agent are disabled")
+        return
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        client.messages.create(
+            model=settings.LLM_MODEL,
+            max_tokens=1,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+        logger.info("LLM model validated OK: %s", settings.LLM_MODEL)
+    except Exception as exc:
+        logger.warning(
+            "⚠️  LLM MODEL VALIDATION FAILED — model '%s' returned: %s. "
+            "Contact form auto-responder and SMS agent will error until this is fixed. "
+            "Update LLM_MODEL env var to a valid model string from "
+            "https://docs.anthropic.com/en/docs/about-claude/models",
+            settings.LLM_MODEL, exc,
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
@@ -495,6 +523,7 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
+    _validate_llm_model()
     start_scheduler()
 
     yield
