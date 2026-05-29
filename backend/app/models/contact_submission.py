@@ -1,7 +1,7 @@
 """Contact form submission model."""
 
 from datetime import datetime, date, timezone
-from sqlalchemy import Integer, String, Text, Date, DateTime, JSON, ForeignKey
+from sqlalchemy import Integer, String, Text, Date, DateTime, JSON, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -21,6 +21,9 @@ class ContactSubmission(Base):
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     service_requested: Mapped[str | None] = mapped_column(String(100), nullable=True)
     preferred_contact_method: Mapped[str | None] = mapped_column(String(20), nullable=True)  # call, text, email
+    # A2P/TCPA: True only if the customer explicitly checked the consent checkbox.
+    # SMS is only sent when this is True — consent is never assumed.
+    sms_consent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     problem_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     preferred_date: Mapped[date | None] = mapped_column(Date, nullable=True)

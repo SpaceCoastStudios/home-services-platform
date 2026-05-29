@@ -481,6 +481,17 @@ def run_migrations(db):
             db.rollback()
     logger.info("Migration: soft-delete deleted_at columns ready")
 
+    # A2P/TCPA compliance — store whether the customer checked the SMS consent checkbox.
+    # Existing rows default to FALSE (no retroactive consent assumed).
+    try:
+        db.execute(text(
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS sms_consent BOOLEAN NOT NULL DEFAULT FALSE"
+        ))
+        db.commit()
+        logger.info("Migration: sms_consent column ready on contact_submissions")
+    except Exception:
+        db.rollback()
+
 
 def _validate_llm_model():
     """

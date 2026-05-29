@@ -271,13 +271,6 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       text-decoration: underline;
     }}
 
-    .consent-error {{
-      font-size: 12px;
-      color: #dc2626;
-      margin-top: 4px;
-      margin-left: 26px;
-    }}
-
     @media (max-width: 480px) {{
       .form-grid {{ grid-template-columns: 1fr; }}
       .form-group.full {{ grid-column: 1; }}
@@ -329,6 +322,9 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
           <label><input type="radio" name="contact_method" value="text" /> Text message</label>
           <label><input type="radio" name="contact_method" value="email" /> Email</label>
         </div>
+        <div id="textConsentHint" style="display:none;margin-top:6px;font-size:12px;color:#6b7280;">
+          To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead.
+        </div>
       </div>
 
       <div class="form-group full">
@@ -345,18 +341,16 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       <div class="form-group full">
         <div class="sms-consent-group">
           <label class="sms-consent-label">
-            <input type="checkbox" id="smsConsent" name="sms_consent" required />
+            <input type="checkbox" id="smsConsent" name="sms_consent" />
             <span>
-              I agree to receive SMS messages from {business_name}, including appointment
-              confirmations, reminders, and service-related notifications. Msg &amp; data
-              rates may apply. Reply STOP to opt out at any time. Reply HELP for help.
+              (Optional) I agree to receive SMS messages from {business_name},
+              including appointment confirmations, reminders, and service-related notifications.
+              Msg &amp; data rates may apply. Reply STOP to opt out at any time. Reply HELP for help.
+              SMS consent is not required to submit this form or receive service.
               View our <a href="https://spacecoaststudios.com/terms" target="_blank" rel="noopener">Terms</a>
               and <a href="https://spacecoaststudios.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
             </span>
           </label>
-          <div id="consentError" class="consent-error" style="display:none;">
-            Please agree to receive SMS messages to continue.
-          </div>
         </div>
       </div>
 
@@ -380,6 +374,21 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       }}
     }});
 
+    // Show/hide the "check consent to receive texts" hint when text method is selected
+    (function() {{
+      const radios = document.querySelectorAll('input[name="contact_method"]');
+      const hint   = document.getElementById("textConsentHint");
+      const consentBox = document.getElementById("smsConsent");
+
+      function updateHint() {{
+        const isText = document.querySelector('input[name="contact_method"]:checked')?.value === "text";
+        hint.style.display = (isText && !consentBox.checked) ? "block" : "none";
+      }}
+
+      radios.forEach(r => r.addEventListener("change", updateHint));
+      consentBox.addEventListener("change", updateHint);
+    }})();
+
     // Character counter for problem description
     (function() {{
       const textarea = document.getElementById("problemDescription");
@@ -398,20 +407,14 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       const btn       = document.getElementById("submitBtn");
       const errorAlert = document.getElementById("errorAlert");
 
-      // Validate SMS consent checkbox
-      const consentBox   = document.getElementById("smsConsent");
-      const consentError = document.getElementById("consentError");
-      if (!consentBox.checked) {{
-        consentError.style.display = "block";
-        return;
-      }}
-      consentError.style.display = "none";
-
       btn.disabled    = true;
       btn.textContent = "Sending…";
       errorAlert.style.display = "none";
 
       const contactMethod = document.querySelector('input[name="contact_method"]:checked')?.value || null;
+      // Capture consent state — optional per approved A2P campaign.
+      // SMS is only sent server-side when this is true.
+      const smsConsent = document.getElementById("smsConsent").checked;
 
       const problemText = document.getElementById("problemDescription").value.trim();
 
@@ -421,6 +424,7 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
         phone:                    document.getElementById("phone").value.trim(),
         service_requested:        document.getElementById("service").value || null,
         preferred_contact_method: contactMethod,
+        sms_consent:              smsConsent,
         message:                  document.getElementById("message").value.trim(),
         problem_description:      problemText || null,
       }};

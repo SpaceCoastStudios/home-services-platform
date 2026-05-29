@@ -16,6 +16,10 @@ class ContactFormSubmit(BaseModel):
     problem_description: Optional[str] = None
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None
+    # A2P/TCPA compliance: customer must explicitly check this to receive SMS.
+    # Defaults to False — form submission is allowed either way (consent is NOT
+    # a condition of service per carrier rules).
+    sms_consent: bool = False
 
 
 class ContactSubmissionResponse(BaseModel):
@@ -26,6 +30,7 @@ class ContactSubmissionResponse(BaseModel):
     phone: Optional[str] = None
     service_requested: Optional[str] = None
     preferred_contact_method: Optional[str] = None
+    sms_consent: bool = False
     message: str
     problem_description: Optional[str] = None
     preferred_date: Optional[date] = None

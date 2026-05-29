@@ -101,18 +101,48 @@ def _process(db: Session, submission: ContactSubmission, business: Business) -> 
         )
         return
 
-    # auto_send — send immediately
-    email_sent = _send_reply_email(business, submission, reply_text)
+    # auto_send — send via the customer's preferred channel only.
+    #
+    # Channel rules:
+    #   text + sms_consent=True  → SMS only  (they asked for text and consented)
+    #   text + sms_consent=False → Email only (can't text without consent; AI prompt already
+    #                                           falls back to email language in this case)
+    #   email                    → Email only
+    #   call                     → Email only (we can't auto-dial; email delivers the slot
+    #                                          info and staff follows up by phone)
+    #   anything else            → Email only
+    #
+    # Sending both channels when the customer chose one would be noisy and would also
+    # mean the email says "reply to this text" (or vice versa).
+    sms_consented = getattr(submission, "sms_consent", False)
+    use_sms = (
+        pref == "text"
+        and sms_consented
+        and bool(submission.phone)
+    )
 
-    if submission.phone:
-        _send_reply_sms(business, submission, reply_text)
+    email_sent = False
+    sms_sent = False
+
+    if use_sms:
+        sms_sent = _send_reply_sms(business, submission, reply_text)
+    else:
+        email_sent = _send_reply_email(business, submission, reply_text)
+        if pref == "text" and not sms_consented:
+            logger.info(
+                "contact_responder: submission %s preferred text but no SMS consent — replied by email",
+                submission.id,
+            )
 
     submission.status = "ai_responded"
     submission.responded_at = datetime.now(timezone.utc)
     db.commit()
     logger.info(
-        "contact_responder: completed submission %s for business %s (email_sent=%s)",
-        submission.id, business.slug, email_sent,
+        "contact_responder: completed submission %s for business %s "
+        "(channel=%s, email_sent=%s, sms_sent=%s)",
+        submission.id, business.slug,
+        "sms" if use_sms else "email",
+        email_sent, sms_sent,
     )
 
 
@@ -132,7 +162,13 @@ def _call_llm(business: Business, submission: ContactSubmission, context_block: 
 
     # Map the stored contact preference to a human-readable label and a
     # channel-specific closing instruction so the AI never references the wrong channel.
-    pref = (submission.preferred_contact_method or "").lower()
+    #
+    # Edge case: customer chose "text" as preferred method but did not give SMS consent.
+    # We cannot text them, so fall back to email for the AI prompt so the reply doesn't
+    # tell them to "reply to this text" when no text was sent.
+    raw_pref = (submission.preferred_contact_method or "").lower()
+    sms_consented = getattr(submission, "sms_consent", False)
+    pref = raw_pref if not (raw_pref == "text" and not sms_consented) else "email"
     if pref == "text":
         contact_pref_label = "text message (SMS)"
         closing_instruction = (
