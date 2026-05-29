@@ -202,7 +202,7 @@ export default function AppointmentsPage() {
       address: appt.address || '',
       notes: appt.notes || '',
       problem_description: appt.problem_description || '',
-      technician_id: appt.technician_id || '',
+      technician_id: appt.technician_id != null ? String(appt.technician_id) : '',
     })
     setEditError('')
   }
