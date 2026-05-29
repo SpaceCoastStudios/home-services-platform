@@ -61,7 +61,14 @@ export function BusinessProvider({ children }) {
 
   const refreshBusinesses = () => {
     if (!user?.isPlatformAdmin) return
-    getBusinesses().then(setBusinesses).catch(console.error)
+    getBusinesses().then((list) => {
+      setBusinesses(list)
+      // Also refresh activeBusiness so fields like twilio_phone_number stay current
+      if (activeBusiness) {
+        const updated = list.find((b) => b.id === activeBusiness.id)
+        if (updated) setActiveBusiness(updated)
+      }
+    }).catch(console.error)
   }
 
   return (

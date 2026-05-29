@@ -75,7 +75,7 @@ def _process(db: Session, submission: ContactSubmission, business: Business) -> 
     sms_sent = False
 
     if use_sms:
-        sms_sent = _send_reply_sms(business, submission, reply_text)
+        sms_sent = _send_reply_sms(db, business, submission, reply_text)
     else:
         email_sent = _send_reply_email(business, submission, reply_text)
         if pref == "text" and not sms_consented:
@@ -237,7 +237,7 @@ def _send_reply_email(business: Business, submission: ContactSubmission, reply_t
         return False
 
 
-def _send_reply_sms(business: Business, submission: ContactSubmission, reply_text: str) -> bool:
+def _send_reply_sms(db, business: Business, submission: ContactSubmission, reply_text: str) -> bool:
     twilio_number = business.twilio_phone_number or settings.TWILIO_PHONE_NUMBER
     if not settings.TWILIO_ACCOUNT_SID or not twilio_number:
         return False
@@ -259,6 +259,43 @@ def _send_reply_sms(business: Business, submission: ContactSubmission, reply_tex
 
         client.messages.create(body=sms_content, from_=twilio_number, to=submission.phone)
         logger.info("contact_responder: reply SMS sent to %s (%d chars)", submission.phone, len(sms_content))
+        # Seed an SmsConversation so the booking agent has context when the customer replies.
+        # Pre-load: synthetic user message capturing what we know, then the reply we just sent.
+        try:
+            from app.models.sms_conversation import SmsConversation
+            from datetime import timezone as _tz
+            existing = db.query(SmsConversation).filter(
+                SmsConversation.business_id == business.id,
+                SmsConversation.customer_phone == submission.phone,
+                SmsConversation.status == "active",
+            ).order_by(SmsConversation.last_message_at.desc()).first()
+            if not existing:
+                context_parts = ["Hi, I submitted a contact form on your website."]
+                if submission.name:
+                    context_parts.append("My name is {}.".format(submission.name))
+                if submission.service_requested:
+                    context_parts.append("I need: {}.".format(submission.service_requested))
+                if submission.problem_description:
+                    context_parts.append("Issue: {}".format(submission.problem_description[:120]))
+                if submission.preferred_date:
+                    context_parts.append("Preferred date: {}.".format(submission.preferred_date))
+                seed_user_msg = " ".join(context_parts)
+                now_iso = datetime.now(_tz.utc).isoformat()
+                convo = SmsConversation(
+                    business_id=business.id,
+                    customer_phone=submission.phone,
+                    customer_name=submission.name,
+                    status="active",
+                    messages=[
+                        {"role": "user", "content": seed_user_msg, "ts": now_iso, "seeded": True},
+                        {"role": "assistant", "content": sms_content, "ts": now_iso},
+                    ],
+                )
+                db.add(convo)
+                db.commit()
+                logger.info("contact_responder: seeded SmsConversation for %s", submission.phone)
+        except Exception as seed_exc:
+            logger.warning("contact_responder: failed to seed SMS convo: %s", seed_exc)
         return True
     except Exception as exc:
         logger.error("contact_responder: failed to send reply SMS to %s: %s", submission.phone, exc)
