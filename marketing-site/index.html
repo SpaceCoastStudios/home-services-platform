@@ -1126,7 +1126,9 @@
       const message = [
         businessName ? `Business: ${businessName}` : '',
         industry     ? `Industry: ${industry}` : '',
-        'SMS consent given at time of form submission.',
+        consentBox.checked
+          ? 'SMS consent given at time of form submission.'
+          : 'SMS consent not given (replies will go by email).',
       ].filter(Boolean).join('\n');
 
       try {

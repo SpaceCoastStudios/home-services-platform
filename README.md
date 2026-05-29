@@ -231,19 +231,17 @@ See `docs/founder-client-onboarding.md`.
 |---|---|---|
 | AI Contact Responder | ✅ Built & tested | Matches description |
 | SMS Booking Agent | ✅ Built & tested | Matches description |
-| Self-Scheduling Booking Widget | ⚠️ Backend only | **Listed as Pro feature — UI not yet built.** Do not sell as live until widget UI exists. |
+| Self-Scheduling Booking Widget | ⚠️ Backend only | Advertised as a live Pro feature on the marketing site (owner decision, 2026-05-29). Public widget UI still pending — prioritize before the first Professional client goes live. |
 | Emergency Dispatch | ✅ Built & tested | Via SMS agent tool |
 | Automated Notifications (confirmations, reminders, OTW) | ✅ Built & tested | Matches description |
 | Automated Review Requests | ✅ Built & tested | Fires on job completion |
 | Admin Dashboard | ✅ Built & tested | Matches description |
-| Recurring Appointment Scheduling | ⚠️ Backend only | **Listed as Pro feature — no UI yet.** |
+| Recurring Appointment Scheduling | ⚠️ Backend only | Advertised as a live Pro feature; delivered manually as part of the managed service (owner decision, 2026-05-29). Dashboard UI still pending. |
 | Custom AI Persona & Branding | ✅ Built | AI agent name, system prompt, brand color, logo URL |
 | Up to 3 service types / 5 technicians (Starter) | ✅ Built | Enforced at plan level |
 
-**⚠️ Compliance issue found in marketing site:**
-> Line ~930: *"Customers cannot submit without checking it"* (referring to SMS consent checkbox)
-
-This is **incorrect and must be fixed before going live.** The A2P campaign was approved specifically with the consent checkbox as **optional**. The correct language is: *"SMS consent is optional and not required to receive service."* This is also the language on the live embed form. The marketing site copy needs to match.
+**✅ SMS consent compliance — resolved (verified 2026-05-29):**
+The marketing site demo widget consent copy is now correct and matches the approved A2P campaign: the checkbox is clearly **optional** ("customers can submit the form and receive service without checking it"). The demo form's submit handler was also fixed so the message it records reflects the actual checkbox state (previously it always logged "SMS consent given" regardless).
 
 ---
 
