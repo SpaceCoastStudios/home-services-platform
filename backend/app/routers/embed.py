@@ -316,23 +316,6 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       </div>
 
       <div class="form-group full">
-        <label>Preferred contact method</label>
-        <div class="contact-method-group">
-          <label><input type="radio" name="contact_method" value="call" checked /> Phone call</label>
-          <label><input type="radio" name="contact_method" value="text" /> Text message</label>
-          <label><input type="radio" name="contact_method" value="email" /> Email</label>
-        </div>
-        <div id="textConsentHint" style="display:none;margin-top:6px;font-size:12px;color:#6b7280;">
-          To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead.
-        </div>
-      </div>
-
-      <div class="form-group full">
-        <label for="message">Message <span class="required">*</span></label>
-        <textarea id="message" name="message" required placeholder="Tell us about your project or issue…"></textarea>
-      </div>
-
-      <div class="form-group full">
         <label for="streetAddress">Service Address <span class="required">*</span></label>
         <input type="text" id="streetAddress" name="street_address" required placeholder="123 Main St" />
       </div>
@@ -353,9 +336,26 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       </div>
 
       <div class="form-group full">
+        <label for="message">Message <span class="required">*</span></label>
+        <textarea id="message" name="message" required placeholder="Tell us about your project or issue…"></textarea>
+      </div>
+
+      <div class="form-group full">
         <label for="problemDescription">Describe the problem <span style="font-size:12px;color:#6b7280;font-weight:400;">(optional)</span></label>
         <textarea id="problemDescription" name="problem_description" maxlength="200" placeholder="What's going on? Any details help our technician come prepared…" style="min-height:70px;"></textarea>
         <div class="char-counter" id="problemCounter">0 / 200</div>
+      </div>
+
+      <div class="form-group full">
+        <label>Preferred contact method</label>
+        <div class="contact-method-group">
+          <label><input type="radio" name="contact_method" value="call" checked /> Phone call</label>
+          <label><input type="radio" name="contact_method" value="text" /> Text message</label>
+          <label><input type="radio" name="contact_method" value="email" /> Email</label>
+        </div>
+        <div id="textConsentHint" style="display:none;margin-top:6px;font-size:12px;color:#6b7280;">
+          To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead.
+        </div>
       </div>
 
       <div class="form-group full">

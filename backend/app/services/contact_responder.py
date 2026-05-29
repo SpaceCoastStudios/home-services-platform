@@ -269,15 +269,13 @@ def _send_reply_sms(db, business: Business, submission: ContactSubmission, reply
                 SmsConversation.customer_phone == submission.phone,
                 SmsConversation.status == "active",
             ).order_by(SmsConversation.last_message_at.desc()).first()
-            # If existing convo is stale (>30 days) or booked, close it and start fresh
+            # A new contact form submission always means a new request -- close any
+            # existing conversation so the agent starts fresh with the new context.
             if existing:
-                from datetime import timezone as _tz2
-                age_days = (datetime.now(_tz2.utc) - existing.last_message_at.replace(tzinfo=_tz2.utc)).days if existing.last_message_at else 999
-                if age_days > 30 or existing.status in ("booked", "escalated", "closed"):
-                    existing.status = "closed"
-                    db.flush()
-                    existing = None
-                    logger.info("contact_responder: closed stale/completed convo, starting fresh for %s", submission.phone)
+                existing.status = "closed"
+                db.flush()
+                existing = None
+                logger.info("contact_responder: closed prior convo for %s, starting fresh for new submission", submission.phone)
             # Build seed context from contact form data
             context_parts = ["Hi, I submitted a contact form on your website."]
             if submission.name:
