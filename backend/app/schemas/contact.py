@@ -14,6 +14,10 @@ class ContactFormSubmit(BaseModel):
     preferred_contact_method: Optional[str] = None  # call, text, email
     message: str
     problem_description: Optional[str] = None
+    street_address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None
     # A2P/TCPA compliance: customer must explicitly check this to receive SMS.
@@ -33,6 +37,10 @@ class ContactSubmissionResponse(BaseModel):
     sms_consent: bool = False
     message: str
     problem_description: Optional[str] = None
+    street_address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
     preferred_date: Optional[date] = None
     preferred_time: Optional[str] = None
     ai_response: Optional[str] = None

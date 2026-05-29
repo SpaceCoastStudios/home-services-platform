@@ -492,6 +492,20 @@ def run_migrations(db):
     except Exception:
         db.rollback()
 
+    # Address fields on contact_submissions
+    try:
+        for stmt in [
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS street_address VARCHAR(255)",
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS city VARCHAR(100)",
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS state VARCHAR(50)",
+            "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS zip_code VARCHAR(20)",
+        ]:
+            db.execute(text(stmt))
+        db.commit()
+        logger.info("Migration: contact_submissions address columns ready")
+    except Exception:
+        db.rollback()
+
 
 def _validate_llm_model():
     """

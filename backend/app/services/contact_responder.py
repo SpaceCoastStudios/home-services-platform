@@ -288,6 +288,14 @@ def _send_reply_sms(db, business: Business, submission: ContactSubmission, reply
                 context_parts.append("Issue: {}".format(submission.problem_description[:120]))
             if submission.preferred_date:
                 context_parts.append("Preferred date: {}.".format(submission.preferred_date))
+            addr_parts = [p for p in [
+                submission.street_address,
+                submission.city,
+                submission.state,
+                submission.zip_code,
+            ] if p]
+            if addr_parts:
+                context_parts.append("Service address: {}.".format(", ".join(addr_parts)))
             seed_user_msg = " ".join(context_parts)
             now_iso = datetime.now(_tz.utc).isoformat()
             seed_messages = [

@@ -78,6 +78,7 @@ class BusinessResponse(BaseModel):
     from_email: Optional[str] = None
     ai_response_mode: Optional[str] = None
     google_review_url: Optional[str] = None
+    twilio_phone_number: Optional[str] = None
     timezone: Optional[str] = None
     route_optimization_enabled: bool = False
     has_completed_setup: bool = False

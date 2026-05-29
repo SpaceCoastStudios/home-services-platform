@@ -333,6 +333,26 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
       </div>
 
       <div class="form-group full">
+        <label for="streetAddress">Service Address <span class="required">*</span></label>
+        <input type="text" id="streetAddress" name="street_address" required placeholder="123 Main St" />
+      </div>
+
+      <div class="form-group">
+        <label for="city">City <span class="required">*</span></label>
+        <input type="text" id="city" name="city" required placeholder="Cocoa" />
+      </div>
+
+      <div class="form-group">
+        <label for="state">State</label>
+        <input type="text" id="state" name="state" placeholder="FL" maxlength="2" style="text-transform:uppercase;" />
+      </div>
+
+      <div class="form-group">
+        <label for="zipCode">Zip Code</label>
+        <input type="text" id="zipCode" name="zip_code" placeholder="32922" maxlength="10" />
+      </div>
+
+      <div class="form-group full">
         <label for="problemDescription">Describe the problem <span style="font-size:12px;color:#6b7280;font-weight:400;">(optional)</span></label>
         <textarea id="problemDescription" name="problem_description" maxlength="200" placeholder="What's going on? Any details help our technician come prepared…" style="min-height:70px;"></textarea>
         <div class="char-counter" id="problemCounter">0 / 200</div>

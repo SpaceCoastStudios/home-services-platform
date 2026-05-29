@@ -25,6 +25,10 @@ class ContactSubmission(Base):
     # SMS is only sent when this is True — consent is never assumed.
     sms_consent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
+    street_address: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    zip_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
     problem_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     preferred_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     preferred_time: Mapped[str | None] = mapped_column(String(20), nullable=True)
