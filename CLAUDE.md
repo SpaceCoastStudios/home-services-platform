@@ -2,9 +2,15 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-28 (contact responder: channel routing, SMS consent gate, channel-aware AI prompt, SMS body fix; A2P docs corrected; periodic maintenance schedule added)
+> Last substantive update: 2026-05-29 (SMS fix: full dates in slots, 480-char cap; Twilio number in Settings UI; git workflow corrected)
 
-> **Git workflow reminder:** Claude can run `git add` and `git commit` directly via Bash — do this after every logical unit of work rather than handing commands to Ryan. Claude **cannot** `git push` (requires GitHub credentials). After committing, tell Ryan to run `git push` and that's it. Never make Ryan do the add/commit steps.
+> **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
+> ```
+> git add <file>
+> git commit -m "message"
+> git push
+> ```
+> Tell Ryan exactly which files to add and what commit message to use.
 >
 > **Push rule:** ALL file changes require a push to be saved to GitHub — including CLAUDE.md and README.md. Without a push, changes only exist locally and could be lost. There are no exceptions.
 
@@ -1024,6 +1030,10 @@ See `docs/founder-client-onboarding.md`.
 - **Migrations** — always use `IF NOT EXISTS` on `ALTER TABLE` statements; without it, PostgreSQL logs ERRORs on every deploy once the column exists
 - **`ADD COLUMN` spacing** — when editing migration SQL, verify there's a space after `IF NOT EXISTS` before the column name
 
+### Git / Bash
+- **Never run `git add`/`git commit` from bash** -- the Linux sandbox mounts a Windows filesystem. Git lock files created in bash cannot be removed from bash (`Operation not permitted`), breaking all subsequent commits in the session. Give Ryan the commands to run in his terminal instead.
+- **PowerShell does not support `&&` chaining** -- put each command on its own line so Ryan can copy-paste individually.
+
 ### Marketing Site
 - `API_URL` is declared at the top of the script block (before checkout button handlers that use it)
 - Checkout buttons use `data-checkout-plan="starter"` / `"professional"` attributes
@@ -1113,10 +1123,16 @@ $result.url  # open in browser — $2 total, refund immediately after
 ### Pending Monitoring Items
 - **A2P approval:** ✅ APPROVED (CUSTOMER_CARE use case). See Section 25 for full verified campaign details. No further action needed unless consent language or CTA URL changes.
 - **Morning kickoff delivery:** Kickoff now fires 2 hours before first appointment (±15 min window), no time-of-day floor. Techs with no appointments get a "day off" text between 7–8 AM local. If a tech reports missing kickoff: check (1) appointment exists and is not cancelled/completed, (2) scheduler.py `_send_otw_morning_kickoffs` ran, (3) `notification_logs` for an existing `otw_morning_kickoff` entry. Use admin manual trigger to force-send.
-- **Contact queue / AI responder — NEEDS ATTENTION:** Channel routing and SMS consent logic deployed but a new bug appeared during testing (session ended before diagnosis). Symptoms TBD — start next session by checking DO Runtime Logs for the latest contact form submission error. See Section 14 for full contact responder architecture.
+- **Contact responder SMS — mostly resolved:** File corruption caused a SyntaxError on deploy (2026-05-29); fixed by rewrite. SMS now sends full content (480-char cap, full slot dates). Remaining item: set `twilio_phone_number` on demo business via Settings so inbound replies route to the AI booking agent.
 - **Soft delete:** All three soft-delete models (`appointments`, `customers`, `contact_submissions`) use a `deleted_at` TIMESTAMP column (not a boolean — set to current UTC time on delete, `NULL` = active). Dashboard UI shows delete buttons with confirmation modal; records disappear from all list views and availability checks immediately. No hard-delete path — recovery requires direct DB access if needed.
 
 ---
+
+**2026-05-29 (contact responder SMS fixes + Twilio Settings UI):**
+- Contact responder SMS cap increased 300 -> 480 chars (~3 segments); AI now instructed to keep SMS replies under 400 chars and include full dates in slot suggestions (e.g. "Friday, May 30 at 6:30 PM").
+- File corruption issue resolved: Edit tool corrupts files containing multi-byte Unicode chars (bullets, em-dashes) in f-strings on the Windows filesystem mount. Workaround: use `.format()` string methods and write files via bash Python script, not the Edit/Write tools.
+- `SettingsPage.jsx`: added Twilio Phone Number section (platform admin only). Shows Phone icon, E.164 input, Save button, green confirmation line. Required so platform admins can assign a Twilio number to a business without touching the DB directly.
+- Git workflow corrected: Claude must NOT run git commands from bash. All `git add`/`git commit`/`git push` go to Ryan's terminal, one command per line.
 
 **2026-05-28 (Pass 2 — technician UI, soft delete, contact responder fixes):**
 - `85321e1` — **Edit Details modal** in AppointmentsPage: "Edit Details" option in 3-dot row menu opens a modal to set `problem_description`, address, technician, and notes directly from the dashboard. Added `problem_description` to `AppointmentUpdate` schema so PUT endpoint accepts it.
