@@ -1130,6 +1130,22 @@ $result.url  # open in browser — $2 total, refund immediately after
 
 ---
 
+**2026-05-29 (SMS booking agent — full end-to-end flow):**
+- Contact form address fields (street, city, state, zip) added to model, schema, migration, embed form HTML, and JS payload (payload was missing — root cause of address never saving)
+- Phone normalized to E.164 at contact form submission time so inbound Twilio webhook lookup matches
+- SMS agent `_tool_create_booking` signature fixed (was missing `contact_submission` param — caused TypeError/hiccup on every booking attempt)
+- Live DB lookup: inbound webhook now looks up most recent contact submission by phone on every reply and passes to agent — replaces unreliable conversation seeding approach
+- Customer enrichment: after booking, customer record populated with email, address, city, state, zip from contact submission
+- Timezone fix: slots displayed in business local timezone (was UTC); naive datetimes in create_booking treated as business local time, not UTC
+- Duplicate confirmation SMS removed (agent reply handles confirmation naturally)
+- SMS bookings set to `confirmed` status (was `pending`) so kickoff/OTW flows include them
+- Mandatory check_availability on every agent turn (prevents booking stale slots)
+- Initial slot offer reduced to exactly 2 (was 3) to reduce stale-slot risk
+- `SMS_AGENT_MODEL` added to config (defaults to `claude-sonnet-4-6`); `LLM_MODEL` now only used by contact form responder
+- Twilio Phone Number field added to Settings page (platform admin only) with save + confirmation
+- `twilio_phone_number` added to `BusinessResponse` schema so field persists on page load
+- Git workflow corrected: all git commands run by Ryan in his terminal, one per line
+
 **2026-05-29 (contact responder SMS fixes + Twilio Settings UI):**
 - Contact responder SMS cap increased 300 -> 480 chars (~3 segments); AI now instructed to keep SMS replies under 400 chars and include full dates in slot suggestions (e.g. "Friday, May 30 at 6:30 PM").
 - File corruption issue resolved: Edit tool corrupts files containing multi-byte Unicode chars (bullets, em-dashes) in f-strings on the Windows filesystem mount. Workaround: use `.format()` string methods and write files via bash Python script, not the Edit/Write tools.
