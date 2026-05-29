@@ -92,6 +92,19 @@ def _get_active_override(config: OnCallConfig) -> Optional[OnCallOverride]:
     return None
 
 
+def _business_local_now(config: OnCallConfig, db: Session) -> datetime:
+    """Current time in the business's local timezone (defaults to America/New_York)."""
+    import pytz
+    from app.models.business import Business
+    biz = db.query(Business).filter(Business.id == config.business_id).first()
+    tz_str = (getattr(biz, "timezone", None) or "America/New_York") if biz else "America/New_York"
+    try:
+        biz_tz = pytz.timezone(tz_str)
+    except Exception:
+        biz_tz = pytz.timezone("America/New_York")
+    return datetime.now(timezone.utc).astimezone(biz_tz)
+
+
 def _current_on_call_technician(config: OnCallConfig, db: Session) -> Optional[Technician]:
     """
     Resolve who is on-call right now.
@@ -109,10 +122,10 @@ def _current_on_call_technician(config: OnCallConfig, db: Session) -> Optional[T
     if not config.rotations:
         return None
 
-    now_utc = datetime.now(timezone.utc)
+    now_local = _business_local_now(config, db)
 
     if config.rotation_type == "day_of_week":
-        today_dow = now_utc.weekday()   # 0=Monday
+        today_dow = now_local.weekday()   # 0=Monday, business-local
         for entry in config.rotations:
             if entry.day_of_week == today_dow:
                 return entry.technician
@@ -120,14 +133,8 @@ def _current_on_call_technician(config: OnCallConfig, db: Session) -> Optional[T
     elif config.rotation_type == "weekly_rolling":
         if not config.rolling_start_date:
             return None
-        # How many full weeks since the reference Monday?
-        ref = datetime(
-            config.rolling_start_date.year,
-            config.rolling_start_date.month,
-            config.rolling_start_date.day,
-            tzinfo=timezone.utc,
-        )
-        weeks_elapsed = (now_utc - ref).days // 7
+        # How many full weeks since the reference date (business-local)?
+        weeks_elapsed = (now_local.date() - config.rolling_start_date).days // 7
         cycle_len = len(config.rotations)
         if cycle_len == 0:
             return None
@@ -140,9 +147,9 @@ def _current_on_call_technician(config: OnCallConfig, db: Session) -> Optional[T
     return None
 
 
-def _is_after_hours(config: OnCallConfig) -> bool:
-    """Return True if the current UTC time falls within the configured after-hours window."""
-    now_time = datetime.now(timezone.utc).time()
+def _is_after_hours(config: OnCallConfig, db: Session) -> bool:
+    """Return True if the current business-local time falls within the configured after-hours window."""
+    now_time = _business_local_now(config, db).time()
     start = config.after_hours_start
     end   = config.after_hours_end
 
@@ -367,7 +374,7 @@ def get_current_oncall(
         return {"on_call": None, "reason": "On-call routing is disabled"}
 
     tech = _current_on_call_technician(config, db)
-    after_hours = _is_after_hours(config)
+    after_hours = _is_after_hours(config, db)
 
     if tech:
         source = "override" if _get_active_override(config) else "rotation"
@@ -427,7 +434,7 @@ async def voice_webhook(
             media_type="application/xml",
         )
 
-    after_hours = _is_after_hours(config)
+    after_hours = _is_after_hours(config, db)
 
     if not after_hours:
         # During business hours — forward to main business line

@@ -39,6 +39,19 @@ def _get_active_override(config: OnCallConfig) -> Optional[OnCallOverride]:
     return None
 
 
+def _business_local_now(business_id: int, db: Session):
+    """Current time in the business's local timezone (defaults to America/New_York)."""
+    import pytz
+    from datetime import datetime, timezone
+    biz = db.query(Business).filter(Business.id == business_id).first()
+    tz_str = (getattr(biz, "timezone", None) or "America/New_York") if biz else "America/New_York"
+    try:
+        biz_tz = pytz.timezone(tz_str)
+    except Exception:
+        biz_tz = pytz.timezone("America/New_York")
+    return datetime.now(timezone.utc).astimezone(biz_tz)
+
+
 def _current_oncall_tech(business_id: int, db: Session) -> Optional[Technician]:
     """Return the on-call technician for a business right now, or None."""
     from datetime import datetime, timezone
@@ -59,10 +72,10 @@ def _current_oncall_tech(business_id: int, db: Session) -> Optional[Technician]:
     if not config.rotations:
         return None
 
-    now_utc = datetime.now(timezone.utc)
+    now_local = _business_local_now(business_id, db)
 
     if config.rotation_type == "day_of_week":
-        today_dow = now_utc.weekday()
+        today_dow = now_local.weekday()
         for entry in config.rotations:
             if entry.day_of_week == today_dow:
                 return entry.technician
@@ -70,13 +83,7 @@ def _current_oncall_tech(business_id: int, db: Session) -> Optional[Technician]:
     elif config.rotation_type == "weekly_rolling":
         if not config.rolling_start_date:
             return None
-        ref = datetime(
-            config.rolling_start_date.year,
-            config.rolling_start_date.month,
-            config.rolling_start_date.day,
-            tzinfo=timezone.utc,
-        )
-        weeks_elapsed = (now_utc - ref).days // 7
+        weeks_elapsed = (now_local.date() - config.rolling_start_date).days // 7
         cycle_len = len(config.rotations)
         if cycle_len == 0:
             return None
