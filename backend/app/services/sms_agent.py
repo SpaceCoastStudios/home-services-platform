@@ -93,7 +93,7 @@ def _run_agent(db: Session, business: Business, convo: SmsConversation) -> str:
     oncall_config = db.query(OnCallConfig).filter(
         OnCallConfig.business_id == business.id
     ).first()
-    system_prompt = _build_system_prompt(business, services, oncall_config)
+    system_prompt = _build_system_prompt(business, services, oncall_config, convo)
     messages = _build_messages(convo)
 
     tools = _define_tools(services)
@@ -465,7 +465,7 @@ def _send_booking_confirmation(
 # System prompt
 # ---------------------------------------------------------------------------
 
-def _build_system_prompt(business: Business, services: list[ServiceType], oncall_config=None) -> str:
+def _build_system_prompt(business: Business, services: list[ServiceType], oncall_config=None, convo=None) -> str:
     agent_name = business.ai_agent_name or f"{business.name} Assistant"
     custom_prompt = business.ai_system_prompt or ""
 
@@ -499,6 +499,28 @@ or any safety-critical issue), follow these steps:
 4. Tell the customer a technician has been alerted and will contact them shortly.
 Do NOT skip the clarifying questions — they help the technician arrive prepared."""
 
+
+    # Extract known info from contact form seed if present
+    known_info_block = ""
+    if convo:
+        _msgs = convo.messages or []
+        _seeded = next((m for m in _msgs if m.get("seeded")), None)
+        if _seeded or convo.customer_name:
+            _known = []
+            if convo.customer_name:
+                _known.append("Name: {}".format(convo.customer_name))
+            if _seeded:
+                for _part in _seeded.get("content", "").split("."):
+                    _part = _part.strip()
+                    if _part.startswith("I need:"):
+                        _known.append("Service: {}".format(_part[7:].strip()))
+            if _known:
+                known_info_block = (
+                    "\nWHAT YOU ALREADY KNOW (from their website contact form):\n"
+                    + "\n".join("  - " + p for p in _known)
+                    + "\nDo NOT ask for this info again. Only collect what is still missing.\n"
+                )
+
     return f"""You are {agent_name}, a friendly booking assistant for {business.name}. \
 You communicate only via SMS, so keep every reply SHORT — under 2-3 sentences ideally, \
 never more than 320 characters. No emojis, no markdown, just plain conversational text.
@@ -509,7 +531,7 @@ Your goal is to book appointments. To do that you need:
 3. A date and time that works for them
 4. Their service address
 
-Collect these naturally through conversation — don't fire all questions at once.
+{known_info_block}Collect these naturally through conversation — don't fire all questions at once.
 Use the check_availability tool before suggesting times.
 Use the create_booking tool only once you have all 4 pieces confirmed.
 Use escalate_to_human if you can't resolve something after 2 attempts.

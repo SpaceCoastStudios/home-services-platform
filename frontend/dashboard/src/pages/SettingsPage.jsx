@@ -71,8 +71,10 @@ export default function SettingsPage() {
   // Sync review URL from business context when it loads
   useEffect(() => {
     setReviewUrl(activeBusiness?.google_review_url || '')
-    setTwilioNumber(activeBusiness?.twilio_phone_number || '')
-  }, [activeBusiness])
+    // Only overwrite the field on initial load — not after a save
+    // (refreshBusinesses would blank it if the API response lags)
+    setTwilioNumber((prev) => prev || activeBusiness?.twilio_phone_number || '')
+  }, [activeBusiness?.id, activeBusiness?.twilio_phone_number])
 
   const saveReviewUrl = async () => {
     setSavingReviewUrl(true)
