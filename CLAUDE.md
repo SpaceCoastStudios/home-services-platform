@@ -5,6 +5,8 @@
 > Last substantive update: 2026-05-28 (contact responder: channel routing, SMS consent gate, channel-aware AI prompt, SMS body fix; A2P docs corrected; periodic maintenance schedule added)
 
 > **Git workflow reminder:** Claude can run `git add` and `git commit` directly via Bash — do this after every logical unit of work rather than handing commands to Ryan. Claude **cannot** `git push` (requires GitHub credentials). After committing, tell Ryan to run `git push` and that's it. Never make Ryan do the add/commit steps.
+>
+> **Push rule:** ALL file changes require a push to be saved to GitHub — including CLAUDE.md and README.md. Without a push, changes only exist locally and could be lost. There are no exceptions.
 
 ---
 
@@ -116,7 +118,9 @@ Each client gets a fully managed platform instance. Features depend on plan:
 | Starter | $1,997 | $249/mo |
 | Professional | $2,997 | $399/mo |
 
-### Founding Client Offer (manual provisioning, limited time)
+### Founding Client Offer (manual provisioning, limited time — 5 spots only)
+
+Capped at **5 founding clients** for exclusivity and to keep real-world testing manageable. Do not exceed this number.
 
 | Plan | Setup | First 3 months | Then |
 |---|---|---|---|
