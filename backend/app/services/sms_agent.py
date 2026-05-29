@@ -460,6 +460,11 @@ def _tool_create_booking(
         source="sms",
         address=inp.get("address", ""),
         notes=inp.get("notes", "Booked via SMS"),
+        problem_description=(
+            getattr(contact_submission, "problem_description", None)
+            or inp.get("problem_description")
+            or None
+        ),
         calendar_token=secrets.token_urlsafe(48),
     )
     db.add(appointment)

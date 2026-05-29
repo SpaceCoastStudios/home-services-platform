@@ -71,7 +71,7 @@ def tech_daily_schedule(token: str, db: Session = Depends(get_db)):
             Appointment.technician_id == tech.id,
             Appointment.scheduled_start >= today_start_utc,
             Appointment.scheduled_start < today_end_utc,
-            Appointment.status.notin_(["cancelled", "no_show"]),
+            Appointment.status.notin_(["cancelled", "no_show", "completed"]),
         )
         .order_by(Appointment.scheduled_start)
         .all()
@@ -91,6 +91,11 @@ def tech_daily_schedule(token: str, db: Session = Depends(get_db)):
         start_time = _format_time(appt.scheduled_start, tz)
         end_time = _format_time(appt.scheduled_end, tz)
         address = appt.address or ""
+        # Enrich with city if the stored address is street-only
+        if address and customer:
+            city = getattr(customer, "city", None)
+            if city and city.lower() not in address.lower():
+                address = "{}, {}".format(address, city)
         problem = appt.problem_description or ""
 
         # Phone link
