@@ -94,16 +94,23 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
         from_ten = from_digits[-10:]
         from_e164 = "+" + from_digits
         phone_variants = list({from_phone, from_e164, from_digits, from_ten})
+        # Use naive datetime for comparison (created_at stored without timezone)
+        from datetime import datetime as _dt
+        thirty_days_ago = _dt.utcnow() - timedelta(days=30)
         contact_submission = (
             db.query(ContactSubmission)
             .filter(
                 ContactSubmission.business_id == business.id,
                 ContactSubmission.phone.in_(phone_variants),
                 ContactSubmission.deleted_at == None,
-                ContactSubmission.created_at >= datetime.now(timezone.utc) - timedelta(days=30),
+                ContactSubmission.created_at >= thirty_days_ago,
             )
             .order_by(ContactSubmission.created_at.desc())
             .first()
+        )
+        logger.info(
+            "sms_webhook: contact_submission lookup for phone %s -> %s",
+            from_phone, contact_submission.id if contact_submission else None
         )
     except Exception as cs_exc:
         logger.warning("sms_webhook: contact submission lookup failed: %s", cs_exc)
