@@ -45,6 +45,7 @@ def handle_inbound_sms(
     business: Business,
     from_phone: str,
     body: str,
+    contact_submission=None,
 ) -> str:
     """
     Process one inbound SMS message. Returns the reply text to send back.
@@ -66,7 +67,7 @@ def handle_inbound_sms(
         return reply
 
     try:
-        reply = _run_agent(db, business, convo)
+        reply = _run_agent(db, business, convo, contact_submission)
     except Exception as exc:
         logger.error("sms_agent: error for convo %s: %s", convo.id, exc, exc_info=True)
         reply = (
@@ -83,7 +84,7 @@ def handle_inbound_sms(
 # Agent loop — calls Claude with tool_use, executes tools, gets final reply
 # ---------------------------------------------------------------------------
 
-def _run_agent(db: Session, business: Business, convo: SmsConversation) -> str:
+def _run_agent(db: Session, business: Business, convo: SmsConversation, contact_submission=None) -> str:
     import anthropic
 
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -93,7 +94,7 @@ def _run_agent(db: Session, business: Business, convo: SmsConversation) -> str:
     oncall_config = db.query(OnCallConfig).filter(
         OnCallConfig.business_id == business.id
     ).first()
-    system_prompt = _build_system_prompt(business, services, oncall_config, convo)
+    system_prompt = _build_system_prompt(business, services, oncall_config, convo, contact_submission)
     messages = _build_messages(convo)
 
     tools = _define_tools(services)
@@ -465,7 +466,7 @@ def _send_booking_confirmation(
 # System prompt
 # ---------------------------------------------------------------------------
 
-def _build_system_prompt(business: Business, services: list[ServiceType], oncall_config=None, convo=None) -> str:
+def _build_system_prompt(business: Business, services: list[ServiceType], oncall_config=None, convo=None, contact_submission=None) -> str:
     agent_name = business.ai_agent_name or f"{business.name} Assistant"
     custom_prompt = business.ai_system_prompt or ""
 
@@ -500,44 +501,44 @@ or any safety-critical issue), follow these steps:
 Do NOT skip the clarifying questions — they help the technician arrive prepared."""
 
 
-    # Extract known info from contact form seed if present
+    # Build confirmed-info block from live contact submission (most reliable source).
+    # Falls back to convo.customer_name if no submission is available.
     known_info_block = ""
-    if convo:
-        _msgs = convo.messages or []
-        _seeded = next((m for m in _msgs if m.get("seeded")), None)
-        if _seeded or convo.customer_name:
-            _known = {}
-            if convo.customer_name:
-                _known["name"] = convo.customer_name
-            if _seeded:
-                for _part in _seeded.get("content", "").split("."):
-                    _part = _part.strip()
-                    # "I need AC Repair service." format
-                    if _part.lower().startswith("i need ") and _part.lower().endswith(" service"):
-                        _known["service"] = _part[7:-8].strip()
-                    # "The address is 123 Main St, ..." format
-                    elif _part.lower().startswith("the address is "):
-                        _known["address"] = _part[15:].strip()
-            if _known:
-                _known_lines = []
-                if "name" in _known:
-                    _known_lines.append("Customer name: {}".format(_known["name"]))
-                if "service" in _known:
-                    _known_lines.append("Service requested: {}".format(_known["service"]))
-                if "address" in _known:
-                    _known_lines.append("Service address: {}".format(_known["address"]))
-                _still_needed = [x for x in ["date/time"] if x not in _known]
-                if "address" not in _known:
-                    _still_needed.insert(0, "service address")
-                if "service" not in _known:
-                    _still_needed.insert(0, "which service")
-                known_info_block = (
-                    "\nCUSTOMER INFO ALREADY CONFIRMED (from their contact form):\n"
-                    + "\n".join("  " + l for l in _known_lines)
-                    + "\nDo NOT ask for any of the above again. Use it directly when calling create_booking."
-                    + (" Still needed: {}.".format(", ".join(_still_needed)) if _still_needed else " You have everything needed except the confirmed time slot.")
-                    + "\n"
-                )
+    _known = {}
+    if contact_submission:
+        if contact_submission.name:
+            _known["name"] = contact_submission.name
+        if contact_submission.service_requested:
+            _known["service"] = contact_submission.service_requested
+        addr_parts = [p for p in [
+            getattr(contact_submission, "street_address", None),
+            getattr(contact_submission, "city", None),
+            getattr(contact_submission, "state", None),
+            getattr(contact_submission, "zip_code", None),
+        ] if p]
+        if addr_parts:
+            _known["address"] = ", ".join(addr_parts)
+    elif convo and convo.customer_name:
+        _known["name"] = convo.customer_name
+    if _known:
+        _known_lines = []
+        if "name" in _known:
+            _known_lines.append("Customer name: {}".format(_known["name"]))
+        if "service" in _known:
+            _known_lines.append("Service needed: {}".format(_known["service"]))
+        if "address" in _known:
+            _known_lines.append("Service address: {}".format(_known["address"]))
+        still_needed = []
+        if "service" not in _known:
+            still_needed.append("which service")
+        if "address" not in _known:
+            still_needed.append("service address")
+        still_needed.append("preferred date and time")
+        known_info_block = (
+            "\nCUSTOMER INFO FROM CONTACT FORM (treat as confirmed -- do NOT ask again):\n"
+            + "\n".join("  " + l for l in _known_lines)
+            + "\nOnly still needed: {}.\n".format(", ".join(still_needed))
+        )
 
     return f"""You are {agent_name}, a friendly booking assistant for {business.name}. \
 You communicate only via SMS, so keep every reply SHORT — under 2-3 sentences ideally, \

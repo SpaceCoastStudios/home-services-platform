@@ -84,13 +84,37 @@ async def twilio_inbound_sms(request: Request, db: Session = Depends(get_db)):
         logger.warning("sms_webhook: no active business for number %s", to_phone)
         return Response(content=_twiml(""), media_type="application/xml")
 
+    # --- Look up recent contact submission for this customer (within 30 days) ---
+    # This gives the agent confirmed name/service/address without relying on seeding.
+    contact_submission = None
+    try:
+        from app.models.contact_submission import ContactSubmission
+        from datetime import timedelta
+        from_digits = from_phone.lstrip("+")
+        from_ten = from_digits[-10:]
+        from_e164 = "+" + from_digits
+        phone_variants = list({from_phone, from_e164, from_digits, from_ten})
+        contact_submission = (
+            db.query(ContactSubmission)
+            .filter(
+                ContactSubmission.business_id == business.id,
+                ContactSubmission.phone.in_(phone_variants),
+                ContactSubmission.deleted_at == None,
+                ContactSubmission.created_at >= datetime.now(timezone.utc) - timedelta(days=30),
+            )
+            .order_by(ContactSubmission.created_at.desc())
+            .first()
+        )
+    except Exception as cs_exc:
+        logger.warning("sms_webhook: contact submission lookup failed: %s", cs_exc)
+
     # --- Run agent ---
     if not message_body:
         reply = f"Hi! Text us at any time to book with {business.name}."
     else:
         try:
             from app.services.sms_agent import handle_inbound_sms
-            reply = handle_inbound_sms(db, business, from_phone, message_body)
+            reply = handle_inbound_sms(db, business, from_phone, message_body, contact_submission)
         except Exception as exc:
             logger.error("sms_webhook: agent error: %s", exc, exc_info=True)
             reply = (
