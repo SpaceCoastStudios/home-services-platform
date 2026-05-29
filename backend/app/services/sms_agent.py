@@ -512,10 +512,12 @@ Do NOT skip the clarifying questions — they help the technician arrive prepare
             if _seeded:
                 for _part in _seeded.get("content", "").split("."):
                     _part = _part.strip()
-                    if _part.startswith("I need:"):
-                        _known["service"] = _part[7:].strip()
-                    elif _part.startswith("Service address:"):
-                        _known["address"] = _part[16:].strip()
+                    # "I need AC Repair service." format
+                    if _part.lower().startswith("i need ") and _part.lower().endswith(" service"):
+                        _known["service"] = _part[7:-8].strip()
+                    # "The address is 123 Main St, ..." format
+                    elif _part.lower().startswith("the address is "):
+                        _known["address"] = _part[15:].strip()
             if _known:
                 _known_lines = []
                 if "name" in _known:
