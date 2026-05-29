@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-29 (full SMS booking flow tested end-to-end; testing plan items resolved; docs updated)
+> Last substantive update: 2026-05-29 (full SMS booking flow tested end-to-end; testing plan items resolved; docs updated; next session priorities set)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -907,14 +907,22 @@ These are recurring tasks that keep the platform running correctly. Most are low
 
 ## 24. Build Roadmap
 
-### Next Build Priorities
-1. **Self-scheduling booking widget** (Professional plan) — Phase 1: internal availability engine only (no external calendar API). Phase 2: Google Calendar API. Phase 3: Exchange/Outlook API.
-2. **Visual calendar view in dashboard** — day/week/month appointment dispatch view
-3. **Recurring appointments UI** — backend exists, need frontend page
-4. **Emergency contact form routing** — wire contact form urgency detection to on-call dispatch
+### Next Session Priorities (in order)
+1. **Test on-call rotation + override** — configure on-call tech in dashboard, verify `/api/oncall/current` returns correct tech
+2. **Test emergency dispatch** — submit contact form or SMS describing emergency, verify AI triggers emergency_dispatch tool, on-call tech receives alert
+3. **Build recurring appointments UI** — backend router + model complete, need frontend page (`/recurring`)
+4. **Build self-scheduling booking widget** — public-facing widget UI; availability engine already complete. Phase 1: internal only (no external calendar API). Phase 2: Google Calendar. Phase 3: Outlook/Exchange.
+
+### Roadmap (later)
+- Visual calendar view (day/week/month) in dashboard
+- Customer portal (magic link login, view/reschedule)
+- Usage/analytics dashboard across tenants
+- Emergency contact form routing (wire urgency detection to on-call dispatch)
+- Notification template text audit and improvement
+- Custom URL shortener for review links
 
 ### Blocked / Pending
-- **A2P 10DLC approval** — waiting on carrier (see Section 25). Required before SMS smoke test.
+- **Step 6 (morning kickoff no-appointments variant)** — testing tomorrow morning 7-8am local, auto-fires if tech has no appointments
 - **CSA attorney review** — email sent to attorneys, awaiting response (see Section 26)
 
 ### Business Development

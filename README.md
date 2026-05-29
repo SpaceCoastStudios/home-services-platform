@@ -201,14 +201,23 @@ See `docs/founder-client-onboarding.md`.
 | Self-scheduling booking widget | Availability engine complete; no public-facing widget UI yet |
 | Recurring appointments | Backend router + model built; no dashboard UI page |
 
-### ❌ Not Yet Built
+### 🎯 Next Session Priorities
+
+| Priority | Task | Notes |
+|---|---|---|
+| 1 | Test on-call rotation + override | Configure rotation in dashboard, verify current on-call API |
+| 2 | Test emergency dispatch | SMS emergency → AI triggers dispatch → on-call tech alerted |
+| 3 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page |
+| 4 | Build self-scheduling booking widget | Availability engine complete, need public widget UI |
+
+### ❌ Not Yet Built (Roadmap)
 
 | Feature | Notes |
 |---|---|
 | Visual calendar view (day/week/month) | Dashboard is list-only |
 | Customer portal | Magic link login, view/reschedule appointments |
 | Usage/analytics dashboard | Cross-tenant metrics |
-| Emergency contact form routing | Contact form urgency detection → on-call dispatch |
+| Emergency contact form routing | Contact form urgency → on-call dispatch |
 
 ---
 
