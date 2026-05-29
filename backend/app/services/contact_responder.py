@@ -269,31 +269,49 @@ def _send_reply_sms(db, business: Business, submission: ContactSubmission, reply
                 SmsConversation.customer_phone == submission.phone,
                 SmsConversation.status == "active",
             ).order_by(SmsConversation.last_message_at.desc()).first()
+            # If existing convo is stale (>30 days) or booked, close it and start fresh
+            if existing:
+                from datetime import timezone as _tz2
+                age_days = (datetime.now(_tz2.utc) - existing.last_message_at.replace(tzinfo=_tz2.utc)).days if existing.last_message_at else 999
+                if age_days > 30 or existing.status in ("booked", "escalated", "closed"):
+                    existing.status = "closed"
+                    db.flush()
+                    existing = None
+                    logger.info("contact_responder: closed stale/completed convo, starting fresh for %s", submission.phone)
+            # Build seed context from contact form data
+            context_parts = ["Hi, I submitted a contact form on your website."]
+            if submission.name:
+                context_parts.append("My name is {}.".format(submission.name))
+            if submission.service_requested:
+                context_parts.append("I need: {}.".format(submission.service_requested))
+            if submission.problem_description:
+                context_parts.append("Issue: {}".format(submission.problem_description[:120]))
+            if submission.preferred_date:
+                context_parts.append("Preferred date: {}.".format(submission.preferred_date))
+            seed_user_msg = " ".join(context_parts)
+            now_iso = datetime.now(_tz.utc).isoformat()
+            seed_messages = [
+                {"role": "user", "content": seed_user_msg, "ts": now_iso, "seeded": True},
+                {"role": "assistant", "content": sms_content, "ts": now_iso},
+            ]
             if not existing:
-                context_parts = ["Hi, I submitted a contact form on your website."]
-                if submission.name:
-                    context_parts.append("My name is {}.".format(submission.name))
-                if submission.service_requested:
-                    context_parts.append("I need: {}.".format(submission.service_requested))
-                if submission.problem_description:
-                    context_parts.append("Issue: {}".format(submission.problem_description[:120]))
-                if submission.preferred_date:
-                    context_parts.append("Preferred date: {}.".format(submission.preferred_date))
-                seed_user_msg = " ".join(context_parts)
-                now_iso = datetime.now(_tz.utc).isoformat()
                 convo = SmsConversation(
                     business_id=business.id,
                     customer_phone=submission.phone,
                     customer_name=submission.name,
                     status="active",
-                    messages=[
-                        {"role": "user", "content": seed_user_msg, "ts": now_iso, "seeded": True},
-                        {"role": "assistant", "content": sms_content, "ts": now_iso},
-                    ],
+                    messages=seed_messages,
                 )
                 db.add(convo)
-                db.commit()
-                logger.info("contact_responder: seeded SmsConversation for %s", submission.phone)
+                logger.info("contact_responder: created seeded SmsConversation for %s", submission.phone)
+            else:
+                # Prepend seed context to existing conversation if not already seeded
+                already_seeded = any(m.get("seeded") for m in (existing.messages or []))
+                if not already_seeded:
+                    existing.messages = seed_messages + list(existing.messages or [])
+                    existing.customer_name = existing.customer_name or submission.name
+                    logger.info("contact_responder: injected seed context into existing convo for %s", submission.phone)
+            db.commit()
         except Exception as seed_exc:
             logger.warning("contact_responder: failed to seed SMS convo: %s", seed_exc)
         return True
