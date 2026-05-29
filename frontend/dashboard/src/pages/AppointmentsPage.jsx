@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, ChevronLeft, ChevronRight, Clock, User, Calendar, Search, Repeat, RefreshCw,
-         Send, Bell, Star, CheckCircle, Ban, ChevronDown, ChevronUp, MapPin, FileText, AlertCircle, Pencil } from 'lucide-react'
+         Send, Bell, Star, CheckCircle, Ban, ChevronDown, ChevronUp, MapPin, FileText, AlertCircle, Pencil, Trash2 } from 'lucide-react'
 import {
-  getAppointments, createAppointment, cancelAppointment, updateAppointment,
+  getAppointments, createAppointment, cancelAppointment, updateAppointment, deleteAppointment,
   getCustomers, getServices, getTechnicians, getAvailability,
   getRecurringSchedules, createRecurringSchedule, updateRecurringSchedule, deactivateRecurringSchedule,
   adminResendConfirmation, adminSendReminder, adminSendReviewRequest,
@@ -74,6 +74,8 @@ export default function AppointmentsPage() {
   const [recError, setRecError] = useState('')
   const [expandedApptId, setExpandedApptId] = useState(null)
   const [recLoading, setRecLoading] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadAppointments = async () => {
     if (activeBusinessId == null) return
@@ -173,6 +175,16 @@ export default function AppointmentsPage() {
     loadAppointments()
   }
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await deleteAppointment(deleteTarget.id, activeBusinessId)
+      setDeleteTarget(null)
+      loadAppointments()
+    } catch (err) { console.error(err) } finally { setDeleting(false) }
+  }
+
   const handleStatusChange = async (id, newStatus) => {
     await updateAppointment(id, { status: newStatus }, activeBusinessId)
     loadAppointments()
@@ -264,6 +276,12 @@ export default function AppointmentsPage() {
         disabled: !active,
         danger: true,
         onClick: () => handleCancel(appt.id),
+      },
+      {
+        label: 'Delete',
+        icon: <Trash2 size={14} />,
+        danger: true,
+        onClick: () => setDeleteTarget(appt),
       },
     ]
   }
@@ -905,6 +923,30 @@ export default function AppointmentsPage() {
               <button onClick={handleRecurringCreate} disabled={recLoading || !recForm.customer_id || !recForm.service_type_id}
                 className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {recLoading ? <><RefreshCw size={15} className="animate-spin" /> Creating…</> : <><Repeat size={15} /> Create Series</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Delete Appointment?</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              <strong>{deleteTarget.customer_name}</strong> — {deleteTarget.service_name}<br />
+              <span className="text-gray-400">{new Date(deleteTarget.scheduled_start).toLocaleString()}</span><br />
+              This appointment will be permanently hidden. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-60">
+                {deleting ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           </div>

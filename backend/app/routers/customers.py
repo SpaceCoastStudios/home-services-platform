@@ -1,5 +1,7 @@
 """Customer CRUD endpoints — scoped by business_id."""
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -23,7 +25,7 @@ def list_customers(
     current_user: AdminUser = Depends(get_current_user),
 ):
     bid = get_business_id_for_user(current_user, business_id)
-    query = db.query(Customer).filter(Customer.business_id == bid)
+    query = db.query(Customer).filter(Customer.business_id == bid, Customer.deleted_at == None)
     if search:
         like = f"%{search}%"
         query = query.filter(
@@ -45,7 +47,7 @@ def get_customer(
     bid = get_business_id_for_user(current_user, business_id)
     customer = (
         db.query(Customer)
-        .filter(Customer.id == customer_id, Customer.business_id == bid)
+        .filter(Customer.id == customer_id, Customer.business_id == bid, Customer.deleted_at == None)
         .first()
     )
     if not customer:
@@ -62,10 +64,10 @@ def create_customer(
 ):
     bid = get_business_id_for_user(current_user, business_id)
 
-    # Phone uniqueness check scoped to this business
+    # Phone uniqueness check scoped to this business (exclude soft-deleted)
     existing = (
         db.query(Customer)
-        .filter(Customer.phone == body.phone, Customer.business_id == bid)
+        .filter(Customer.phone == body.phone, Customer.business_id == bid, Customer.deleted_at == None)
         .first()
     )
     if existing:
@@ -101,3 +103,24 @@ def update_customer(
     db.commit()
     db.refresh(customer)
     return customer
+
+
+@router.delete("/{customer_id}", status_code=204)
+def delete_customer(
+    customer_id: int,
+    business_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """Soft-delete a customer (admin only). Sets deleted_at; does not remove the row."""
+    bid = get_business_id_for_user(current_user, business_id)
+    customer = (
+        db.query(Customer)
+        .filter(Customer.id == customer_id, Customer.business_id == bid, Customer.deleted_at == None)
+        .first()
+    )
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer.deleted_at = datetime.now(timezone.utc)
+    db.commit()

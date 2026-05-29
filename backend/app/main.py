@@ -468,6 +468,19 @@ def run_migrations(db):
     except Exception:
         db.rollback()
 
+    # Soft-delete support — deleted_at column on customers, appointments, contact_submissions
+    for col_sql in [
+        "ALTER TABLE customers ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
+        "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
+        "ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()
+    logger.info("Migration: soft-delete deleted_at columns ready")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -790,6 +790,8 @@ Contact form + AI auto-responder, emergency SMS call routing, business hours con
 ### Nice to Have (later)
 - Customer portal
 - Usage/analytics dashboard across tenants
+- **Notification template text audit** — review and improve all SMS/email templates (confirmation, reminder, OTW, kickoff, day-complete, review request). User noted templates could be "spruced up." Covers contact form AI responder copy too.
+- **Custom URL shortener** — branded short domain per client (e.g. hvac.app) for review links and schedule URLs. Low priority for now; schedule token already shortened to 16 chars. Most relevant for Google Review SMS where URL is customer-facing.
 
 ---
 

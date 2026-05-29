@@ -79,6 +79,8 @@ export const createCustomer = (data, businessId = null) =>
   api.post(`customers${qs({ business_id: businessId })}`, data)
 export const updateCustomer = (id, data, businessId = null) =>
   api.put(`customers/${id}${qs({ business_id: businessId })}`, data)
+export const deleteCustomer = (id, businessId = null) =>
+  api.delete(`customers/${id}${qs({ business_id: businessId })}`)
 
 // ── Services ─────────────────────────────────────────────────
 export const getServices = (businessId, activeOnly = false) =>
@@ -111,6 +113,8 @@ export const updateAppointment = (id, data, businessId = null) =>
   api.put(`appointments/${id}${qs({ business_id: businessId })}`, data)
 export const cancelAppointment = (id, businessId = null) =>
   api.post(`appointments/${id}/cancel${qs({ business_id: businessId })}`, {})
+export const deleteAppointment = (id, businessId = null) =>
+  api.delete(`appointments/${id}${qs({ business_id: businessId })}`)
 
 // ── Availability ─────────────────────────────────────────────
 export const getAvailability = (serviceTypeId, startDate, endDate, techId = null, businessId = null) => {
@@ -185,6 +189,8 @@ export const approveAiResponse = (id, businessId = null) =>
   api.post(`contact-submissions/${id}/approve${qs({ business_id: businessId })}`, {})
 export const sendManualResponse = (id, data, businessId = null) =>
   api.post(`contact-submissions/${id}/manual-response${qs({ business_id: businessId })}`, data)
+export const deleteContactSubmission = (id, businessId = null) =>
+  api.delete(`contact-submissions/${id}${qs({ business_id: businessId })}`)
 
 // ── SMS Conversations ─────────────────────────────────────────
 export const getSmsConversations = (status = null, businessId = null) =>

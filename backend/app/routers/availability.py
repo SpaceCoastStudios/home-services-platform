@@ -1,7 +1,7 @@
 """Availability and appointment endpoints — scoped by business_id."""
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -66,7 +66,7 @@ def list_appointments(
     current_user: AdminUser = Depends(get_current_user),
 ):
     bid = get_business_id_for_user(current_user, business_id)
-    query = db.query(Appointment).filter(Appointment.business_id == bid)
+    query = db.query(Appointment).filter(Appointment.business_id == bid, Appointment.deleted_at == None)
 
     if status:
         query = query.filter(Appointment.status == status)
@@ -118,7 +118,7 @@ def get_appointment(
     bid = get_business_id_for_user(current_user, business_id)
     appt = (
         db.query(Appointment)
-        .filter(Appointment.id == appointment_id, Appointment.business_id == bid)
+        .filter(Appointment.id == appointment_id, Appointment.business_id == bid, Appointment.deleted_at == None)
         .first()
     )
     if not appt:
@@ -195,7 +195,7 @@ def update_appointment(
     bid = get_business_id_for_user(current_user, business_id)
     appt = (
         db.query(Appointment)
-        .filter(Appointment.id == appointment_id, Appointment.business_id == bid)
+        .filter(Appointment.id == appointment_id, Appointment.business_id == bid, Appointment.deleted_at == None)
         .first()
     )
     if not appt:
@@ -242,7 +242,7 @@ def cancel_appointment(
     bid = get_business_id_for_user(current_user, business_id)
     appt = (
         db.query(Appointment)
-        .filter(Appointment.id == appointment_id, Appointment.business_id == bid)
+        .filter(Appointment.id == appointment_id, Appointment.business_id == bid, Appointment.deleted_at == None)
         .first()
     )
     if not appt:
@@ -254,3 +254,24 @@ def cancel_appointment(
     db.commit()
     db.refresh(appt)
     return appt
+
+
+@router.delete("/api/appointments/{appointment_id}", status_code=204)
+def delete_appointment(
+    appointment_id: int,
+    business_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """Soft-delete an appointment (admin only). Sets deleted_at; does not remove the row."""
+    bid = get_business_id_for_user(current_user, business_id)
+    appt = (
+        db.query(Appointment)
+        .filter(Appointment.id == appointment_id, Appointment.business_id == bid, Appointment.deleted_at == None)
+        .first()
+    )
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    appt.deleted_at = datetime.now(timezone.utc)
+    db.commit()

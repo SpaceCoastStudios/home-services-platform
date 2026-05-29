@@ -35,6 +35,7 @@ class ContactSubmission(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Relationships
     business = relationship("Business", back_populates="contact_submissions")

@@ -371,6 +371,15 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
     const BUSINESS_ID = {business_id};
     const API_BASE    = "{api_base}";
 
+    // Reset form if browser restores this page from bfcache (back/forward navigation)
+    window.addEventListener('pageshow', function(event) {{
+      if (event.persisted) {{
+        document.getElementById('contactForm').style.display = '';
+        document.getElementById('successState').style.display = 'none';
+        document.getElementById('contactForm').reset();
+      }}
+    }});
+
     // Character counter for problem description
     (function() {{
       const textarea = document.getElementById("problemDescription");
@@ -447,4 +456,8 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
 </body>
 </html>"""
 
-    return HTMLResponse(content=html, status_code=200)
+    return HTMLResponse(
+        content=html,
+        status_code=200,
+        headers={"Cache-Control": "no-store"},
+    )

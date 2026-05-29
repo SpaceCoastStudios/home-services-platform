@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { MessageSquare, Clock, CheckCircle, AlertCircle, RefreshCw, Send, Bot, User, X } from 'lucide-react'
+import { MessageSquare, Clock, CheckCircle, AlertCircle, RefreshCw, Send, Bot, User, X, Trash2 } from 'lucide-react'
 import {
   getContactSubmissions,
   updateContactSubmission,
   triggerAiResponse,
   approveAiResponse,
   sendManualResponse,
+  deleteContactSubmission,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 
@@ -32,6 +33,8 @@ export default function ContactsPage() {
   const [manualText, setManualText] = useState('')
   const [sendingSms, setSendingSms] = useState(false)
   const [actionMsg, setActionMsg] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = async () => {
     if (activeBusinessId == null) return
@@ -56,6 +59,17 @@ export default function ContactsPage() {
   const handleStatusChange = async (id, status) => {
     await updateContactSubmission(id, { status }, activeBusinessId)
     load()
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await deleteContactSubmission(deleteTarget.id, activeBusinessId)
+      setDeleteTarget(null)
+      setSelected(null)
+      load()
+    } catch (err) { console.error(err) } finally { setDeleting(false) }
   }
 
   const handleTriggerAI = async () => {
@@ -194,9 +208,14 @@ export default function ContactsPage() {
                   <h3 className="font-semibold text-gray-900">{selected.name}</h3>
                   <p className="text-xs text-gray-500">{selected.email}{selected.phone ? ` · ${selected.phone}` : ''}</p>
                 </div>
-                <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600">
-                  <X size={16} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setDeleteTarget(selected)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete submission">
+                    <Trash2 size={15} />
+                  </button>
+                  <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600">
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
 
               <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
@@ -227,6 +246,16 @@ export default function ContactsPage() {
                     {selected.message}
                   </div>
                 </div>
+
+                {/* Problem description */}
+                {selected.problem_description && (
+                  <div>
+                    <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1.5">Problem Description</p>
+                    <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                      {selected.problem_description}
+                    </div>
+                  </div>
+                )}
 
                 {/* AI response */}
                 {selected.status === 'pending_approval' && selected.ai_response ? (
@@ -347,6 +376,28 @@ export default function ContactsPage() {
           </div>
         )}
       </div>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Delete Submission?</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              <strong>{deleteTarget.name}</strong>'s inquiry will be removed from the contact queue. This cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-60">
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

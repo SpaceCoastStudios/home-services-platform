@@ -1,5 +1,6 @@
 """Contact form submission and management endpoints — scoped by business_id."""
 
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
@@ -84,7 +85,10 @@ def list_submissions(
     current_user: AdminUser = Depends(get_current_user),
 ):
     bid = get_business_id_for_user(current_user, business_id)
-    query = db.query(ContactSubmission).filter(ContactSubmission.business_id == bid)
+    query = db.query(ContactSubmission).filter(
+        ContactSubmission.business_id == bid,
+        ContactSubmission.deleted_at == None,
+    )
     if status:
         query = query.filter(ContactSubmission.status == status)
     return query.order_by(ContactSubmission.created_at.desc()).offset(skip).limit(limit).all()
@@ -100,7 +104,11 @@ def get_submission(
     bid = get_business_id_for_user(current_user, business_id)
     sub = (
         db.query(ContactSubmission)
-        .filter(ContactSubmission.id == submission_id, ContactSubmission.business_id == bid)
+        .filter(
+            ContactSubmission.id == submission_id,
+            ContactSubmission.business_id == bid,
+            ContactSubmission.deleted_at == None,
+        )
         .first()
     )
     if not sub:
@@ -247,3 +255,28 @@ def send_manual_response(
     db.commit()
     db.refresh(sub)
     return sub
+
+
+@router.delete("/api/contact-submissions/{submission_id}", status_code=204)
+def delete_submission(
+    submission_id: int,
+    business_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: AdminUser = Depends(get_current_user),
+):
+    """Soft-delete a contact submission (admin only). Sets deleted_at; does not remove the row."""
+    bid = get_business_id_for_user(current_user, business_id)
+    sub = (
+        db.query(ContactSubmission)
+        .filter(
+            ContactSubmission.id == submission_id,
+            ContactSubmission.business_id == bid,
+            ContactSubmission.deleted_at == None,
+        )
+        .first()
+    )
+    if not sub:
+        raise HTTPException(status_code=404, detail="Submission not found")
+
+    sub.deleted_at = datetime.now(timezone.utc)
+    db.commit()

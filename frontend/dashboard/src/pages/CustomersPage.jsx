@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Plus, Search, X, Pencil, CalendarDays } from 'lucide-react'
-import { getCustomers, createCustomer, updateCustomer } from '../services/api'
+import { Plus, Search, X, Pencil, CalendarDays, Trash2 } from 'lucide-react'
+import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 import RowMenu from '../components/RowMenu'
 import { useNavigate } from 'react-router-dom'
@@ -74,6 +74,9 @@ export default function CustomersPage() {
   const [editForm, setEditForm] = useState({ ...EMPTY_FORM })
   const [editError, setEditError] = useState('')
 
+  const [deleteTarget, setDeleteTarget] = useState(null) // customer to confirm-delete
+  const [deleting, setDeleting] = useState(false)
+
   const load = async () => {
     if (activeBusinessId == null) return
     try { setCustomers(await getCustomers(search, activeBusinessId)) } catch (err) { console.error(err) }
@@ -117,6 +120,16 @@ export default function CustomersPage() {
     } catch (err) { setEditError(err.message) }
   }
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await deleteCustomer(deleteTarget.id, activeBusinessId)
+      setDeleteTarget(null)
+      load()
+    } catch (err) { console.error(err) } finally { setDeleting(false) }
+  }
+
   const buildCustomerMenu = (c) => [
     { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(c) },
     {
@@ -124,6 +137,8 @@ export default function CustomersPage() {
       icon: <CalendarDays size={14} />,
       onClick: () => navigate(`/appointments?customer_id=${c.id}`),
     },
+    { label: 'Divider' },
+    { label: 'Delete', icon: <Trash2 size={14} />, onClick: () => setDeleteTarget(c), danger: true },
   ]
 
   if (activeBusinessId == null) {
@@ -207,6 +222,28 @@ export default function CustomersPage() {
           error={editError}
           submitLabel="Save Changes"
         />
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">Delete Customer?</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              <strong>{deleteTarget.first_name} {deleteTarget.last_name}</strong> will be removed from your customer list. Their appointment history is preserved.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-60">
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -33,29 +33,36 @@ logger = logging.getLogger(__name__)
 def run_contact_responder(db: Session, submission_id: int) -> None:
     """
     Called as a FastAPI BackgroundTask after a contact form is saved.
-    Loads all context from the DB, calls the AI, sends the reply, updates the record.
+    Opens its own DB session (the request session may be closed by the time
+    the background task runs — passing the request session causes DetachedInstanceError).
     """
-    submission = db.query(ContactSubmission).filter(ContactSubmission.id == submission_id).first()
-    if not submission:
-        logger.error("contact_responder: submission %s not found", submission_id)
-        return
+    from app.database import SessionLocal
 
-    business = db.query(Business).filter(Business.id == submission.business_id).first()
-    if not business:
-        logger.error("contact_responder: business %s not found", submission.business_id)
-        return
-
-    if not settings.ANTHROPIC_API_KEY:
-        logger.warning("contact_responder: ANTHROPIC_API_KEY not set — skipping AI response")
-        return
-
+    own_db = SessionLocal()
     try:
-        _process(db, submission, business)
-    except Exception as exc:
-        logger.error("contact_responder: unhandled error for submission %s: %s", submission_id, exc, exc_info=True)
-        # Don't crash — mark as error so staff can follow up manually
-        submission.status = "error"
-        db.commit()
+        submission = own_db.query(ContactSubmission).filter(ContactSubmission.id == submission_id).first()
+        if not submission:
+            logger.error("contact_responder: submission %s not found", submission_id)
+            return
+
+        business = own_db.query(Business).filter(Business.id == submission.business_id).first()
+        if not business:
+            logger.error("contact_responder: business %s not found", submission.business_id)
+            return
+
+        if not settings.ANTHROPIC_API_KEY:
+            logger.warning("contact_responder: ANTHROPIC_API_KEY not set — skipping AI response")
+            return
+
+        try:
+            _process(own_db, submission, business)
+        except Exception as exc:
+            logger.error("contact_responder: unhandled error for submission %s: %s", submission_id, exc, exc_info=True)
+            # Don't crash — mark as error so staff can follow up manually
+            submission.status = "error"
+            own_db.commit()
+    finally:
+        own_db.close()
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +151,10 @@ Return ONLY a JSON object with two keys:
 
 Return ONLY the JSON object. No markdown, no code blocks, no extra text."""
 
+    problem_block = ""
+    if submission.problem_description:
+        problem_block = f"\nProblem description:\n{submission.problem_description}\n"
+
     user_message = f"""New customer inquiry:
 
 Name: {submission.name}
@@ -155,7 +166,7 @@ Preferred time: {submission.preferred_time or "Not specified"}
 
 Message:
 {submission.message}
-
+{problem_block}
 Please write a helpful, friendly reply. If they seem interested in booking, mention 2–3 specific available time slots from the context. Invite them to call or reply to confirm."""
 
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)

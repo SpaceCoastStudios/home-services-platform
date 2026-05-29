@@ -129,6 +129,7 @@ def _send_appointment_reminders(force: bool = False):
                     Appointment.scheduled_start >= day_start_utc,
                     Appointment.scheduled_start <= day_end_utc,
                     Appointment.status.notin_(["cancelled", "completed"]),
+                    Appointment.deleted_at == None,
                 )
                 .all()
             )
@@ -187,6 +188,7 @@ def _send_otw_tech_prompts():
                 Appointment.scheduled_start <= window_end,
                 Appointment.technician_id.isnot(None),
                 Appointment.status.notin_(["cancelled", "completed", "en_route"]),
+                Appointment.deleted_at == None,
             )
             .all()
         )
@@ -331,6 +333,7 @@ def _send_otw_morning_kickoffs():
                     Appointment.scheduled_start < today_utc_end,
                     Appointment.technician_id.isnot(None),
                     Appointment.status.notin_(["cancelled", "completed"]),
+                    Appointment.deleted_at == None,
                 )
                 .order_by(Appointment.technician_id, Appointment.scheduled_start)
                 .all()
