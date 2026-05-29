@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Save, Plus, Trash2, Copy, Check, Star, FlaskConical } from 'lucide-react'
+import { Save, Plus, Trash2, Copy, Check, Star, FlaskConical, Phone } from 'lucide-react'
 import {
   getBusinessHours, updateBusinessHours,
   getBlockedTimes, createBlockedTime, deleteBlockedTime,
   getSettings, updateSetting, updateBusiness,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
+import { useAuth } from '../hooks/useAuth'
 
 const API_BASE = 'https://api.spacecoaststudios.com'
 
@@ -13,6 +14,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 
 export default function SettingsPage() {
   const { activeBusinessId, activeBusiness } = useBusinessContext()
+  const { user } = useAuth()
   const [copied, setCopied] = useState(false)
   const [hours, setHours] = useState([])
   const [blocked, setBlocked] = useState([])
@@ -22,6 +24,8 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('')
   const [reviewUrl, setReviewUrl] = useState('')
   const [savingReviewUrl, setSavingReviewUrl] = useState(false)
+  const [twilioNumber, setTwilioNumber] = useState('')
+  const [savingTwilio, setSavingTwilio] = useState(false)
   const [triggerStatus, setTriggerStatus] = useState({})
 
   const triggerJob = async (job) => {
@@ -66,6 +70,7 @@ export default function SettingsPage() {
   // Sync review URL from business context when it loads
   useEffect(() => {
     setReviewUrl(activeBusiness?.google_review_url || '')
+    setTwilioNumber(activeBusiness?.twilio_phone_number || '')
   }, [activeBusiness])
 
   const saveReviewUrl = async () => {
@@ -112,6 +117,15 @@ export default function SettingsPage() {
   const removeBlock = async (id) => {
     await deleteBlockedTime(id, activeBusinessId)
     load()
+  }
+
+  const saveTwilioNumber = async () => {
+    setSavingTwilio(true)
+    try {
+      await updateBusiness(activeBusinessId, { twilio_phone_number: twilioNumber || null })
+      setMessage('Twilio number saved')
+    } catch (err) { setMessage('Error: ' + err.message) }
+    setSavingTwilio(false)
   }
 
   const saveSetting = async (key, value) => {
@@ -340,6 +354,44 @@ export default function SettingsPage() {
           ))}
         </div>
       </section>
+
+      {/* Twilio Phone Number — platform admin only */}
+      {user?.isPlatformAdmin && activeBusiness && (
+        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Phone size={18} className="text-blue-500" />
+            <h2 className="text-lg font-semibold text-gray-900">Twilio Phone Number</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            The Twilio number assigned to this business. Inbound SMS replies and OTW texts use this number.
+            Must be in E.164 format (e.g. +13215550100).
+          </p>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+              <input
+                type="tel"
+                value={twilioNumber}
+                onChange={(e) => setTwilioNumber(e.target.value)}
+                placeholder="+13215550100"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              onClick={saveTwilioNumber}
+              disabled={savingTwilio}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+            >
+              <Save size={16} /> {savingTwilio ? 'Saving...' : 'Save Number'}
+            </button>
+          </div>
+          {activeBusiness?.twilio_phone_number && (
+            <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+              <Check size={12} /> Active: {activeBusiness.twilio_phone_number}
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Developer Tools */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
