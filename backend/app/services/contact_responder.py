@@ -70,13 +70,20 @@ def run_contact_responder(db: Session, submission_id: int) -> None:
 # ---------------------------------------------------------------------------
 
 def _process(db: Session, submission: ContactSubmission, business: Business) -> None:
+    # --- 0. Resolve channel preference once — used by both the AI prompt and send logic ---
+    sms_consented = getattr(submission, "sms_consent", False)
+    raw_pref = (submission.preferred_contact_method or "").lower()
+    # If customer chose "text" but didn't consent, fall back to email so the AI
+    # doesn't write "reply to this text" in a message that will be sent by email.
+    pref = raw_pref if not (raw_pref == "text" and not sms_consented) else "email"
+
     # --- 1. Gather context ---
     services = _get_active_services(db, business.id)
     available_slots = _get_upcoming_slots(db, business, submission, services)
     context_block = _build_context_block(business, services, available_slots, submission)
 
     # --- 2. Call AI ---
-    ai_result = _call_llm(business, submission, context_block)
+    ai_result = _call_llm(business, submission, context_block, pref)
     reply_text = ai_result.get("reply", "")
     suggested_slots = ai_result.get("suggested_slots", [])
 
@@ -114,7 +121,6 @@ def _process(db: Session, submission: ContactSubmission, business: Business) -> 
     #
     # Sending both channels when the customer chose one would be noisy and would also
     # mean the email says "reply to this text" (or vice versa).
-    sms_consented = getattr(submission, "sms_consent", False)
     use_sms = (
         pref == "text"
         and sms_consented
@@ -150,25 +156,18 @@ def _process(db: Session, submission: ContactSubmission, business: Business) -> 
 # AI call
 # ---------------------------------------------------------------------------
 
-def _call_llm(business: Business, submission: ContactSubmission, context_block: str) -> dict:
+def _call_llm(business: Business, submission: ContactSubmission, context_block: str, pref: str) -> dict:
     """
     Calls the Anthropic API and returns a dict:
       { "reply": "<reply text>", "suggested_slots": [...] }
+
+    `pref` is the resolved contact preference (already adjusted for the text-no-consent
+    fallback by _process) — one of: "text", "email", "call", or "".
     """
     import anthropic
 
     agent_name = business.ai_agent_name or business.name
     business_system_prompt = business.ai_system_prompt or ""
-
-    # Map the stored contact preference to a human-readable label and a
-    # channel-specific closing instruction so the AI never references the wrong channel.
-    #
-    # Edge case: customer chose "text" as preferred method but did not give SMS consent.
-    # We cannot text them, so fall back to email for the AI prompt so the reply doesn't
-    # tell them to "reply to this text" when no text was sent.
-    raw_pref = (submission.preferred_contact_method or "").lower()
-    sms_consented = getattr(submission, "sms_consent", False)
-    pref = raw_pref if not (raw_pref == "text" and not sms_consented) else "email"
     if pref == "text":
         contact_pref_label = "text message (SMS)"
         closing_instruction = (

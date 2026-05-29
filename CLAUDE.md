@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-28 (Pass 2: soft delete, Edit Details modal, technician UI splits, contact responder channel awareness + SMS fix)
+> Last substantive update: 2026-05-28 (contact responder: channel routing, SMS consent gate, channel-aware AI prompt, SMS body fix; A2P docs corrected; periodic maintenance schedule added)
 
 ---
 
@@ -555,11 +555,44 @@ These are also accessible via the Developer Tools panel in the dashboard Setting
 - Graceful fallback if no `ANTHROPIC_API_KEY`: sends polite holding message
 
 ### Contact Form AI Responder (`services/contact_responder.py`)
-- Triggered on `POST /contact/submit`
-- Analyzes message intent → if appointment-related: queries availability + suggests slots
+- Triggered on `POST /contact/submit` as a FastAPI BackgroundTask
+- Opens its **own DB session** (never reuse the request session — causes DetachedInstanceError in background tasks)
+- Analyzes message + availability → drafts a reply with up to 5 suggested slots
 - If `ai_response_mode == "auto_send"` → sends response immediately
 - If `ai_response_mode == "draft_only"` → stores as draft for staff approval in Contacts queue UI
 - Staff can approve, edit, or override from dashboard → `/contacts`
+
+#### Channel Routing (single channel only — no duplication)
+The responder sends via exactly one channel based on `preferred_contact_method` and `sms_consent`:
+
+| Preferred method | SMS consent | Channel used |
+|---|---|---|
+| `text` | ✅ True | **SMS only** |
+| `text` | ❌ False | **Email only** (can't text without consent) |
+| `email` | either | **Email only** |
+| `call` | either | **Email only** (automated; staff follows up by phone) |
+
+Sending both channels when one was chosen would be noisy and produce mismatched language (e.g. an email saying "reply to this text").
+
+#### Channel-Aware AI Prompt
+`preferred_contact_method` is passed to the LLM in both the system prompt and user message. The LLM is instructed to reference **only** the customer's preferred channel in its closing sentence:
+- `text` + consent → "reply to this text"
+- `email` → "reply to this email"
+- `call` → "we'll give you a call / feel free to call us at [phone]"
+- `text` + no consent → falls back to email language automatically
+
+#### SMS Consent Gate (A2P/TCPA Compliance)
+- `sms_consent: bool` stored on every `ContactSubmission`
+- SMS is **only sent when `sms_consent = True`**
+- The embed form checkbox is **optional** — submission is allowed either way (consent is not a condition of service per A2P rules)
+- Consent language on form: `(Optional) I agree to receive SMS messages... SMS consent is not required to submit this form or receive service.`
+- Inline form hint: when "text" is selected but consent unchecked → `"To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead."` — hint disappears when both are selected
+
+#### SMS Body Construction
+Old behavior grabbed only the first paragraph (which was the greeting "Hi Name,") → SMS was always just the greeting. Fixed:
+- Splits reply into paragraphs, detects and skips greeting line (short line ending with comma)
+- Flattens remaining paragraphs, caps at 300 characters (~2 SMS segments)
+- Logs character count on send
 
 ---
 

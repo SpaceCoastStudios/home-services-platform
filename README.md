@@ -291,6 +291,25 @@ Complete these steps at least 2–3 days before the client's launch date.
 
 ## Backend Services
 
+### Contact Form AI Responder
+
+Triggered automatically after every contact form submission (`POST /contact/submit`). Runs as a background task with its own DB session.
+
+**Channel routing** — the responder sends via exactly one channel based on what the customer chose and whether they gave SMS consent:
+
+| Preferred method | SMS consent | Channel used |
+|---|---|---|
+| Text message | ✅ checked | SMS only |
+| Text message | ❌ unchecked | Email only |
+| Email | — | Email only |
+| Phone call | — | Email only (staff follows up by phone) |
+
+**SMS consent** is stored as `sms_consent: bool` on every `ContactSubmission`. SMS is never sent unless this field is `True`. The embed form checkbox is **optional** — the form submits either way (consent is not a condition of receiving service, per A2P rules). When "text" is selected but the consent box is unchecked, the form shows an inline hint explaining that the response will be sent by email instead.
+
+**Channel-aware AI prompt** — the customer's preferred contact method is passed to the LLM. The AI is instructed to reference only that channel in its closing line (e.g. "reply to this text" vs. "reply to this email" vs. "we'll give you a call"). If "text" is selected but no consent was given, the AI automatically falls back to email language.
+
+**Draft mode** — if `ai_response_mode == "draft_only"` on the Business record, the response is held for staff review in the Contacts dashboard instead of being sent immediately.
+
 ### Notifications
 - **SMS**: Twilio (A2P 10DLC registered, E.164 phone normalization with multi-format `.in_()` lookups)
 - **Email**: SendGrid with branded HTML templates
@@ -365,6 +384,46 @@ Complete these steps at least 2–3 days before the client's launch date.
 | `POST` | `/api/appointments` | JWT | Create appointment |
 | `PUT` | `/api/appointments/{id}` | JWT | Update appointment |
 | `POST` | `/api/appointments/{id}/cancel` | JWT | Cancel appointment |
+| `DELETE` | `/api/appointments/{id}` | JWT | Soft-delete (sets `deleted_at`; excluded from all list/get queries) |
+
+### Customers
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/customers` | JWT | List customers |
+| `POST` | `/api/customers` | JWT | Create customer |
+| `GET` | `/api/customers/{id}` | JWT | Get customer |
+| `PUT` | `/api/customers/{id}` | JWT | Update customer |
+| `DELETE` | `/api/customers/{id}` | JWT | Soft-delete customer |
+
+### Contact Submissions
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/contact-submissions` | JWT | List submissions |
+| `GET` | `/api/contact-submissions/{id}` | JWT | Get submission |
+| `PUT` | `/api/contact-submissions/{id}` | JWT | Update status/notes |
+| `DELETE` | `/api/contact-submissions/{id}` | JWT | Soft-delete submission |
+| `POST` | `/api/contact-submissions/{id}/respond` | JWT | (Re-)trigger AI responder |
+| `POST` | `/api/contact-submissions/{id}/approve` | JWT | Approve and send a draft AI response |
+| `POST` | `/api/contact-submissions/{id}/manual-response` | JWT | Send a staff-written reply |
+
+**Contact form submission payload** (`POST /contact/submit`):
+```json
+{
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "phone": "3215550100",
+  "service_requested": "AC Repair",
+  "preferred_contact_method": "text",
+  "sms_consent": true,
+  "message": "My AC isn't working.",
+  "problem_description": "Optional — more detail for the technician",
+  "preferred_date": "2026-06-01",
+  "preferred_time": "morning"
+}
+```
+`sms_consent` must be `true` for an SMS reply to be sent. The embed form checkbox is optional — submission succeeds whether or not it is checked.
 
 ### Admin / Notification Triggers
 
@@ -379,6 +438,10 @@ All require JWT auth.
 | `POST` | `/api/admin/appointments/{id}/resend-confirmation` | Resend confirmation SMS + email |
 | `POST` | `/api/admin/appointments/{id}/send-reminder` | Send reminder now |
 | `POST` | `/api/admin/appointments/{id}/send-review-request` | Send review request (requires `google_review_url` on business) |
+
+### Soft Deletes
+
+Customers, appointments, and contact submissions support soft delete — a `DELETE` request sets `deleted_at` on the record rather than removing it. Soft-deleted records are excluded from all list and get queries but remain in the database for audit purposes. Only business admins can delete; a confirmation modal is shown in the dashboard before any delete action.
 
 ### Tech Daily Schedule Page (Public)
 
