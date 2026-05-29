@@ -123,18 +123,49 @@ def _process(db: Session, submission: ContactSubmission, business: Business) -> 
 def _call_llm(business: Business, submission: ContactSubmission, context_block: str) -> dict:
     """
     Calls the Anthropic API and returns a dict:
-      { "reply": "<email body text>", "suggested_slots": [...] }
+      { "reply": "<reply text>", "suggested_slots": [...] }
     """
     import anthropic
 
     agent_name = business.ai_agent_name or business.name
     business_system_prompt = business.ai_system_prompt or ""
 
+    # Map the stored contact preference to a human-readable label and a
+    # channel-specific closing instruction so the AI never references the wrong channel.
+    pref = (submission.preferred_contact_method or "").lower()
+    if pref == "text":
+        contact_pref_label = "text message (SMS)"
+        closing_instruction = (
+            "They prefer text messages — close by inviting them to reply to this text "
+            "with their preferred slot. Do NOT mention email."
+        )
+    elif pref == "call":
+        contact_pref_label = "phone call"
+        closing_instruction = (
+            f"They prefer a phone call — close by letting them know you'll be in touch "
+            f"by phone, and include the business phone number ({business.phone or 'on file'}) "
+            f"in case they want to call first. Do NOT say 'reply to this email'."
+        )
+    elif pref == "email":
+        contact_pref_label = "email"
+        closing_instruction = (
+            "They prefer email — close by inviting them to reply to this email "
+            "with their preferred slot."
+        )
+    else:
+        contact_pref_label = "not specified"
+        closing_instruction = (
+            "Invite them to call or reply by email to confirm their preferred slot."
+        )
+
     system_prompt = f"""You are {agent_name}, a friendly and professional customer service assistant for {business.name}.
 
 Your job is to respond to customer inquiries submitted through the website contact form.
 Write warm, helpful, and professional replies — as if a knowledgeable human staff member wrote them.
 Keep responses concise (3–5 short paragraphs max).
+
+The customer's preferred contact method is: {contact_pref_label}.
+When closing the reply, reference ONLY their preferred channel. Never mention a channel they did not choose.
 
 {business_system_prompt}
 
@@ -144,7 +175,7 @@ Keep responses concise (3–5 short paragraphs max).
 
 RESPONSE FORMAT:
 Return ONLY a JSON object with two keys:
-- "reply": A plain-text email reply to the customer. Use \\n for line breaks. Do NOT include HTML.
+- "reply": A plain-text reply to the customer. Use \\n for line breaks. Do NOT include HTML.
 - "suggested_slots": An optional JSON array of up to {settings.CONTACT_MAX_SUGGESTED_SLOTS} available time slots you mentioned in the reply.
   Each slot: {{"date": "YYYY-MM-DD", "start": "HH:MM", "end": "HH:MM"}}
   Leave as an empty array [] if you did not suggest specific slots.
@@ -161,13 +192,14 @@ Name: {submission.name}
 Email: {submission.email}
 Phone: {submission.phone or "Not provided"}
 Service requested: {submission.service_requested or "Not specified"}
+Preferred contact method: {contact_pref_label}
 Preferred date: {submission.preferred_date or "Not specified"}
 Preferred time: {submission.preferred_time or "Not specified"}
 
 Message:
 {submission.message}
 {problem_block}
-Please write a helpful, friendly reply. If they seem interested in booking, mention 2–3 specific available time slots from the context. Invite them to call or reply to confirm."""
+Please write a helpful, friendly reply. If they seem interested in booking, mention 2–3 specific available time slots from the context. {closing_instruction}"""
 
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
@@ -249,7 +281,12 @@ def _send_reply_email(business: Business, submission: ContactSubmission, reply_t
 
 
 def _send_reply_sms(business: Business, submission: ContactSubmission, reply_text: str) -> bool:
-    """Send a brief SMS reply if Twilio is configured."""
+    """Send an SMS reply if Twilio is configured.
+
+    Builds the SMS body from the full reply text rather than naively grabbing the
+    first paragraph (which is usually just the greeting line "Hi Name,").
+    SMS is capped at ~300 chars (2 segments) to keep it readable on a phone.
+    """
     twilio_number = business.twilio_phone_number or settings.TWILIO_PHONE_NUMBER
     if not settings.TWILIO_ACCOUNT_SID or not twilio_number:
         return False
@@ -258,12 +295,27 @@ def _send_reply_sms(business: Business, submission: ContactSubmission, reply_tex
         from twilio.rest import Client
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
-        # Truncate SMS to first ~160 chars
-        first_paragraph = reply_text.split("\n\n")[0].strip()
-        sms_body = first_paragraph[:155] + ("…" if len(first_paragraph) > 155 else "")
+        # Split into paragraphs and skip the greeting line (e.g. "Hi Rory,")
+        # so the SMS leads with actual useful content.
+        paragraphs = [p.strip() for p in reply_text.split("\n\n") if p.strip()]
+        if len(paragraphs) > 1:
+            first = paragraphs[0]
+            # Greeting heuristic: short line ending with a comma (e.g. "Hi Rory,")
+            if len(first) < 30 and first.endswith(","):
+                paragraphs = paragraphs[1:]
 
-        client.messages.create(body=sms_body, from_=twilio_number, to=submission.phone)
-        logger.info("contact_responder: reply SMS sent to %s", submission.phone)
+        # Flatten to a single string, replacing bullet newlines with spaces
+        sms_content = " ".join(
+            p.replace("\n", " ") for p in paragraphs
+        )
+
+        # Cap at 300 chars (~2 SMS segments) — enough for a meaningful message
+        MAX_SMS = 300
+        if len(sms_content) > MAX_SMS:
+            sms_content = sms_content[:MAX_SMS - 1] + "…"
+
+        client.messages.create(body=sms_content, from_=twilio_number, to=submission.phone)
+        logger.info("contact_responder: reply SMS sent to %s (%d chars)", submission.phone, len(sms_content))
         return True
     except Exception as exc:
         logger.error("contact_responder: failed to send reply SMS to %s: %s", submission.phone, exc)
