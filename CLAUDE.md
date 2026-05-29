@@ -320,7 +320,7 @@ Test Project/
 └── SpaceCoastStudios_SystemGuide.docx           # Full system SOPs
 ```
 
-> **Keep the two status trackers current.** Whenever a feature ships, is tested, or changes status, update **both** `Platform Capability Checklist.docx` (capability status + notes + summary counts) and `SCS Platform Roadmap.docx` (move items between Completed / Near-Term / Later). These are the canonical *non-technical* status docs and are expected to stay in sync with this file and the README. **How to edit:** npm/docx-js is blocked in this environment, so regenerate them with **pandoc** from Markdown — `pandoc file.md -o "Test Project/<file>.docx"`. This is how both were rebuilt on 2026-05-29.
+> **Keep the status + onboarding trackers current.** Whenever a feature ships, is tested, or changes status, update `Platform Capability Checklist.docx` (capability status + notes + summary counts), `SCS Platform Roadmap.docx` (move items between Completed / Near-Term / Later), and `SCS_Onboarding_Checklist.docx` (onboarding + smoke-test steps as they change). These are the canonical *non-technical* status docs and are expected to stay in sync with this file and the README. **How to edit:** npm/docx-js is blocked in this environment, so regenerate them with **pandoc** from Markdown — `pandoc file.md -o "Test Project/<file>.docx"`. This is how both were rebuilt on 2026-05-29.
 
 ---
 
@@ -450,7 +450,7 @@ allow_same_day_booking
 
 ### Demo / Default Tenant
 - Slug: `default`, name: "Space Coast Studios Demo", AI agent: "Scout", `is_demo: True`
-- Demo seed for a full HVAC client: `backend/seed_peak_hvac.py`
+- Demo seed script for a full HVAC client: `backend/seed_peak_hvac.py` — **available but not currently seeded.** As of 2026-05-29 the only live tenant on the platform is the Space Coast Studios Demo above (slug `default`). Other `peak-hvac` / `peakhvac.com` references in the codebase are illustrative examples and UI placeholders, not a live tenant.
 
 ### Default Credentials (dev/demo only — never use in production)
 | Username | Password | Role |
@@ -940,11 +940,12 @@ These are recurring tasks that keep the platform running correctly. Most are low
 
 ### Blocked / Pending
 - **Step 6 (morning kickoff no-appointments variant)** — testing tomorrow morning 7-8am local, auto-fires if tech has no appointments
-- **CSA attorney review** — email sent to attorneys, awaiting response (see Section 26)
+- **CSA attorney review** — attorney shortlisted; Ryan selecting + signing engagement letter week of June 1, 2026, then review follows. Must be reviewed before first client signs (see Section 26).
 
 ### Business Development
 - Founding client outreach — templates ready, advised to start now (don't wait for A2P)
 - Each new client needs their own A2P Brand + Campaign registration — submit Day 1 of onboarding
+- **Action plan:** `docs/action-plan-gtm-and-booking-widget.md` — two parallel tracks: (1) cold-local + online/inbound outreach to land a founding **Starter** client (no warm network), (2) build the **self-scheduling booking widget**, v1 scope = **Phase 1 internal-only** (public slug-scoped endpoints + embeddable UI reusing the existing availability engine; Google/Outlook sync deferred to Phase 2/3). Awaiting Ryan's notes on the plan before starting the widget build.
 
 ### Nice to Have (later)
 - Customer portal
@@ -1006,7 +1007,7 @@ The campaign was approved with the following consent flow — **do not change an
 
 **Section 5.4 survival clause:** Sections 6, 7, 9, 10, 12, and 13 survive termination.
 
-**Status:** Attorney review pending. Recommended attorneys: Uncommon Counsel (Altamonte Springs), Whitehouse & Cooper / Orlando Technology Law (Orlando), Kananack Law LLC (Melbourne/Brevard).
+**Status:** Attorney shortlisted; Ryan selecting and signing the engagement letter the week of June 1, 2026, then notifying the chosen attorney. Attorney review to follow. **The CSA must be attorney-reviewed before the first client signs.** Recommended attorneys: Uncommon Counsel (Altamonte Springs), Whitehouse & Cooper / Orlando Technology Law (Orlando), Kananack Law LLC (Melbourne/Brevard).
 
 ---
 

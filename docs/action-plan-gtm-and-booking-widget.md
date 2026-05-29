@@ -12,6 +12,8 @@
 - **A2P 10DLC:** approved for SCS itself. **Each client needs their own Brand + Campaign (2–4 weeks, carrier-controlled).**
 - **CSA:** attorney shortlisted; Ryan selecting + signing week of **June 1, 2026**. CSA must be attorney-reviewed before the first client signs.
 - **Founding offer:** 5 spots — Starter $497 setup + $99/mo (3 mo) then $249; Pro $997 + $199/mo (3 mo) then $399.
+- **Living docs to keep current:** CLAUDE.md, README, Capability Checklist, Roadmap, **and `SCS_Onboarding_Checklist.docx`** (review now — many features shipped since last update).
+- **Prospect list:** 55 businesses loaded into `SCS Prospect Tracker.xlsx` (HVAC 20, Landscaping 20, Roofing 15).
 
 ---
 
@@ -33,11 +35,14 @@
 - [ ] Stripe founding-client manual provisioning path ready (`docs/founder-client-onboarding.md`) — exists.
 - [ ] A short demo flow rehearsed (see A6).
 
-### A3. Build the prospect list (target ~40–60 to start)
-- **Sources:** Google Maps / Google Business search ("HVAC near Cocoa FL", "plumber Melbourne FL"), Yelp, Brevard County contractor listings, Nextdoor/local FB business pages.
-- **Capture per prospect (simple spreadsheet):** business name, owner name (if findable), phone, email, website URL, Google review count/rating, whether they have an after-hours/contact form, notes.
-- **Prioritize:** businesses with a website but an obvious response gap (no chat, no after-hours messaging, mediocre review velocity) — they feel the pain you solve.
-- *Tip:* test their own responsiveness — submit a contact form or call after hours. A slow reply is your opener.
+### A3. Prospect list + tracker (list loaded ✅)
+Your **55 businesses** (HVAC 20, Landscaping 20, Roofing 15) are loaded into **`SCS Prospect Tracker.xlsx`** (Test Project root) — one file that is the prospect list, outreach log, and pipeline, with a live Dashboard tab.
+- **Enrichment pass (do first, per prospect):** owner name (only 2/55 known), email (13 missing), website, Google Business rating + review count, and the **Response Gap?** flag — the gap is our strongest opener.
+- **Fit (1–5)** is pre-seeded by trade (HVAC 5, Landscaping 3, Roofing 2 — roofing is lower-fit: project-based, long cycle, less recurring/emergency). Adjust per prospect; set **Priority** High/Med/Low to decide work order.
+- **Add plumbing:** a top-fit trade not on the list yet — source ~10–15 Brevard plumbers during enrichment.
+- **Flags pre-noted in the tracker:** Paradise Air & Heat / Cool Rays share a phone (verify same company); Paradise Dumpsters tagged "Sell online booking" (may already have booking).
+- **Sources to expand the list:** Google Maps / Google Business, Yelp, Brevard contractor listings, Nextdoor/FB.
+- *Tip:* test each prospect's own responsiveness (after-hours form/call) — a slow reply is your opener.
 
 ### A4. Cold outreach sequence (email-led, phone follow-up)
 - **Cadence (per prospect, ~10 business days):**
@@ -54,7 +59,7 @@
 - [ ] **Marketing-site SEO basics** — title/meta already decent; ensure local keywords ("Space Coast / Brevard home service booking platform"), add a couple of trade-specific landing angles if time allows.
 - [ ] **Local Facebook groups / Nextdoor** — participate authentically; soft-mention when relevant (avoid spam).
 - [ ] **Light paid test (optional, low budget):** Google Search ads on "[trade] scheduling software" + local geo, or FB ads targeting local home-service owners → demo page. Cap spend; treat as learning, not lifeline.
-- [ ] Ensure the demo-page CTA path is clear (it currently has no "book a call" button — consider adding a Calendly link on `/demo.html` so an inbound visitor can self-book a demo).
+- [ ] Inbound self-booking on the **main site** is already covered (Get a Demo / Schedule a Free Demo → `#contact`, plus the Calendly under “Prefer to talk first?”). **Add a “Schedule a call” CTA (Calendly link) to the standalone `/demo.html`** so a prospect sent straight to the demo page can also self-book.
 
 ### A6. Demo-call playbook
 - Open with their pain (the response gap you found).
@@ -75,10 +80,11 @@
 - [ ] Install the embed contact widget on their site.
 - [ ] Email notifications live immediately; SMS activates on A2P approval.
 - [ ] Run the smoke-test checklist (`SCS_Onboarding_Checklist.docx`).
+- [ ] Keep `SCS_Onboarding_Checklist.docx` current as we build — review it now (many features shipped since it was last updated) and update it as onboarding steps change.
 
-### A9. Targets / metrics
-- Prospect list: 40–60 built in week 1.
-- Outreach: 10–15/week sustained.
+### A9. Targets / metrics (tracked in the Dashboard tab of `SCS Prospect Tracker.xlsx`)
+- Prospect list: 55 loaded; enrich + add plumbing.
+- Outreach: 10–15 new touches/week sustained.
 - Leading indicator: demos booked (target 2–4 to land 1 founding client).
 - Goal: **1 signed founding Starter client.**
 
@@ -115,7 +121,7 @@
 - [ ] Edge cases: lead-time cutoff, fully-booked day, buffer enforcement, double-submit, timezone correctness.
 
 ### B5. Ship + reconcile docs
-- [ ] Add the widget to Starter/Pro embed install instructions.
+- [ ] Add the widget to embed install instructions (rolls into the Track C onboarding runbook below).
 - [ ] Update Capability Checklist: Online Self-Booking ⚠️ → ✅; marketing claims now fully accurate.
 - [ ] Move "Self-scheduling booking widget" on the roadmap from Near-Term → Completed.
 - [ ] Do the deferred demo-page polish pass (iframe sizing, live examples).
@@ -125,6 +131,15 @@
 - **Phase 3:** Outlook/Exchange sync.
 
 ---
+
+## Track C — Onboarding Template + Install Runbook (post-widget milestone)
+
+Once the platform is production-ready / semi-complete (after the widget), build the repeatable onboarding kit to cut per-client build time — “onboarding on steroids.” Two layers:
+
+1. **Install / onboarding runbook (docs):** step-by-step stand-up for every component — A2P, Twilio number, services, hours, notification templates, AI persona, embed install, smoke test. Supersizes `SCS_Onboarding_Checklist.docx`.
+2. **Parameterized onboarding seeder (automation — the real time-saver):** generalize `seed_peak_hvac.py` into a vertical-aware template. Feed it business name + trade + a few specifics, and it provisions sensible defaults (standard service types + durations, tuned notification templates, a starter AI persona, default hours). The client's setup wizard then just adjusts specifics instead of building from scratch.
+
+Scope this against a **stable target** (post-widget) so we templatize a finished product, not a moving one.
 
 ## Sequencing & how the tracks interact
 
