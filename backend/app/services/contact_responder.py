@@ -171,8 +171,10 @@ def _call_llm(business: Business, submission: ContactSubmission, context_block: 
     if pref == "text":
         contact_pref_label = "text message (SMS)"
         closing_instruction = (
-            "They prefer text messages — close by inviting them to reply to this text "
-            "with their preferred slot. Do NOT mention email."
+            "They prefer text messages and your reply will be sent as an SMS. "
+            "Keep the ENTIRE reply under 400 characters — be warm but brief. "
+            "Skip a long acknowledgment; get straight to 1–2 available slots and a CTA. "
+            "Close by inviting them to reply to this text with their preferred slot. Do NOT mention email."
         )
     elif pref == "call":
         contact_pref_label = "phone call"
@@ -344,8 +346,8 @@ def _send_reply_sms(business: Business, submission: ContactSubmission, reply_tex
             p.replace("\n", " ") for p in paragraphs
         )
 
-        # Cap at 300 chars (~2 SMS segments) — enough for a meaningful message
-        MAX_SMS = 300
+        # Cap at 480 chars (~3 SMS segments) — enough for slots + CTA
+        MAX_SMS = 480
         if len(sms_content) > MAX_SMS:
             sms_content = sms_content[:MAX_SMS - 1] + "…"
 
@@ -517,9 +519,4 @@ def _build_context_block(
                 else:
                     start_str = str(start_dt)
                     end_str = str(end_dt)
-                lines.append(f"  • {day_label}: {start_str} – {end_str}")
-                slot_count += 1
-    else:
-        lines.append("(No specific slot availability data available — invite them to call.)")
-
-    return "\n".join(lines)
+                lines.append(f"  • {day_labe
