@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-28
+> Last substantive update: 2026-05-28 (added Section 23: Periodic Maintenance Schedule)
 
 ---
 
@@ -30,13 +30,14 @@
 20. [Platform Admin Impersonation](#20-platform-admin-impersonation)
 21. [Platform Capability Status](#21-platform-capability-status)
 22. [AI Model Maintenance](#22-ai-model-maintenance)
-23. [Build Roadmap](#23-build-roadmap)
-24. [A2P 10DLC Compliance](#24-a2p-10dlc-compliance)
-25. [Client Services Agreement](#25-client-services-agreement)
-25. [Client Onboarding Process](#25-client-onboarding-process)
-26. [Common Pitfalls](#26-common-pitfalls)
-27. [Local Development](#27-local-development)
-28. [Activity Log](#28-activity-log)
+23. [Periodic Maintenance Schedule](#23-periodic-maintenance-schedule)
+24. [Build Roadmap](#24-build-roadmap)
+25. [A2P 10DLC Compliance](#25-a2p-10dlc-compliance)
+26. [Client Services Agreement](#26-client-services-agreement)
+27. [Client Onboarding Process](#27-client-onboarding-process)
+28. [Common Pitfalls](#28-common-pitfalls)
+29. [Local Development](#29-local-development)
+30. [Activity Log](#30-activity-log)
 
 ---
 
@@ -801,7 +802,63 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 
 ---
 
-## 23. Build Roadmap
+## 23. Periodic Maintenance Schedule
+
+These are recurring tasks that keep the platform running correctly. Most are low-effort but easy to forget. Review this section at the start of each quarter.
+
+### Monthly
+
+| Task | What to Check | Where |
+|------|--------------|-------|
+| **DB backup verification** | Confirm DigitalOcean automated backups are enabled and a recent snapshot exists | DO → Databases → Backups tab |
+| **Twilio account balance** | Ensure credit balance won't run out mid-month; top up if under $20 | Twilio Console → Billing |
+| **SendGrid sender reputation** | Check bounce/spam rates; >5% bounce rate can trigger account suspension | SendGrid → Stats → Overview |
+
+### Quarterly
+
+| Task | What to Check | Where |
+|------|--------------|-------|
+| **LLM model string** | Verify `claude-haiku-4-5-20251001` (or current value) is still a valid, non-deprecated model at https://docs.anthropic.com/en/docs/about-claude/models | Update in DO env vars + `config.py` if changed |
+| **Python dependencies** | `pip list --outdated` in backend; review security advisories | `backend/` |
+| **npm dependencies** | `npm outdated` in frontend; watch for breaking changes | `frontend/dashboard/` |
+| **A2P 10DLC campaign status** | Confirm campaign is still active; carriers can deactivate campaigns without notice | Twilio Console → Messaging → Regulatory Compliance |
+| **Stripe webhook health** | Confirm webhook endpoint is active and receiving events | Stripe Dashboard → Developers → Webhooks |
+
+### Annually
+
+| Task | What to Check | Where |
+|------|--------------|-------|
+| **Rotate JWT_SECRET_KEY** | Generate a new random 64-char secret; redeploy; all existing sessions invalidate (users must log in again) | DO env vars + `config.py` |
+| **Rotate SECRET_KEY** | Same process as JWT_SECRET_KEY | DO env vars + `config.py` |
+| **Domain renewal** | `spacecoaststudios.com` and any client domains | Domain registrar |
+| **SSL certificate** | DO typically auto-renews; verify it hasn't lapsed | DO → App → Domains |
+| **Stripe price IDs** | If pricing tiers change, update all `STRIPE_PRICE_*` constants in `config.py` and the DO env vars | `config.py` lines 48–57 |
+
+### Event-Triggered (Do When the Event Happens)
+
+| Trigger | Action |
+|---------|--------|
+| Anthropic deprecation notice email | Update `LLM_MODEL` in DO env vars and `config.py`; redeploy; verify startup log shows `LLM model validated OK` |
+| Client changes their Google Business listing URL | Update `google_review_url` in their Business Settings record |
+| Stripe announces pricing API changes | Audit `routers/billing.py` and `config.py` Stripe constants |
+| Twilio announces SMS API changes | Audit `services/sms_agent.py` and `services/notifications.py` |
+| SendGrid announces API deprecation | Audit `services/email_service.py` |
+| New client onboarded | Submit A2P Brand + Campaign registration Day 1 (see Section 25) |
+| Client cancels / offboards | Disable their Stripe subscription, soft-delete or archive their Business record |
+
+### Quick Diagnostic Reference
+
+| Symptom | First place to look |
+|---------|-------------------|
+| Contact submissions show "Error" status | DigitalOcean Runtime Logs → look for `404 not_found_error` (bad LLM model) or `anthropic.AuthenticationError` (bad API key) |
+| SMS messages not sending | Twilio Console → Monitor → Errors; check `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` |
+| Emails not delivering | SendGrid Activity Feed; check `SENDGRID_API_KEY` and sender verification |
+| Stripe webhooks failing | Stripe → Developers → Webhooks → click endpoint → view failed events |
+| App won't start after deploy | DO Runtime Logs → look for migration errors or import errors |
+
+---
+
+## 24. Build Roadmap
 
 ### Next Build Priorities
 1. **Self-scheduling booking widget** (Professional plan) — Phase 1: internal availability engine only (no external calendar API). Phase 2: Google Calendar API. Phase 3: Exchange/Outlook API.
@@ -810,8 +867,8 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 4. **Emergency contact form routing** — wire contact form urgency detection to on-call dispatch
 
 ### Blocked / Pending
-- **A2P 10DLC approval** — waiting on carrier (see Section 23). Required before SMS smoke test.
-- **CSA attorney review** — email sent to attorneys, awaiting response (see Section 24)
+- **A2P 10DLC approval** — waiting on carrier (see Section 25). Required before SMS smoke test.
+- **CSA attorney review** — email sent to attorneys, awaiting response (see Section 26)
 
 ### Business Development
 - Founding client outreach — templates ready, advised to start now (don't wait for A2P)
@@ -825,7 +882,7 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 
 ---
 
-## 24. A2P 10DLC Compliance
+## 25. A2P 10DLC Compliance
 
 ### Current Status (as of May 2026)
 Campaign submitted for 5th time, under carrier review. Latest fix: SMS consent checkbox made **optional** (not required) — carriers reject campaigns where consent is a condition of service.
@@ -858,7 +915,7 @@ Rejected 5 times for "issues verifying the CTA." Root causes:
 
 ---
 
-## 25. Client Services Agreement
+## 26. Client Services Agreement
 
 **File:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`)
 
@@ -873,7 +930,7 @@ Rejected 5 times for "issues verifying the CTA." Root causes:
 
 ---
 
-## 25. Client Onboarding Process
+## 27. Client Onboarding Process
 
 ### Timeline
 - **Day 1:** Create business tenant, assign Twilio number, submit A2P registration, configure services/techs/hours/AI persona, customize notification templates
@@ -900,7 +957,7 @@ See `docs/founder-client-onboarding.md`.
 
 ---
 
-## 26. Common Pitfalls
+## 28. Common Pitfalls
 
 ### SMS / Twilio
 - **30034 Unregistered Number** — number not registered to campaign; use Register Phone Numbers button on the campaign page
@@ -928,7 +985,7 @@ See `docs/founder-client-onboarding.md`.
 
 ---
 
-## 27. Local Development
+## 29. Local Development
 
 ```bash
 # Backend
@@ -955,7 +1012,7 @@ $result.url  # open in browser — $2 total, refund immediately after
 
 ---
 
-## 28. Activity Log
+## 30. Activity Log
 
 ### Features Built by Session
 
