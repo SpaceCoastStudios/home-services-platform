@@ -506,19 +506,35 @@ Do NOT skip the clarifying questions — they help the technician arrive prepare
         _msgs = convo.messages or []
         _seeded = next((m for m in _msgs if m.get("seeded")), None)
         if _seeded or convo.customer_name:
-            _known = []
+            _known = {}
             if convo.customer_name:
-                _known.append("Name: {}".format(convo.customer_name))
+                _known["name"] = convo.customer_name
             if _seeded:
                 for _part in _seeded.get("content", "").split("."):
                     _part = _part.strip()
                     if _part.startswith("I need:"):
-                        _known.append("Service: {}".format(_part[7:].strip()))
+                        _known["service"] = _part[7:].strip()
+                    elif _part.startswith("Service address:"):
+                        _known["address"] = _part[16:].strip()
             if _known:
+                _known_lines = []
+                if "name" in _known:
+                    _known_lines.append("Customer name: {}".format(_known["name"]))
+                if "service" in _known:
+                    _known_lines.append("Service requested: {}".format(_known["service"]))
+                if "address" in _known:
+                    _known_lines.append("Service address: {}".format(_known["address"]))
+                _still_needed = [x for x in ["date/time"] if x not in _known]
+                if "address" not in _known:
+                    _still_needed.insert(0, "service address")
+                if "service" not in _known:
+                    _still_needed.insert(0, "which service")
                 known_info_block = (
-                    "\nWHAT YOU ALREADY KNOW (from their website contact form):\n"
-                    + "\n".join("  - " + p for p in _known)
-                    + "\nDo NOT ask for this info again. Only collect what is still missing.\n"
+                    "\nCUSTOMER INFO ALREADY CONFIRMED (from their contact form):\n"
+                    + "\n".join("  " + l for l in _known_lines)
+                    + "\nDo NOT ask for any of the above again. Use it directly when calling create_booking."
+                    + (" Still needed: {}.".format(", ".join(_still_needed)) if _still_needed else " You have everything needed except the confirmed time slot.")
+                    + "\n"
                 )
 
     return f"""You are {agent_name}, a friendly booking assistant for {business.name}. \
