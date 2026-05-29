@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-29 (full SMS booking flow tested end-to-end; testing plan items resolved; docs updated; next session priorities set)
+> Last substantive update: 2026-05-29 (on-call rotation + emergency dispatch tested end-to-end; on-call timezone bug fixed; emergency now creates an `emergency`-status appointment with in-chat address capture; customer-facing phone numbers formatted as (xxx) xxx-xxxx; docs updated)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -535,6 +535,16 @@ All templates are editable per-business in the dashboard. Default templates in `
    - Last job → review request sent to customer + "Great work! That's a wrap!" to tech
 4. **Collision prevention:** Won't send new OTW prompt if tech already has an `en_route` appointment
 
+### Emergency Dispatch → Appointment
+When the SMS agent's `emergency_dispatch` tool fires (after a successful alert to the on-call tech), the system also creates an appointment so the business keeps a record:
+- `status="emergency"`, `source="emergency_sms"`, `scheduled_start=now`, duration from a dedicated **"Emergency Service"** type (auto-created once per business, 120 min default)
+- Assigned to the on-call tech who was alerted; `technician_id=NULL` if dispatched to a fallback number
+- Address: prefers what the agent collected in chat, then the latest non-deleted contact submission, then the customer record
+- Issue summary saved to `problem_description`; explanatory note in `notes`
+- **No automated notifications fire** — created directly (not via the API), and `emergency` status is excluded from the reminder, OTW-prompt, and morning-kickoff scheduler jobs. The tech was already told to contact the customer immediately.
+- Customer lookup skips soft-deleted records (won't reattach to a deleted customer)
+- Dashboard: bold red **emergency** badge; staff close it out manually via the status dropdown or the "Mark Complete" row action
+
 ### Background Scheduler (APScheduler — runs in-process, no separate worker)
 | Job | Schedule | Description |
 |---|---|---|
@@ -564,7 +574,7 @@ These are also accessible via the Developer Tools panel in the dashboard Setting
 - Maintains last **20 messages** of conversation history per thread
 - **4 Tools:** `check_availability`, `create_booking`, `escalate_to_human`, `emergency_dispatch`
 - Required booking fields before confirming: name, service type, date/time, address
-- Emergency flow: AI asks qualifying questions → discloses fee if enabled → dispatches on-call tech → sets conversation to `escalated`
+- Emergency flow: AI asks qualifying questions → confirms the service address (asks for it if not already known) → discloses fee if enabled → dispatches on-call tech → **creates an `emergency`-status Appointment** (see Section 13) → sets conversation to `escalated`. The dispatch SMS to the tech includes the customer's address and issue summary.
 - Graceful fallback if no `ANTHROPIC_API_KEY`: sends polite holding message
 
 ### Contact Form AI Responder (`services/contact_responder.py`)
@@ -619,6 +629,10 @@ Old behavior grabbed only the first paragraph (which was the greeting "Hi Name,"
 
 ### On-Call Routing
 `OnCallConfig` + `OnCallRotation` + `OnCallOverride`. `GET /api/oncall/current` returns the currently on-call technician based on rotation schedule and any manual override. Used for after-hours emergency SMS routing.
+
+**Timezone (fixed 2026-05-29):** day-of-week rotation, weekly-rolling week math, and the after-hours window are all evaluated in the **business's local timezone** (`business.timezone`, default `America/New_York`), not UTC. Previously used UTC, which returned the wrong tech in the evening once UTC rolled past midnight. Both `routers/oncall.py` and `services/oncall_notifier.py` use a `_business_local_now()` helper.
+
+**Phone normalization:** emergency dispatch normalizes both the from- and to-numbers to E.164, so a tech stored with a bare 10-digit number still receives the alert.
 
 ### Calendar Links
 Every appointment gets a unique `calendar_token` at creation. Public endpoints at `/cal/{token}` serve:
@@ -803,7 +817,7 @@ The API does not differentiate impersonation — it's a valid JWT for the busine
 ## 21. Platform Capability Status
 
 ### ✅ Fully Built
-Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars)
+Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone)**, **emergency SMS dispatch (tested end-to-end)** — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164)
 
 ### ⚠️ Partially Built
 - **Online self-booking widget** — availability engine at `/api/availability` fully built; no public-facing booking widget UI yet (Professional plan feature)
@@ -908,9 +922,9 @@ These are recurring tasks that keep the platform running correctly. Most are low
 ## 24. Build Roadmap
 
 ### Next Session Priorities (in order)
-1. **Test on-call rotation + override** — configure on-call tech in dashboard, verify `/api/oncall/current` returns correct tech
-2. **Test emergency dispatch** — submit contact form or SMS describing emergency, verify AI triggers emergency_dispatch tool, on-call tech receives alert
-3. **Build recurring appointments UI** — backend router + model complete, need frontend page (`/recurring`)
+1. ✅ **Test on-call rotation + override** — DONE 2026-05-29. Day-of-week rotation, manual override (beats rotation), clear-override, and fallback all verified via `/api/oncall/current` and the dashboard card. Timezone bug found and fixed.
+2. ✅ **Test emergency dispatch** — DONE 2026-05-29. Emergency SMS → AI qualifying questions → in-chat address confirmation → on-call tech alerted (with address + issue) → `emergency`-status appointment created with no automated notifications. Fully working. See `docs/on-call-emergency-testing.md`.
+3. **Build recurring appointments UI** — backend router + model complete, need frontend page (`/recurring`).
 4. **Build self-scheduling booking widget** — public-facing widget UI; availability engine already complete. Phase 1: internal only (no external calendar API). Phase 2: Google Calendar. Phase 3: Outlook/Exchange.
 
 ### Roadmap (later)
@@ -1082,6 +1096,17 @@ $result.url  # open in browser — $2 total, refund immediately after
 ## 30. Activity Log
 
 ### Features Built by Session
+
+**2026-05-29 (on-call testing + emergency dispatch hardening):**
+- **On-call timezone fix** — rotation (day-of-week + weekly-rolling) and the after-hours window now evaluate in business-local time (`business.timezone`) instead of UTC, in both `routers/oncall.py` and `services/oncall_notifier.py` via a new `_business_local_now()` helper. Previously returned the wrong tech in the evening once UTC passed midnight. Verified: Friday rotation correctly returns Friday's tech at 4:30 PM local.
+- **On-call config save bug** — `OnCallPage.jsx` sent `rolling_start_date: ""` (empty string) in day-of-week mode → 422 on the PUT → "Failed to save settings." Now sends `null`.
+- **Emergency dispatch phone normalization** — `dispatch_emergency` normalizes both from- and to-numbers to E.164, so a tech stored as bare 10-digit still gets the alert.
+- **Emergency → appointment** — `emergency_dispatch` now creates an `emergency`-status appointment (dedicated "Emergency Service" type, on-call tech, scheduled now, no automated notifications). Excluded from reminder/OTW/kickoff scheduler jobs. Soft-deleted customers skipped in the phone lookup.
+- **In-chat address capture** — the agent's `emergency_dispatch` tool gained a `service_address` field; the prompt instructs the AI to confirm/collect the service address before dispatching. Address flows into the tech alert SMS (new `Address:` line in the default emergency template) and into the appointment.
+- **Dashboard** — `emergency` status renders a bold red badge, is selectable/filterable, and "Mark Complete" works on it (`AppointmentsPage.jsx`).
+- **Customer-facing phone formatting** — new `app/utils/phone.py` `format_phone_display()` → `(321) 386-7604`, applied to SMS agent replies, contact responder (prompt + email + context block), and notification templates (`{{business_phone}}` + email footer). Tech emergency alert intentionally kept in E.164.
+- **Testing** — on-call rotation/override + emergency dispatch fully tested end-to-end (see `docs/on-call-emergency-testing.md`).
+- Files: `routers/oncall.py`, `services/oncall_notifier.py`, `services/scheduler.py`, `services/sms_agent.py`, `services/contact_responder.py`, `services/template_renderer.py`, `models/notification_template.py`, `utils/phone.py` (new), `frontend/dashboard/src/pages/OnCallPage.jsx`, `frontend/dashboard/src/pages/AppointmentsPage.jsx`.
 
 **2026-05-26 (major dev day — 15 commits):**
 - Customer form: split address into street/city/state/zip; fixed `[object Object]` rendering bug

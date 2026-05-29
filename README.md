@@ -138,6 +138,7 @@ See `docs/founder-client-onboarding.md`.
 - Customer record enriched with email, address, city, state, zip from contact submission
 - `SmsConversation.status` → `"booked"` after successful booking
 - Stale conversations (>30 days or booked/escalated) closed and fresh one created on new form submission
+- **Emergency flow:** `emergency_dispatch` tool — AI asks qualifying questions, confirms/collects the service address, alerts the on-call tech (address + issue in the SMS), and creates an `emergency`-status appointment (no automated notifications; excluded from scheduler jobs). On-call rotation + after-hours evaluated in business-local time.
 
 ---
 
@@ -151,6 +152,7 @@ See `docs/founder-client-onboarding.md`.
 | `otw_morning_kickoff` | 2h before tech's first appointment; "no jobs" variant 7–8am local |
 | `otw_customer` | Tech replies YES to OTW prompt |
 | `review_request` | Tech replies YES to complete prompt |
+| `emergency_dispatch` | SMS agent detects emergency → alerts on-call tech + creates an `emergency`-status appointment |
 
 **Manual triggers** (Developer Tools in Settings):
 - `POST /api/admin/trigger/reminders`
@@ -181,11 +183,11 @@ See `docs/founder-client-onboarding.md`.
 | Platform admin impersonation | Amber banner, localStorage stash/restore |
 | Forgot password / reset | 1-hour token, auto-login after reset |
 | Notification templates | 12 editable per-business |
-| On-call rotation + override | Emergency dispatch via SMS agent |
+| **On-call rotation + override** | Tested end-to-end; business-local timezone. Day-of-week, override (beats rotation), and fallback all verified |
+| **Emergency dispatch → appointment** | Tested. AI captures address in chat, alerts on-call tech, creates `emergency`-status appointment, no auto-notifications |
 | Calendar invite links | .ics + Google/Apple/Outlook/Yahoo |
 | Soft delete | Appointments, customers, contact submissions |
 | Twilio phone number in Settings | Platform admin sets per-business number from dashboard |
-| Soft delete | Appointments, customers, contact submissions |
 
 ### ⏳ Built — Pending Test
 
@@ -205,10 +207,10 @@ See `docs/founder-client-onboarding.md`.
 
 | Priority | Task | Notes |
 |---|---|---|
-| 1 | Test on-call rotation + override | Configure rotation in dashboard, verify current on-call API |
-| 2 | Test emergency dispatch | SMS emergency → AI triggers dispatch → on-call tech alerted |
-| 3 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page |
-| 4 | Build self-scheduling booking widget | Availability engine complete, need public widget UI |
+| ✅ | ~~Test on-call rotation + override~~ | DONE 2026-05-29 — verified end-to-end; timezone bug fixed |
+| ✅ | ~~Test emergency dispatch~~ | DONE 2026-05-29 — AI captures address, tech alerted, `emergency` appointment created |
+| 1 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page |
+| 2 | Build self-scheduling booking widget | Availability engine complete, need public widget UI |
 
 ### ❌ Not Yet Built (Roadmap)
 
@@ -313,10 +315,24 @@ cd frontend/dashboard && npm install && npm run dev  # http://localhost:5173
 - **Wrong LLM_MODEL** — silently causes "Error" status on contact submissions. Check startup log for `LLM model validated OK`.
 - **Migrations** — always `ALTER TABLE ADD COLUMN IF NOT EXISTS` in `run_migrations()`. Never Alembic.
 - **Slot timezone** — all slots stored in UTC, displayed in business local time. Naive datetimes from the agent are treated as business local time before UTC conversion.
+- **On-call timezone** — rotation day-of-week + after-hours window evaluate in business-local time, not UTC. If `/api/oncall/current` returns the wrong tech, check `business.timezone`.
+- **Customer-facing phone display** — use `app/utils/phone.format_phone_display()` for any phone shown to customers → `(321) 386-7604`. The tech emergency alert intentionally stays E.164 (`+1…`) since it's tap-to-dial only.
 
 ---
 
 ## Changelog
+
+### 2026-05-29 — On-Call & Emergency Dispatch (Tested + Hardened)
+- On-call rotation + override + fallback tested end-to-end via `/api/oncall/current` and the dashboard card
+- **Timezone fix:** rotation + after-hours now evaluate in business-local time (was UTC) — `routers/oncall.py`, `services/oncall_notifier.py`
+- Fixed on-call config save (empty-string `rolling_start_date` → 422)
+- Emergency dispatch normalizes tech phone to E.164
+- Emergency dispatch now creates an `emergency`-status appointment (dedicated Emergency Service type, on-call tech, no auto-notifications, excluded from reminder/OTW/kickoff jobs)
+- SMS agent collects the service address in chat for emergencies; address flows to the tech alert + appointment
+- Soft-deleted customers skipped in the emergency phone lookup
+- `emergency` status: red dashboard badge, filter button, Mark Complete enabled
+- Customer-facing phone numbers formatted `(321) 386-7604` (SMS agent, contact responder, notification templates); new `app/utils/phone.py`. Tech alert stays E.164.
+- Full test plan + results: `docs/on-call-emergency-testing.md`
 
 ### 2026-05-29 — Testing Plan Completion & Bug Fixes
 - Embed form JS payload was missing address fields entirely (root cause of address never saving)
