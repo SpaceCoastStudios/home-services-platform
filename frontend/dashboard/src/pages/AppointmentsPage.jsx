@@ -197,6 +197,7 @@ export default function AppointmentsPage() {
   const [editError, setEditError] = useState('')
 
   const openEdit = (appt) => {
+    console.log("[openEdit] technician_id:", appt.technician_id, "type:", typeof appt.technician_id)
     setEditAppt(appt)
     setEditForm({
       address: appt.address || '',
