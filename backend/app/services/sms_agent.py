@@ -404,7 +404,7 @@ def _tool_create_booking(
         technician_id=tech_id,
         scheduled_start=appt_start,
         scheduled_end=appt_end,
-        status="pending",
+        status="confirmed",
         source="sms",
         address=inp.get("address", ""),
         notes=inp.get("notes", "Booked via SMS"),
@@ -417,9 +417,7 @@ def _tool_create_booking(
     convo.status = "booked"
     convo.appointment_id = appointment.id
 
-    # Send confirmation SMS
-    _send_booking_confirmation(business, customer, appointment, service)
-
+    # Note: agent sends a confirmation reply naturally — no separate SMS needed
     db.commit()
 
     logger.info(
@@ -552,6 +550,7 @@ Your goal is to book appointments. To do that you need:
 
 {known_info_block}Collect these naturally through conversation — don't fire all questions at once.
 Use the check_availability tool before suggesting times.
+When the customer picks a slot (e.g. "Friday at 6:30"), use the EXACT date you offered them -- do NOT re-calculate the date from the day name. If you offered "Friday, May 30 at 6:30 PM", book May 30, not whatever date you think "next Friday" is.
 Use the create_booking tool only once you have all 4 pieces confirmed.
 Use escalate_to_human if you can't resolve something after 2 attempts.
 {emergency_section}
