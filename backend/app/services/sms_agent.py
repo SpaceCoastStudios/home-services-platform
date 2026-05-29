@@ -323,6 +323,14 @@ def _tool_check_availability(db: Session, business: Business, inp: dict) -> dict
         logger.warning("sms_agent: check_availability error: %s", exc)
         return {"error": "Could not retrieve availability. Ask the customer to call."}
 
+    # Convert slots to business local timezone for display
+    import pytz as _pytz
+    biz_tz_str = getattr(business, "timezone", None) or "America/New_York"
+    try:
+        biz_tz = _pytz.timezone(biz_tz_str)
+    except Exception:
+        biz_tz = _pytz.timezone("America/New_York")
+
     # Flatten to a readable list (max 10 slots)
     slots = []
     for day in raw_slots:
@@ -331,10 +339,12 @@ def _tool_check_availability(db: Session, business: Business, inp: dict) -> dict
                 break
             start_dt = slot["start"]
             if isinstance(start_dt, datetime):
+                # Convert UTC to business local time for display
+                local_dt = start_dt.astimezone(biz_tz) if start_dt.tzinfo else start_dt
                 slots.append({
-                    "date": start_dt.strftime("%A, %B %d"),
-                    "time": start_dt.strftime("%I:%M %p").lstrip("0"),
-                    "iso": start_dt.isoformat(),
+                    "date": local_dt.strftime("%A, %B %d"),
+                    "time": local_dt.strftime("%I:%M %p").lstrip("0"),
+                    "iso": start_dt.isoformat(),  # Keep UTC ISO for create_booking
                 })
         if len(slots) >= 10:
             break
@@ -371,7 +381,14 @@ def _tool_create_booking(
         raw_dt = raw_dt.replace("T", " ").replace("Z", "").strip()
         appt_start = datetime.fromisoformat(raw_dt)
         if appt_start.tzinfo is None:
-            appt_start = appt_start.replace(tzinfo=timezone.utc)
+            # Treat as business local time (customer-facing), convert to UTC for storage
+            import pytz as _pytz2
+            _biz_tz_str = getattr(business, "timezone", None) or "America/New_York"
+            try:
+                _biz_tz = _pytz2.timezone(_biz_tz_str)
+            except Exception:
+                _biz_tz = _pytz2.timezone("America/New_York")
+            appt_start = _biz_tz.localize(appt_start).astimezone(timezone.utc)
     except (ValueError, KeyError) as exc:
         return {"error": "Could not parse the appointment date/time. Use YYYY-MM-DD HH:MM format, e.g. 2026-06-01 12:00."}
 

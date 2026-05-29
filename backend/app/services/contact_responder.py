@@ -276,25 +276,30 @@ def _send_reply_sms(db, business: Business, submission: ContactSubmission, reply
                 db.flush()
                 existing = None
                 logger.info("contact_responder: closed prior convo for %s, starting fresh for new submission", submission.phone)
-            # Build seed context from contact form data
-            context_parts = ["Hi, I submitted a contact form on your website."]
-            if submission.name:
-                context_parts.append("My name is {}.".format(submission.name))
-            if submission.service_requested:
-                context_parts.append("I need: {}.".format(submission.service_requested))
-            if submission.problem_description:
-                context_parts.append("Issue: {}".format(submission.problem_description[:120]))
-            if submission.preferred_date:
-                context_parts.append("Preferred date: {}.".format(submission.preferred_date))
+            # Build seed message that looks like a natural customer text.
+            # The agent trusts info the customer "said" in chat much more than
+            # system prompt assertions -- so we format this as a real first message.
+            name = submission.name or ""
+            service = submission.service_requested or ""
             addr_parts = [p for p in [
                 submission.street_address,
                 submission.city,
                 submission.state,
                 submission.zip_code,
             ] if p]
-            if addr_parts:
-                context_parts.append("Service address: {}.".format(", ".join(addr_parts)))
-            seed_user_msg = " ".join(context_parts)
+            address = ", ".join(addr_parts)
+            # Build naturally -- "Hi, I'm [Name]. I need [Service] at [Address]."
+            seed_parts = ["Hi,"]
+            if name:
+                seed_parts.append("my name is {}.".format(name))
+            if service:
+                seed_parts.append("I need {} service.".format(service))
+            if address:
+                seed_parts.append("The address is {}.".format(address))
+            if submission.problem_description:
+                seed_parts.append("Issue: {}".format(submission.problem_description[:100]))
+            seed_parts.append("I saw some available times and would like to book.")
+            seed_user_msg = " ".join(seed_parts)
             now_iso = datetime.now(_tz.utc).isoformat()
             seed_messages = [
                 {"role": "user", "content": seed_user_msg, "ts": now_iso, "seeded": True},
@@ -443,8 +448,13 @@ def _build_context_block(business: Business, services: list, available_slots: li
                 start_dt = slot["start"]
                 end_dt = slot["end"]
                 if isinstance(start_dt, datetime):
-                    start_str = start_dt.strftime("%I:%M %p").lstrip("0")
-                    end_str = end_dt.strftime("%I:%M %p").lstrip("0")
+                    # Convert UTC slot to business local time for customer-facing display
+                    import pytz as _pytz
+                    _btz = _pytz.timezone(getattr(business, "timezone", None) or "America/New_York")
+                    _local_s = start_dt.astimezone(_btz) if start_dt.tzinfo else start_dt
+                    _local_e = end_dt.astimezone(_btz) if end_dt.tzinfo else end_dt
+                    start_str = _local_s.strftime("%I:%M %p").lstrip("0")
+                    end_str = _local_e.strftime("%I:%M %p").lstrip("0")
                 else:
                     start_str = str(start_dt)
                     end_str = str(end_dt)
