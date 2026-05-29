@@ -4,6 +4,8 @@
 > This is the single source of truth for project context, architecture, features, patterns, and status.
 > Last substantive update: 2026-05-28 (contact responder: channel routing, SMS consent gate, channel-aware AI prompt, SMS body fix; A2P docs corrected; periodic maintenance schedule added)
 
+> **Git workflow reminder:** Claude can run `git add` and `git commit` directly via Bash — do this after every logical unit of work rather than handing commands to Ryan. Claude **cannot** `git push` (requires GitHub credentials). After committing, tell Ryan to run `git push` and that's it. Never make Ryan do the add/commit steps.
+
 ---
 
 ## Table of Contents
@@ -1130,3 +1132,14 @@ $result.url  # open in browser — $2 total, refund immediately after
 - `8743402` — **Contact responder channel awareness + SMS truncation fix**:
   - AI reply now references only the customer's preferred contact channel. Pref "text" → "reply to this text"; "email" → "reply to this email"; "call" → mentions business phone, says we'll call. No more channel mismatches.
   - SMS truncation overhaul: old code took first paragraph (~155 chars — usually just the greeting "Hi Name,"). New code skips greeting lines (short line ending with comma), joins remaining paragraphs, caps at 300 chars (~2 SMS segments). Leads with actual useful content.
+- **SMS consent compliance (A2P):**
+  - `sms_consent: bool` column added to `ContactSubmission` model + migration (default `False`).
+  - Schema (`ContactFormSubmit`, `ContactSubmissionResponse`) and contact router updated to save it.
+  - SMS only sent when `sms_consent = True` — never assumed.
+  - Embed form consent checkbox made **optional** (no `required` attribute) per approved A2P campaign. Exact approved consent language: `(Optional) I agree to receive SMS messages... SMS consent is not required to submit this form or receive service.`
+  - Inline form hint: when "text" selected but consent unchecked → `"To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead."` Hint disappears when both are selected.
+- **Single-channel send logic:** Contact responder now sends via exactly one channel — text+consent=SMS only, everything else=email only. Prevents duplicate messages and language mismatches.
+- **`pref` scope bug fix:** `pref` was computed inside `_call_llm` (local scope) but referenced in `_process` after the call returned → `NameError`. Fixed by computing `pref` and `sms_consented` at the top of `_process` and passing `pref` into `_call_llm` as a parameter.
+- **A2P section corrected in CLAUDE.md:** Campaign is APPROVED with optional checkbox. Section now shows exact Twilio-verified campaign details (use case, keywords, consent language).
+- **Periodic Maintenance Schedule added** (Section 23): monthly/quarterly/annual/event-triggered task tables + quick diagnostic reference.
+- **Git workflow note added to CLAUDE.md header:** Claude handles `git add` + `git commit` via Bash; Ryan only needs to run `git push`.
