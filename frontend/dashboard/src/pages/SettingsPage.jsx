@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [savingReviewUrl, setSavingReviewUrl] = useState(false)
   const [twilioNumber, setTwilioNumber] = useState('')
   const [savingTwilio, setSavingTwilio] = useState(false)
+  const [twilioSaved, setTwilioSaved] = useState(false)
   const [triggerStatus, setTriggerStatus] = useState({})
 
   const triggerJob = async (job) => {
@@ -124,7 +125,8 @@ export default function SettingsPage() {
     try {
       await updateBusiness(activeBusinessId, { twilio_phone_number: twilioNumber || null })
       await refreshBusinesses()
-      setMessage('Twilio number saved')
+      setTwilioSaved(true)
+      setTimeout(() => setTwilioSaved(false), 3000)
     } catch (err) { setMessage('Error: ' + err.message) }
     setSavingTwilio(false)
   }
@@ -386,10 +388,11 @@ export default function SettingsPage() {
               <Save size={16} /> {savingTwilio ? 'Saving...' : 'Save Number'}
             </button>
           </div>
-          {activeBusiness?.twilio_phone_number && (
-            <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-              <Check size={12} /> Active: {activeBusiness.twilio_phone_number}
-            </p>
+          {twilioSaved && (
+            <p className="text-xs text-green-600 mt-2 flex items-center gap-1"><Check size={12} /> Saved!</p>
+          )}
+          {!twilioSaved && activeBusiness?.twilio_phone_number && (
+            <p className="text-xs text-gray-400 mt-2">Current: {activeBusiness.twilio_phone_number}</p>
           )}
         </section>
       )}
