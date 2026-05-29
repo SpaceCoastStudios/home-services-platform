@@ -17,6 +17,7 @@ from app.models.appointment import Appointment
 from app.models.business import Business
 from app.models.notification_template import NotificationTemplate, DEFAULTS
 from app.utils.ics_generator import get_all_calendar_links
+from app.utils.phone import format_phone_display
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ def _build_vars(business: Business, appointment: Appointment) -> dict:
         "address": appointment.address or (customer.address if customer and hasattr(customer, "address") else "") or "",
         "calendar_link": calendar_link,
         "cal_links": cal_links,
-        "business_phone": business.phone or "",
+        "business_phone": format_phone_display(business.phone) or "",
     }
 
 
@@ -113,7 +114,7 @@ def render_sms_raw(event_type: str, db: Session, business: Business, **kwargs) -
     _, body = _load_template(db, business.id, event_type, "sms")
     vars = {
         "business_name": business.name or "",
-        "business_phone": business.phone or "",
+        "business_phone": format_phone_display(business.phone) or "",
         **kwargs,
     }
     return _render(body, vars)
@@ -180,7 +181,7 @@ def _build_html_email(plain_body: str, title: str, business: Business, cal_links
 
     contact_line = ""
     if business.phone:
-        contact_line += f'<a href="tel:{business.phone}" style="color:{brand_color};">{business.phone}</a>'
+        contact_line += f'<a href="tel:{business.phone}" style="color:{brand_color};">{format_phone_display(business.phone)}</a>'
     if business.email:
         sep = " &nbsp;|&nbsp; " if contact_line else ""
         contact_line += f'{sep}<a href="mailto:{business.email}" style="color:{brand_color};">{business.email}</a>'

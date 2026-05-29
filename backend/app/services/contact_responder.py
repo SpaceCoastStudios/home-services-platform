@@ -13,6 +13,7 @@ from app.models.business import Business
 from app.models.contact_submission import ContactSubmission
 from app.models.service_type import ServiceType
 from app.services.scheduling import get_available_slots
+from app.utils.phone import format_phone_display
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,7 @@ def _call_llm(business: Business, submission: ContactSubmission, context_block: 
             "They prefer a phone call -- close by letting them know you will be in touch "
             "by phone, and include the business phone number ({}) "
             "in case they want to call first. Do NOT say reply to this email.".format(
-                business.phone or "on file"
+                format_phone_display(business.phone) or "on file"
             )
         )
     elif pref == "email":
@@ -344,7 +345,7 @@ def _build_reply_html(business: Business, submission: ContactSubmission, reply_t
 
     contact_line = ""
     if business.phone:
-        contact_line += "<a href=\'tel:{p}\' style=\'color:{c};\'>{p}</a>".format(p=business.phone, c=brand_color)
+        contact_line += "<a href=\'tel:{p}\' style=\'color:{c};\'>{disp}</a>".format(p=business.phone, c=brand_color, disp=format_phone_display(business.phone))
     if business.email:
         sep = " &nbsp;|&nbsp; " if contact_line else ""
         contact_line += "{sep}<a href=\'mailto:{e}\' style=\'color:{c};\'>{e}</a>".format(sep=sep, e=business.email, c=brand_color)
@@ -414,7 +415,7 @@ def _build_context_block(business: Business, services: list, available_slots: li
     lines = []
     lines.append("BUSINESS: {}".format(business.name))
     if business.phone:
-        lines.append("Phone: {}".format(business.phone))
+        lines.append("Phone: {}".format(format_phone_display(business.phone)))
     if business.email:
         lines.append("Email: {}".format(business.email))
     if business.address:

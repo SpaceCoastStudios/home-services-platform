@@ -165,6 +165,7 @@ def _create_emergency_appointment(
         customer = db.query(Customer).filter(
             Customer.phone == customer_phone,
             Customer.business_id == business.id,
+            Customer.deleted_at == None,
         ).first()
         if not customer:
             parts = (customer_name or "Emergency Caller").split(None, 1)

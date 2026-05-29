@@ -27,6 +27,7 @@ from app.models.customer import Customer
 from app.models.service_type import ServiceType
 from app.models.sms_conversation import SmsConversation
 from app.services.scheduling import get_available_slots, auto_assign_technician
+from app.utils.phone import format_phone_display
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ def handle_inbound_sms(
     except Exception as exc:
         logger.error("sms_agent: error for convo %s: %s", convo.id, exc, exc_info=True)
         reply = (
-            f"Sorry, I ran into a hiccup. Please call {business.phone or business.name} "
+            f"Sorry, I ran into a hiccup. Please call {format_phone_display(business.phone) or business.name} "
             "directly and we'll get you sorted out."
         )
 
@@ -515,7 +516,7 @@ def _send_booking_confirmation(
         body = (
             f"✓ Confirmed! {service.name} with {business.name} on {date_str}. "
             f"Address: {appointment.address}. "
-            f"Questions? Reply or call {business.phone or 'us'}."
+            f"Questions? Reply or call {format_phone_display(business.phone) or 'us'}."
         )
         client.messages.create(body=body, from_=twilio_number, to=customer.phone)
     except Exception as exc:
@@ -623,7 +624,7 @@ Use escalate_to_human if you can't resolve something after 2 attempts.
 SERVICES OFFERED BY {business.name.upper()}:
 {service_lines}
 
-Business phone: {business.phone or "See website"}
+Business phone: {format_phone_display(business.phone) or "See website"}
 Always be warm, efficient, and professional. Never make up availability — use the tool."""
 
 
