@@ -447,6 +447,10 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
         sms_consent:              smsConsent,
         message:                  document.getElementById("message").value.trim(),
         problem_description:      problemText || null,
+        street_address:           document.getElementById("streetAddress").value.trim() || null,
+        city:                     document.getElementById("city").value.trim() || null,
+        state:                    document.getElementById("state").value.trim().toUpperCase() || null,
+        zip_code:                 document.getElementById("zipCode").value.trim() || null,
       }};
 
       try {{
