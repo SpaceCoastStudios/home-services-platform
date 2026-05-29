@@ -102,6 +102,7 @@ def _call_llm(business: Business, submission: ContactSubmission, context_block: 
             "They prefer text messages and your reply will be sent as an SMS. "
             "Keep the ENTIRE reply under 400 characters -- be warm but brief. "
             "Skip a long acknowledgment; get straight to 1-2 available slots and a CTA. "
+            "When listing slots, include the full date (e.g. 'Friday, May 30 at 6:30 PM') not just the day name. "
             "Close by inviting them to reply to this text with their preferred slot. Do NOT mention email."
         )
     elif pref == "call":
