@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-28 (added Section 23: Periodic Maintenance Schedule)
+> Last substantive update: 2026-05-28 (Pass 2: soft delete, Edit Details modal, technician UI splits, contact responder channel awareness + SMS fix)
 
 ---
 
@@ -757,7 +757,7 @@ The API does not differentiate impersonation — it's a valid JWT for the busine
 ## 21. Platform Capability Status
 
 ### ✅ Fully Built
-Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows), customer records (inline edit), service types, technician management, settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant)
+Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars)
 
 ### ⚠️ Partially Built
 - **Online self-booking widget** — availability engine at `/api/availability` fully built; no public-facing booking widget UI yet (Professional plan feature)
@@ -885,18 +885,25 @@ These are recurring tasks that keep the platform running correctly. Most are low
 ## 25. A2P 10DLC Compliance
 
 ### Current Status (as of May 2026)
-Campaign submitted for 5th time, under carrier review. Latest fix: SMS consent checkbox made **optional** (not required) — carriers reject campaigns where consent is a condition of service.
+**Campaign is APPROVED.** Do not change the consent flow without re-submitting to TCR — the live form must match the approved description exactly.
 
-### Rejection History
+### Rejection History (resolved)
 Rejected 5 times for "issues verifying the CTA." Root causes:
 1. Originally the marketing site `#contact` section showed a Calendly iframe with no phone field and no consent checkbox
-2. After adding the consent checkbox, it was marked `required` — TCR interpreted consent as a condition of service (violates carrier rules)
+2. Checkbox added but CTA URL didn't show a visible consent form
 
-### Current Consent Implementation
-- Checkbox is **optional** (no `required` attribute)
-- Label: "SMS consent is not required to submit this form or receive service"
-- Language: "By providing my phone number, I agree to receive SMS messages from Space Coast Studios, including appointment confirmations, reminders, and service-related notifications. Msg & data rates may apply. Reply STOP to opt out at any time. Reply HELP for help."
-- CTA URL for registration: `https://spacecoaststudios.com/#contact`
+### Approved Consent Implementation
+The campaign was approved with the following consent flow — **do not change any of this without updating the TCR registration**:
+- Checkbox is **required** — form will not submit without it
+- Consent language: "By providing my phone number, I agree to receive SMS messages from Space Coast Studios, including appointment confirmations, reminders, and service-related notifications. Msg & data rates may apply. Reply STOP to opt out at any time. Reply HELP for help."
+- CTA URL on file: `https://spacecoaststudios.com/#contact`
+- The embed form at `/embed/{slug}/contact` uses identical consent language and enforcement — both forms must stay in sync if language is ever updated
+
+### What Would Require a TCR Re-submission
+- Changing the consent checkbox from required to optional
+- Changing the consent language (even minor wording changes)
+- Changing the CTA URL
+- Adding a new use case (e.g. marketing/promotional SMS — currently registered as Mixed/transactional only)
 
 ### A2P Campaign Fields
 - Use Case: Mixed (confirmations, reminders, OTW, review requests, emergency dispatch)
@@ -1066,4 +1073,26 @@ $result.url  # open in browser — $2 total, refund immediately after
 ### Pending Monitoring Items
 - **A2P approval:** 5th submission under review. Check Twilio Console → Regulatory Compliance for status updates.
 - **Morning kickoff delivery:** Kickoff now fires 2 hours before first appointment (±15 min window), no time-of-day floor. Techs with no appointments get a "day off" text between 7–8 AM local. If a tech reports missing kickoff: check (1) appointment exists and is not cancelled/completed, (2) scheduler.py `_send_otw_morning_kickoffs` ran, (3) `notification_logs` for an existing `otw_morning_kickoff` entry. Use admin manual trigger to force-send.
-- **Contact queue / AI responder:** End-to-e
+- **Contact queue / AI responder:** End-to-end flow is built and deployed. Monitor `contact_submissions` table for `status = 'error'` entries. If AI replies fail, check DigitalOcean Runtime Logs for `404 not_found_error` (bad model string) or `anthropic.AuthenticationError` (bad API key). See Section 22 for model maintenance guide.
+- **Soft delete:** All three soft-delete models (`appointments`, `customers`, `contact_submissions`) use an `is_deleted` boolean column. Dashboard UI shows delete buttons; records disappear from all list views and availability checks immediately. No hard-delete path — recovery requires direct DB access if needed.
+
+---
+
+**2026-05-28 (Pass 2 — technician UI, soft delete, contact responder fixes):**
+- `85321e1` — **Edit Details modal** in AppointmentsPage: "Edit Details" option in 3-dot row menu opens a modal to set `problem_description`, address, technician, and notes directly from the dashboard. Added `problem_description` to `AppointmentUpdate` schema so PUT endpoint accepts it.
+- `fab4375` — `schedule_token` added to `TechnicianResponse` schema (was missing; API wasn't returning it so frontend couldn't build schedule page URLs).
+- `030ef7e` — **Schedule token shortened**: `token_urlsafe(12)` → 16-char token. Tech schedule URL drops from ~115 chars to ~66 chars (much cleaner in SMS). `run_migrations()` auto-regenerates any existing long tokens on deploy.
+- `80bdb60` — Fix `customer.name` → `customer.full_name` in tech schedule page and morning kickoff SMS. `Customer` model has `first_name`/`last_name` columns with a `full_name` property — there is no `.name` field. Was causing 500 on the tech schedule page.
+- `50744c3` — Tech SMS day-complete message now uses first name only (`tech.name.split()[0]`). "That's a wrap, Tyler!" not "That's a wrap, Tyler Durden!" Matches the casual tone of employee messages.
+- `4ca79a0` — **Technician first/last name split in UI** (frontend-only). Form splits existing `name` on open, joins on save. Last name optional, first name required. Underlying model still stores a single `name` column.
+- `9cf3d06` — **Soft delete** (appointments, customers, contact submissions):
+  - Added `is_deleted` boolean (default `False`) to `Appointment`, `Customer`, `ContactSubmission` models. Migrations in `run_migrations()`.
+  - All list endpoints + availability engine filter `is_deleted = False`.
+  - Dashboard: delete buttons added to AppointmentsPage, CustomersPage, ContactsPage row menus.
+  - Embed contact form now resets to blank after successful submission.
+  - Contact responder session fix: resolved a DB session/context issue causing AI responder failures.
+- `6b75ba7` — Fix LLM model string in `config.py` default + startup health check added to `main.py` (validates model at boot, logs prominent WARNING if unreachable). See Section 22.
+- `2a7e9bf` — Added Section 23: Periodic Maintenance Schedule to CLAUDE.md.
+- `8743402` — **Contact responder channel awareness + SMS truncation fix**:
+  - AI reply now references only the customer's preferred contact channel. Pref "text" → "reply to this text"; "email" → "reply to this email"; "call" → mentions business phone, says we'll call. No more channel mismatches.
+  - SMS truncation overhaul: old code took first paragraph (~155 chars — usually just the greeting "Hi Name,"). New code skips greeting lines (short line ending with comma), joins remaining paragraphs, caps at 300 chars (~2 SMS segments). Leads with actual useful content.
