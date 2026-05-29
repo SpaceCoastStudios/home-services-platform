@@ -185,8 +185,13 @@ def dispatch_emergency(
 
     try:
         from twilio.rest import Client
+        from app.services.notifications import _normalize_phone
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        client.messages.create(body=message_body, from_=from_number, to=tech_phone)
+        client.messages.create(
+            body=message_body,
+            from_=_normalize_phone(from_number),
+            to=_normalize_phone(tech_phone),
+        )
         logger.info(
             "oncall_notifier: dispatched emergency for business %s to %s (%s)",
             business.id, tech_name, tech_phone,
