@@ -340,7 +340,8 @@ Set on the **api component** in DigitalOcean App Platform. Sensitive values must
 | `SENDGRID_FROM_EMAIL` | ✅ | Default sender address (`noreply@spacecoaststudios.com`) |
 | `FROM_NAME` | — | Default sender name (`Space Coast Studios`) |
 | `ANTHROPIC_API_KEY` | ✅ | Claude API — SMS booking agent + contact AI responder |
-| `LLM_MODEL` | — | Default: `claude-haiku-4-5-20251001` — **must be a valid Anthropic model string** (see model maintenance note) |
+| `LLM_MODEL` | — | Default: `claude-haiku-4-5-20251001` — used by contact form auto-responder |
+| `SMS_AGENT_MODEL` | — | Default: `claude-sonnet-4-6` — used by SMS booking agent (needs stronger reasoning for multi-turn context) |
 | `STRIPE_SECRET_KEY` | ✅ | Stripe live secret key (`sk_live_...`) |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe webhook signing secret (`whsec_...`) |
 | `STRIPE_PRICE_STARTER_SETUP` | ✅ | Stripe price ID — Starter setup ($1,997) |
@@ -558,7 +559,7 @@ These are also accessible via the Developer Tools panel in the dashboard Setting
 ## 14. AI Systems
 
 ### SMS Booking Agent (`services/sms_agent.py`)
-- Model: set by `LLM_MODEL` env var (default `claude-haiku-4-5-20251001`) via Anthropic API with `tool_use`
+- Model: set by `SMS_AGENT_MODEL` env var (default `claude-sonnet-4-6`) via Anthropic API with `tool_use`
 - Runs up to **5 tool-call iterations** per inbound message
 - Maintains last **20 messages** of conversation history per thread
 - **4 Tools:** `check_availability`, `create_booking`, `escalate_to_human`, `emergency_dispatch`

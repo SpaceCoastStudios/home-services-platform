@@ -101,7 +101,7 @@ def _run_agent(db: Session, business: Business, convo: SmsConversation) -> str:
     # Agentic loop — Claude may call tools before producing a final reply
     for iteration in range(5):  # guard against infinite loops
         response = client.messages.create(
-            model=settings.LLM_MODEL,
+            model=settings.SMS_AGENT_MODEL,
             max_tokens=512,
             system=system_prompt,
             tools=tools,
