@@ -526,6 +526,7 @@ def booking_config(slug: str, db: Session = Depends(get_db)):
     services = db.query(ServiceType).filter(
         ServiceType.business_id == business.id,
         ServiceType.is_active == True,
+        ServiceType.category != "Emergency",   # internal dispatch type — not self-bookable
     ).order_by(ServiceType.name).all()
     return {
         "business_id": business.id,
@@ -606,6 +607,8 @@ def create_booking(slug: str, body: BookingRequest, db: Session = Depends(get_db
     ).first()
     if not service:
         raise HTTPException(status_code=404, detail="Service not found.")
+    if (service.category or "") == "Emergency":
+        raise HTTPException(status_code=400, detail="Emergency service cannot be booked online — please call us.")
 
     try:
         start = _to_utc(datetime.fromisoformat(body.slot_start.replace("Z", "+00:00")))
