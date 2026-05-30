@@ -168,6 +168,7 @@ See `docs/founder-client-onboarding.md`.
 | Feature | Notes |
 |---|---|
 | Contact form widget (embed) | Address, service, problem description, SMS consent — all fields save and transmit correctly |
+| **Self-scheduling booking widget (Phase 1)** | Public embed endpoints + UI; service → day → time → details → confirm; books a confirmed appt, assigns tech, fires confirmation; capacity-aware; tested end-to-end on demo tenant; embedded on demo page |
 | Contact form AI auto-responder | Channel routing, local timezone slots, 2-slot offer, 480-char SMS cap, draft mode |
 | **SMS booking agent (end-to-end)** | Form → AI reply → customer texts → agent books → confirmed appt, enriched customer record |
 | Appointment creation & management | Expandable rows, Edit Details modal (technician pre-populated), problem description, address |
@@ -200,8 +201,8 @@ See `docs/founder-client-onboarding.md`.
 
 | Feature | Notes |
 |---|---|
-| Self-scheduling booking widget | Availability engine complete; no public-facing widget UI yet |
 | Recurring appointments | Backend router + model built; no dashboard UI page |
+| Booking widget — calendar sync (Phase 2/3) | Phase 1 (internal) shipped; Google Calendar / Outlook two-way sync not yet built |
 
 ### 🎯 Next Session Priorities
 
@@ -210,7 +211,7 @@ See `docs/founder-client-onboarding.md`.
 | ✅ | ~~Test on-call rotation + override~~ | DONE 2026-05-29 — verified end-to-end; timezone bug fixed |
 | ✅ | ~~Test emergency dispatch~~ | DONE 2026-05-29 — AI captures address, tech alerted, `emergency` appointment created |
 | 1 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page |
-| 2 | Build self-scheduling booking widget | Availability engine complete, need public widget UI |
+| ✅ | ~~Build self-scheduling booking widget~~ | DONE 2026-05-30 — Phase 1 internal-only; built, tested, embedded on demo page |
 
 ### ❌ Not Yet Built (Roadmap)
 
@@ -231,7 +232,7 @@ See `docs/founder-client-onboarding.md`.
 |---|---|---|
 | AI Contact Responder | ✅ Built & tested | Matches description |
 | SMS Booking Agent | ✅ Built & tested | Matches description |
-| Self-Scheduling Booking Widget | ⚠️ Backend only | Advertised as a live Pro feature on the marketing site (owner decision, 2026-05-29). Public widget UI still pending — prioritize before the first Professional client goes live. |
+| Self-Scheduling Booking Widget | ✅ Built & tested (Phase 1) | Public booking widget shipped + tested 2026-05-30 (internal-only; no external calendar sync yet). Live on the demo page. Now matches the marketing claim. |
 | Emergency Dispatch | ✅ Built & tested | Via SMS agent tool |
 | Automated Notifications (confirmations, reminders, OTW) | ✅ Built & tested | Matches description |
 | Automated Review Requests | ✅ Built & tested | Fires on job completion |
@@ -278,7 +279,10 @@ Phone normalized to E.164 on submission. `sms_consent: true` required for SMS re
 
 ### Public Endpoints (no auth)
 - `POST /contact/submit?business_id=` — contact form
-- `GET /embed/{slug}/contact` — embeddable widget iframe
+- `GET /embed/{slug}/contact` — embeddable contact widget iframe
+- `GET /embed/{slug}/booking` — embeddable self-scheduling booking widget
+- `GET /embed/{slug}/booking-config`, `GET /embed/{slug}/availability` — booking widget data
+- `POST /embed/{slug}/book` — create a booking from the widget
 - `POST /webhook/sms/inbound` — Twilio inbound handler
 - `GET /schedule/tech/{token}` — technician daily schedule
 - `GET /cal/{token}[/google|/ical|/outlook|/yahoo]` — calendar links
@@ -319,6 +323,13 @@ cd frontend/dashboard && npm install && npm run dev  # http://localhost:5173
 ---
 
 ## Changelog
+
+### 2026-05-30 — Self-Scheduling Booking Widget (Phase 1, shipped + tested)
+- New public, slug-scoped endpoints in `routers/embed.py`: `booking-config`, `availability`, `book`, and the embeddable `booking` widget UI
+- Reuses the internal availability engine + `auto_assign_technician` + `send_confirmation`; honeypot + slot re-validation guard double-booking; internal Emergency Service type excluded from public booking
+- Widget: service → day → time → details → confirm; brand-colored; iframe auto-resize; "Book another" reset
+- Embedded live into `marketing-site/demo.html` section 2 (Live pill) with auto-resize
+- Tested end-to-end on the demo tenant: confirmed appts with tech + problem description, confirmation SMS/email, correct timezone, and capacity removal (a slot disappears once all qualified techs are booked)
 
 ### 2026-05-29 — On-Call & Emergency Dispatch (Tested + Hardened)
 - On-call rotation + override + fallback tested end-to-end via `/api/oncall/current` and the dashboard card
