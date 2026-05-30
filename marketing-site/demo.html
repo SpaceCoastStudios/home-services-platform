@@ -131,20 +131,14 @@
     <div class="sec-head">
       <div class="sec-num">2</div>
       <h2>Self-Scheduling Booking Widget</h2>
-      <span class="pill pill-soon">Coming Soon · Professional</span>
+      <span class="pill pill-live">Live · Professional</span>
     </div>
     <p class="sec-sub">The Professional-tier upgrade to the contact widget: customers see live calendar availability and book their own slot.</p>
-    <div class="soon-card">
-      <div class="em">📅</div>
-      <h3>In active development</h3>
-      <p>The scheduling engine (availability, technician assignment, buffers, business hours) is already built and powering the platform. The customer-facing booking UI is the piece being finished — it will live right here on this page first.</p>
-      <ul class="soon-list">
-        <li><span class="c">✓</span> Real-time availability pulled from the live calendar</li>
-        <li><span class="c">✓</span> Customer picks a service, date, and open time slot</li>
-        <li><span class="c">✓</span> Auto-assigns the right technician and confirms instantly</li>
-        <li><span class="c">✓</span> Booked and blocked times disappear automatically</li>
-      </ul>
+    <div class="widget-frame">
+      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live booking widget — Space Coast Studios demo account</span></div>
+      <iframe id="bookingFrame" src="https://api.spacecoaststudios.com/embed/default/booking" title="Live self-scheduling booking widget" loading="lazy" style="height:560px;"></iframe>
     </div>
+    <p class="frame-note">Widget not loading? Open it directly: <a href="https://api.spacecoaststudios.com/embed/default/booking" target="_blank" rel="noopener">api.spacecoaststudios.com/embed/default/booking</a></p>
   </div>
 </section>
 
@@ -215,5 +209,15 @@
   </div>
 </footer>
 
+<script>
+  // Auto-size the live booking iframe so it never shows an inner scroll bar.
+  window.addEventListener("message", function(e){
+    var d = e.data || {};
+    if(d.type === "scs_booking_resize" && typeof d.height === "number"){
+      var f = document.getElementById("bookingFrame");
+      if(f){ f.style.height = Math.max(360, d.height + 24) + "px"; }
+    }
+  });
+</script>
 </body>
 </html>
