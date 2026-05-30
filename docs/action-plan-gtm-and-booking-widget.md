@@ -39,7 +39,7 @@
 Your **55 businesses** (HVAC 20, Landscaping 20, Roofing 15) are loaded into **`SCS Prospect Tracker.xlsx`** (Test Project root) — one file that is the prospect list, outreach log, and pipeline, with a live Dashboard tab.
 - **Enrichment pass (do first, per prospect):** owner name (only 2/55 known), email (13 missing), website, Google Business rating + review count, and the **Response Gap?** flag — the gap is our strongest opener.
 - **Fit (1–5)** is pre-seeded by trade (HVAC 5, Landscaping 3, Roofing 2 — roofing is lower-fit: project-based, long cycle, less recurring/emergency). Adjust per prospect; set **Priority** High/Med/Low to decide work order.
-- **Add plumbing:** a top-fit trade not on the list yet — source ~10–15 Brevard plumbers during enrichment.
+- **New trade sheets added** to the tracker (Plumbing, Septic, Pool Service, House Cleaning, Tree Service, Pressure Washing) — ready-to-fill tabs. Compile **Plumbing, Septic, Pool Service, House Cleaning** first (cleanest fit); hold Tree/Pressure Washing until the quote/estimate workflow ships.
 - **Flags pre-noted in the tracker:** Paradise Air & Heat / Cool Rays share a phone (verify same company); Paradise Dumpsters tagged "Sell online booking" (may already have booking).
 - **Sources to expand the list:** Google Maps / Google Business, Yelp, Brevard contractor listings, Nextdoor/FB.
 - *Tip:* test each prospect's own responsiveness (after-hours form/call) — a slow reply is your opener.

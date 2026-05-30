@@ -930,7 +930,7 @@ These are recurring tasks that keep the platform running correctly. Most are low
 ### Next Session Priorities (in order)
 1. ✅ **Test on-call rotation + override** — DONE 2026-05-29. Day-of-week rotation, manual override (beats rotation), clear-override, and fallback all verified via `/api/oncall/current` and the dashboard card. Timezone bug found and fixed.
 2. ✅ **Test emergency dispatch** — DONE 2026-05-29. Emergency SMS → AI qualifying questions → in-chat address confirmation → on-call tech alerted (with address + issue) → `emergency`-status appointment created with no automated notifications. Fully working. See `docs/on-call-emergency-testing.md`.
-3. **Build recurring appointments UI** — backend router + model complete, need frontend page (`/recurring`).
+3. **Build recurring appointments UI ★ NEXT PRIORITY** — backend router + model complete, need frontend page (`/recurring`). Elevated: key fit-deepener for pool service + house cleaning (high local demand) and landscaping.
 4. ✅ **Build self-scheduling booking widget** — DONE 2026-05-30 (Phase 1 internal-only). Public endpoints + embeddable UI; booked/tested end-to-end on the demo tenant (incl. capacity removal); embedded on the demo page. Phase 2 (Google Calendar) / Phase 3 (Outlook) deferred.
 
 ### Roadmap (later)
@@ -940,6 +940,7 @@ These are recurring tasks that keep the platform running correctly. Most are low
 - Emergency contact form routing (wire urgency detection to on-call dispatch)
 - Notification template text audit and improvement
 - Custom URL shortener for review links
+- Quote / estimate workflow (request → estimate → quote → approve → schedule) — makes estimate-first trades (tree, pressure washing, roofing) a great fit
 
 ### Blocked / Pending
 - **Step 6 (morning kickoff no-appointments variant)** — testing tomorrow morning 7-8am local, auto-fires if tech has no appointments
