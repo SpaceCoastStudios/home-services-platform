@@ -4,7 +4,8 @@ import { Plus, X, ChevronLeft, ChevronRight, Clock, User, Calendar, Search, Repe
 import {
   getAppointments, createAppointment, cancelAppointment, updateAppointment, deleteAppointment,
   getCustomers, getServices, getTechnicians, getAvailability,
-  getRecurringSchedules, createRecurringSchedule, updateRecurringSchedule, deactivateRecurringSchedule,
+  getRecurringSchedules, createRecurringSchedule, updateRecurringSchedule,
+  deactivateRecurringSchedule, generateRecurringSchedule,
   adminResendConfirmation, adminSendReminder, adminSendReviewRequest,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
@@ -30,12 +31,18 @@ function formatDate(dateStr) {
 function formatTime(isoStr) {
   return new Date(isoStr).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
+function ordinal(n) {
+  const s = ['th','st','nd','rd']
+  const v = n % 100
+  return n + (s[(v-20)%10] || s[v] || s[0])
+}
 
 export default function AppointmentsPage() {
   const { activeBusinessId } = useBusinessContext()
   const [tab, setTab] = useState('appointments') // 'appointments' | 'recurring'
   const [appointments, setAppointments] = useState([])
   const [recurringSchedules, setRecurringSchedules] = useState([])
+  const [recurringAppts, setRecurringAppts] = useState([])   // all appts for history in recurring tab
   const [showCreate, setShowCreate] = useState(false)
   const [showRecurringCreate, setShowRecurringCreate] = useState(false)
   const [filter, setFilter] = useState('')
@@ -78,6 +85,14 @@ export default function AppointmentsPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
+  // Recurring row expand / edit
+  const [expandedRecurringId, setExpandedRecurringId] = useState(null)
+  const [editRecurring, setEditRecurring] = useState(null)
+  const [editRecForm, setEditRecForm] = useState({})
+  const [editRecError, setEditRecError] = useState('')
+  const [editRecSaving, setEditRecSaving] = useState(false)
+  const [generateMsg, setGenerateMsg] = useState('')
+
   const loadAppointments = async () => {
     if (activeBusinessId == null) return
     setLoading(true)
@@ -89,15 +104,20 @@ export default function AppointmentsPage() {
     setLoading(false)
   }
 
-  const loadRecurring = async () => {
+  const loadRecurringWithHistory = async () => {
     if (activeBusinessId == null) return
     try {
-      setRecurringSchedules(await getRecurringSchedules({}, activeBusinessId))
+      const [schedules, appts] = await Promise.all([
+        getRecurringSchedules({}, activeBusinessId),
+        getAppointments({ sort: 'oldest' }, activeBusinessId),
+      ])
+      setRecurringSchedules(schedules)
+      setRecurringAppts(appts)
     } catch (err) { console.error(err) }
   }
 
   useEffect(() => { loadAppointments() }, [filter, sort, activeBusinessId])
-  useEffect(() => { if (tab === 'recurring') loadRecurring() }, [tab, activeBusinessId])
+  useEffect(() => { if (tab === 'recurring') loadRecurringWithHistory() }, [tab, activeBusinessId])
 
   const loadLookups = async () => {
     const [c, s, t] = await Promise.all([
@@ -192,7 +212,7 @@ export default function AppointmentsPage() {
   }
 
   // Edit details modal
-  const [editAppt, setEditAppt] = useState(null)   // the appointment being edited
+  const [editAppt, setEditAppt] = useState(null)
   const [editForm, setEditForm] = useState({})
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState('')
@@ -310,7 +330,7 @@ export default function AppointmentsPage() {
       }
       await createRecurringSchedule(payload, activeBusinessId)
       setShowRecurringCreate(false)
-      loadRecurring()
+      loadRecurringWithHistory()
       loadAppointments()
     } catch (err) { setRecError(err.message) }
     setRecLoading(false)
@@ -318,13 +338,69 @@ export default function AppointmentsPage() {
 
   const handlePauseResume = async (schedule) => {
     await updateRecurringSchedule(schedule.id, { is_active: !schedule.is_active }, activeBusinessId)
-    loadRecurring()
+    loadRecurringWithHistory()
   }
 
   const handleDeactivate = async (id) => {
     if (!confirm('Stop this recurring series? Future appointments will not be cancelled.')) return
     await deactivateRecurringSchedule(id, activeBusinessId)
-    loadRecurring()
+    loadRecurringWithHistory()
+  }
+
+  // ── Edit recurring schedule ──────────────────────────────────────────────
+  const openEditRecurring = async (schedule) => {
+    if (technicians.length === 0) await loadLookups()
+    setEditRecurring(schedule)
+    setEditRecForm({
+      frequency: schedule.frequency,
+      preferred_day_of_week: schedule.preferred_day_of_week != null ? String(schedule.preferred_day_of_week) : '0',
+      preferred_day_of_month: schedule.preferred_day_of_month != null ? String(schedule.preferred_day_of_month) : '1',
+      preferred_time: (schedule.preferred_time || '09:00:00').substring(0, 5),
+      technician_id: schedule.technician_id != null ? String(schedule.technician_id) : '',
+      end_date: schedule.end_date || '',
+      notes: schedule.notes || '',
+      address: schedule.address || '',
+    })
+    setEditRecError('')
+  }
+
+  const handleEditRecurringSave = async () => {
+    setEditRecSaving(true); setEditRecError('')
+    try {
+      const payload = {
+        frequency: editRecForm.frequency,
+        preferred_time: editRecForm.preferred_time + ':00',
+        technician_id: editRecForm.technician_id ? parseInt(editRecForm.technician_id) : null,
+        end_date: editRecForm.end_date || null,
+        notes: editRecForm.notes || null,
+        address: editRecForm.address || null,
+      }
+      if (editRecForm.frequency === 'monthly') {
+        payload.preferred_day_of_month = parseInt(editRecForm.preferred_day_of_month)
+        payload.preferred_day_of_week = null
+      } else {
+        payload.preferred_day_of_week = parseInt(editRecForm.preferred_day_of_week)
+        payload.preferred_day_of_month = null
+      }
+      await updateRecurringSchedule(editRecurring.id, payload, activeBusinessId)
+      setEditRecurring(null)
+      loadRecurringWithHistory()
+    } catch (err) { setEditRecError(err.message) }
+    setEditRecSaving(false)
+  }
+
+  const handleGenerateNow = async (id) => {
+    try {
+      const res = await generateRecurringSchedule(id, activeBusinessId)
+      const n = res.generated
+      setGenerateMsg(`Generated ${n} new appointment${n !== 1 ? 's' : ''}`)
+      setTimeout(() => setGenerateMsg(''), 3000)
+      loadRecurringWithHistory()
+      loadAppointments()
+    } catch (err) {
+      setGenerateMsg('Generation failed')
+      setTimeout(() => setGenerateMsg(''), 3000)
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -336,6 +412,11 @@ export default function AppointmentsPage() {
           actionMsg.startsWith('✓') ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
         }`}>
           {actionMsg}
+        </div>
+      )}
+      {generateMsg && (
+        <div className="fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium bg-purple-600 text-white">
+          {generateMsg}
         </div>
       )}
 
@@ -521,50 +602,159 @@ export default function AppointmentsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <th className="px-6 py-3">Customer</th>
-                  <th className="px-6 py-3">Service</th>
-                  <th className="px-6 py-3">Schedule</th>
-                  <th className="px-6 py-3">Technician</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3">Actions</th>
+                  <th className="px-4 py-3 w-8"></th>
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Service</th>
+                  <th className="px-4 py-3">Schedule</th>
+                  <th className="px-4 py-3">Technician</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {recurringSchedules.map((s) => {
+                  const isExpanded = expandedRecurringId === s.id
                   const scheduleDesc = s.frequency === 'monthly'
-                    ? `Monthly on the ${s.preferred_day_of_month}${['st','nd','rd'][((s.preferred_day_of_month-1)%10)] || 'th'} at ${s.preferred_time}`
-                    : `${FREQ_LABELS[s.frequency]} on ${DOW_LABELS[s.preferred_day_of_week] || '?'} at ${s.preferred_time}`
+                    ? `Monthly on the ${ordinal(s.preferred_day_of_month)} at ${(s.preferred_time || '').substring(0,5)}`
+                    : `${FREQ_LABELS[s.frequency]} on ${DOW_LABELS[s.preferred_day_of_week] || '?'} at ${(s.preferred_time || '').substring(0,5)}`
+
+                  // Split history from upcoming for this schedule
+                  const schedAppts = recurringAppts.filter(a => a.recurring_schedule_id === s.id)
+                  const now = new Date()
+                  const upcoming = schedAppts
+                    .filter(a => new Date(a.scheduled_start) >= now && a.status !== 'cancelled')
+                    .slice(0, 5)
+                  const history = schedAppts
+                    .filter(a => new Date(a.scheduled_start) < now || a.status === 'cancelled')
+                    .slice(-5)
+                    .reverse()
+
                   return (
-                    <tr key={s.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium">{s.customer_name || '—'}</td>
-                      <td className="px-6 py-4 text-sm">{s.service_name || '—'}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-1.5">
-                          <Repeat size={13} className="text-purple-500 shrink-0" />
-                          <span>{scheduleDesc}</span>
-                        </div>
-                        {s.end_date && <div className="text-xs text-gray-400 mt-0.5">Until {s.end_date}</div>}
-                      </td>
-                      <td className="px-6 py-4 text-sm">{s.technician_name || 'Auto-assign'}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block text-xs font-medium rounded-full px-2.5 py-1 ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                          {s.is_active ? 'Active' : 'Paused'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-3 text-sm">
-                          <button onClick={() => handlePauseResume(s)}
-                            className="text-blue-600 hover:text-blue-800">
-                            {s.is_active ? 'Pause' : 'Resume'}
+                    <>
+                      <tr key={s.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => setExpandedRecurringId(isExpanded ? null : s.id)}
+                      >
+                        <td className="px-4 py-4">
+                          <button className="text-gray-400 hover:text-gray-600">
+                            {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                           </button>
-                          {s.is_active && (
-                            <button onClick={() => handleDeactivate(s.id)} className="text-red-600 hover:text-red-800">
-                              Stop
+                        </td>
+                        <td className="px-4 py-4 text-sm font-medium">{s.customer_name || '—'}</td>
+                        <td className="px-4 py-4 text-sm">{s.service_name || '—'}</td>
+                        <td className="px-4 py-4 text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <Repeat size={13} className="text-purple-500 shrink-0" />
+                            <span>{scheduleDesc}</span>
+                          </div>
+                          {s.end_date && <div className="text-xs text-gray-400 mt-0.5">Until {s.end_date}</div>}
+                        </td>
+                        <td className="px-4 py-4 text-sm">{s.technician_name || 'Auto-assign'}</td>
+                        <td className="px-4 py-4">
+                          <span className={`inline-block text-xs font-medium rounded-full px-2.5 py-1 ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            {s.is_active ? 'Active' : 'Paused'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex gap-3 text-sm" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => openEditRecurring(s)}
+                              className="text-gray-600 hover:text-gray-800 flex items-center gap-1">
+                              <Pencil size={13} /> Edit
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                            <button onClick={() => handlePauseResume(s)}
+                              className="text-blue-600 hover:text-blue-800">
+                              {s.is_active ? 'Pause' : 'Resume'}
+                            </button>
+                            {s.is_active && (
+                              <button onClick={() => handleDeactivate(s.id)} className="text-red-600 hover:text-red-800">
+                                Stop
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expanded detail row */}
+                      {isExpanded && (
+                        <tr key={`${s.id}-detail`} className="bg-purple-50/30">
+                          <td colSpan={7} className="px-6 py-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                              {/* Schedule details */}
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Series Details</h4>
+                                <dl className="space-y-2 text-sm">
+                                  <div className="flex gap-2">
+                                    <dt className="text-gray-400 w-24 shrink-0">Started</dt>
+                                    <dd className="text-gray-700">{s.start_date ? formatDate(s.start_date) : '—'}</dd>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <dt className="text-gray-400 w-24 shrink-0">Ends</dt>
+                                    <dd className="text-gray-700">{s.end_date ? formatDate(s.end_date) : 'Ongoing'}</dd>
+                                  </div>
+                                  {s.address && (
+                                    <div className="flex gap-2">
+                                      <dt className="text-gray-400 w-24 shrink-0">Address</dt>
+                                      <dd>
+                                        <a href={`https://maps.google.com/?q=${encodeURIComponent(s.address)}`}
+                                          target="_blank" rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline">{s.address}</a>
+                                      </dd>
+                                    </div>
+                                  )}
+                                  {s.notes && (
+                                    <div className="flex gap-2">
+                                      <dt className="text-gray-400 w-24 shrink-0">Notes</dt>
+                                      <dd className="text-gray-700">{s.notes}</dd>
+                                    </div>
+                                  )}
+                                </dl>
+                                <button
+                                  onClick={e => { e.stopPropagation(); handleGenerateNow(s.id) }}
+                                  disabled={!s.is_active}
+                                  className="mt-4 inline-flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-800 border border-purple-200 px-2.5 py-1.5 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                  <RefreshCw size={12} /> Generate appointments now
+                                </button>
+                              </div>
+
+                              {/* Appointment history */}
+                              <div>
+                                {upcoming.length > 0 && (
+                                  <>
+                                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Upcoming</h4>
+                                    <div className="space-y-1.5 mb-4">
+                                      {upcoming.map(a => (
+                                        <div key={a.id} className="flex items-center justify-between text-sm">
+                                          <span className="text-gray-700">{new Date(a.scheduled_start).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                          <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${STATUS_COLORS[a.status] || 'bg-gray-100'}`}>{a.status}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                                {history.length > 0 && (
+                                  <>
+                                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Recent History</h4>
+                                    <div className="space-y-1.5">
+                                      {history.map(a => (
+                                        <div key={a.id} className="flex items-center justify-between text-sm">
+                                          <span className="text-gray-500">{new Date(a.scheduled_start).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                                          <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${STATUS_COLORS[a.status] || 'bg-gray-100'}`}>{a.status}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </>
+                                )}
+                                {upcoming.length === 0 && history.length === 0 && (
+                                  <p className="text-sm text-gray-400">No appointments generated yet.</p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   )
                 })}
               </tbody>
@@ -595,7 +785,7 @@ export default function AppointmentsPage() {
                 <textarea
                   rows={3}
                   maxLength={500}
-                  placeholder="What's the issue? Any details help the tech come prepared…"
+                  placeholder="What's the issue? Any details help the tech come prepared..."
                   value={editForm.problem_description}
                   onChange={e => setEditForm(f => ({ ...f, problem_description: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
@@ -632,7 +822,7 @@ export default function AppointmentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Internal Notes</label>
                 <textarea
                   rows={2}
-                  placeholder="Gate code, parking instructions, special requests…"
+                  placeholder="Gate code, parking instructions, special requests..."
                   value={editForm.notes}
                   onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
@@ -649,7 +839,112 @@ export default function AppointmentsPage() {
               </button>
               <button onClick={handleEditSave} disabled={editSaving}
                 className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-                {editSaving ? 'Saving…' : 'Save Changes'}
+                {editSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Recurring Schedule Modal ─────────────────────────────────── */}
+      {editRecurring && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-auto">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Repeat size={18} className="text-purple-600" />
+                  <h2 className="text-lg font-semibold">Edit Recurring Series</h2>
+                </div>
+                <p className="text-sm text-gray-500 mt-0.5">{editRecurring.customer_name} · {editRecurring.service_name}</p>
+              </div>
+              <button onClick={() => setEditRecurring(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+
+            {editRecError && <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm mb-4">{editRecError}</div>}
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                  <select value={editRecForm.frequency}
+                    onChange={e => setEditRecForm(f => ({ ...f, frequency: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Every 2 Weeks</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                {editRecForm.frequency !== 'monthly' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
+                    <select value={editRecForm.preferred_day_of_week}
+                      onChange={e => setEditRecForm(f => ({ ...f, preferred_day_of_week: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                      {DOW_LABELS.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Day of Month</label>
+                    <input type="number" min="1" max="28"
+                      value={editRecForm.preferred_day_of_month}
+                      onChange={e => setEditRecForm(f => ({ ...f, preferred_day_of_month: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Time</label>
+                  <input type="time" value={editRecForm.preferred_time}
+                    onChange={e => setEditRecForm(f => ({ ...f, preferred_time: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Technician</label>
+                  <select value={editRecForm.technician_id}
+                    onChange={e => setEditRecForm(f => ({ ...f, technician_id: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">Auto-assign</option>
+                    {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date <span className="text-gray-400">(leave blank for ongoing)</span></label>
+                <input type="date" value={editRecForm.end_date}
+                  onChange={e => setEditRecForm(f => ({ ...f, end_date: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Service Address</label>
+                <input type="text" placeholder="123 Main St, City, FL"
+                  value={editRecForm.address}
+                  onChange={e => setEditRecForm(f => ({ ...f, address: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea rows={2} placeholder="Gate code, special instructions..."
+                  value={editRecForm.notes}
+                  onChange={e => setEditRecForm(f => ({ ...f, notes: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setEditRecurring(null)}
+                className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-200">
+                Cancel
+              </button>
+              <button onClick={handleEditRecurringSave} disabled={editRecSaving}
+                className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                {editRecSaving ? <><RefreshCw size={15} className="animate-spin" /> Saving...</> : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -831,7 +1126,7 @@ export default function AppointmentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
                 <select value={recForm.customer_id} onChange={e => setRecForm(f => ({ ...f, customer_id: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                  <option value="">Select a customer…</option>
+                  <option value="">Select a customer...</option>
                   {customers.map(c => <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.phone}</option>)}
                 </select>
               </div>
@@ -840,7 +1135,7 @@ export default function AppointmentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Service *</label>
                 <select value={recForm.service_type_id} onChange={e => setRecForm(f => ({ ...f, service_type_id: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                  <option value="">Select a service…</option>
+                  <option value="">Select a service...</option>
                   {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
                 </select>
               </div>
@@ -911,7 +1206,7 @@ export default function AppointmentsPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <textarea rows={2} placeholder="Gate code, special instructions…" value={recForm.notes}
+                <textarea rows={2} placeholder="Gate code, special instructions..." value={recForm.notes}
                   onChange={e => setRecForm(f => ({ ...f, notes: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
               </div>
@@ -924,7 +1219,7 @@ export default function AppointmentsPage() {
               </button>
               <button onClick={handleRecurringCreate} disabled={recLoading || !recForm.customer_id || !recForm.service_type_id}
                 className="flex-1 bg-purple-600 text-white py-2.5 rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {recLoading ? <><RefreshCw size={15} className="animate-spin" /> Creating…</> : <><Repeat size={15} /> Create Series</>}
+                {recLoading ? <><RefreshCw size={15} className="animate-spin" /> Creating...</> : <><Repeat size={15} /> Create Series</>}
               </button>
             </div>
           </div>
@@ -948,7 +1243,7 @@ export default function AppointmentsPage() {
             <div className="flex gap-3">
               <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
               <button onClick={handleDelete} disabled={deleting} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-60">
-                {deleting ? 'Deleting…' : 'Delete'}
+                {deleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
