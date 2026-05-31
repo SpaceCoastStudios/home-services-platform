@@ -210,7 +210,8 @@ See `docs/founder-client-onboarding.md`.
 |---|---|---|
 | ✅ | ~~Test on-call rotation + override~~ | DONE 2026-05-29 — verified end-to-end; timezone bug fixed |
 | ✅ | ~~Test emergency dispatch~~ | DONE 2026-05-29 — AI captures address, tech alerted, `emergency` appointment created |
-| 1 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page |
+| 1 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page — top priority (pool/cleaning fit) |
+| 2 | Demo-page polish (pre-demo prerequisite) | Size contact-widget iframe, realistic sample notifications, full click-through before live demos |
 | ✅ | ~~Build self-scheduling booking widget~~ | DONE 2026-05-30 — Phase 1 internal-only; built, tested, embedded on demo page |
 
 ### ❌ Not Yet Built (Roadmap)
@@ -220,7 +221,10 @@ See `docs/founder-client-onboarding.md`.
 | Visual calendar view (day/week/month) | Dashboard is list-only |
 | Customer portal | Magic link login, view/reschedule appointments |
 | Usage/analytics dashboard | Cross-tenant metrics |
+| Platform-admin activity log | Cross-tenant activity view to diagnose client-reported issues (NotificationLog + SMS already logged) |
 | Emergency contact form routing | Contact form urgency → on-call dispatch |
+| Booking widget calendar sync (Phase 2/3) | Google Calendar then Outlook two-way sync |
+| Quote / estimate workflow | request → estimate → quote → approve → schedule (unlocks tree/pressure-washing) |
 
 ---
 

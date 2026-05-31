@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-30 (Automated context-sync run confirmed all of today's work is captured. GTM groundwork for first founding client: 109-prospect tracker built + scored across 6 trades, verified competitor battlecard, and full cold-email sequence — see Activity Log + `docs/action-plan-gtm-and-booking-widget.md`. Booking widget Phase 1 shipped + tested earlier same day.)
+> Last substantive update: 2026-05-31 (Outreach assets finalized: cold-email sequence revised — booking+contact demo wording, {{Founding_Offer}} merge field, natural-language opt-outs + CAN-SPAM mailing-address footer, and a full 15-minute demo-call script; action-plan A6 updated to match. Roadmap: demo-page polish is now a ★ pre-demo prerequisite, and a platform-admin cross-tenant activity log was added. No code changes this session. Recurring Appointments UI remains the next build priority.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -949,6 +949,8 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 4. ✅ **Build self-scheduling booking widget** — DONE 2026-05-30 (Phase 1 internal-only). Public endpoints + embeddable UI; booked/tested end-to-end on the demo tenant (incl. capacity removal); embedded on the demo page. Phase 2 (Google Calendar) / Phase 3 (Outlook) deferred.
 
 ### Roadmap (later)
+- **Demo-page polish ★ pre-demo prerequisite** — before running live sales demos, polish `marketing-site/demo.html`: size the contact-widget iframe to fit (remove scroll bar; booking widget already auto-resizes), replace sample notification copy with realistic examples (incl. the tech "day off" empty state), full click-through. Do this before sending the demo link to prospects.
+- **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters, to diagnose client-reported issues. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
 - Visual calendar view (day/week/month) in dashboard
 - Customer portal (magic link login, view/reschedule)
 - Usage/analytics dashboard across tenants
@@ -1119,6 +1121,14 @@ $result.url  # open in browser — $2 total, refund immediately after
 ## 30. Activity Log
 
 ### Features Built by Session
+
+**2026-05-31 (outreach assets finalized — non-code):**
+- **Cold-email sequence revised** (`SCS Cold Email Sequence.docx`, Test Project root): demo CTA now "try the booking and contact widgets your customers would actually use"; removed the "90-second demo" line; every email's opt-out reworded to natural language with a CAN-SPAM **mailing-address footer** (`{{Mailing_Address}}` placeholder); Email #2 founding offer is now a **`{{Founding_Offer}}` merge field** (Starter vs Pro, chosen per prospect); added a full **15-minute demo-call script** (prospect drives the demo page themselves, then Ryan screen-shares the dashboard: Contacts queue → SMS Conversations → the created Appointment — there is no "notification log" screen).
+- **Action plan A6** (`docs/action-plan-gtm-and-booking-widget.md`) rewritten to match the new screen-share demo flow + the demo-page-polish gate.
+- **Roadmap** (`SCS Platform Roadmap.docx` + this file): demo-page polish reframed as a **pre-demo prerequisite**; added **platform-admin cross-tenant activity log** to Later/Growth.
+- **Fixed a broken working-tree file:** `frontend/dashboard/src/pages/AppointmentsPage.jsx` had a truncated/unclosed edit (missing closing `</div>)}`, would have failed the build); reverted via `git checkout --` after clearing a stale `.git/index.lock`. No intended changes lost.
+- Outreach is otherwise ready to send pending Ryan filling `{{Your_Phone}}` + `{{Mailing_Address}}` and the demo-page polish pass.
+
 
 **2026-05-30 (automated CLAUDE.md context-sync run — no code changes):**
 - Scheduled daily maintenance run. Reviewed `git log` (HEAD `3b3b0bb`, 20:03 today): today's GTM groundwork (109-prospect tracker, competitor battlecard, 5-touch cold-email sequence) and booking widget Phase 1 (shipped + tested) are already captured in this log and reflected in Sections 21–26. No new commits since the last update — nothing to reclassify in the capability/roadmap/A2P/CSA sections.
