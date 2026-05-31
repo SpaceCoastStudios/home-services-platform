@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- UNLISTED PAGE — do not link from nav, footer, or sitemap. For demo calls only. -->
+  <!-- UNLISTED PAGE - do not link from nav, footer, or sitemap. For demo calls only. -->
   <meta name="robots" content="noindex, nofollow" />
-  <title>Live Product Demo — Space Coast Studios (Private)</title>
+  <title>Live Product Demo - Space Coast Studios (Private)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -26,14 +26,16 @@
 
     header { background:linear-gradient(160deg,#0f172a 0%,#1e293b 100%); color:#fff; padding:56px 0 64px; }
     .badge {
-      display:inline-flex; align-items:center; gap:8px; background:rgba(249,115,22,0.15);
-      color:#fdba74; border:1px solid rgba(249,115,22,0.3); padding:6px 14px;
-      border-radius:100px; font-size:0.78rem; font-weight:600; margin-bottom:18px;
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(34,197,94,0.15); color:#86efac;
+      border:1px solid rgba(34,197,94,0.35);
+      padding:6px 14px; border-radius:100px;
+      font-size:0.78rem; font-weight:600; margin-bottom:18px;
     }
-    .badge span { width:6px; height:6px; background:var(--orange); border-radius:50%; }
+    .badge span { width:6px; height:6px; background:#22c55e; border-radius:50%; }
     header h1 { font-size:clamp(2rem,4vw,2.8rem); font-weight:900; letter-spacing:-0.02em; line-height:1.12; margin-bottom:14px; }
     header h1 em { font-style:normal; color:var(--orange); }
-    header p { color:#94a3b8; font-size:1.05rem; max-width:620px; }
+    header p { color:#94a3b8; font-size:1.05rem; max-width:640px; }
 
     section { padding:56px 0; border-bottom:1px solid var(--border); }
     .sec-head { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
@@ -54,7 +56,7 @@
     .widget-frame .bar { background:var(--navy); padding:10px 14px; display:flex; align-items:center; gap:7px; }
     .widget-frame .bar .d { width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.25); }
     .widget-frame .bar .u { margin-left:8px; color:rgba(255,255,255,0.55); font-size:0.72rem; }
-    .widget-frame iframe { width:100%; height:520px; border:0; display:block; background:#fff; }
+    .widget-frame iframe { width:100%; height:900px; border:0; display:block; background:#fff; }
     .frame-note { font-size:0.8rem; color:var(--slate); margin-top:10px; }
     .frame-note a { color:var(--orange); font-weight:600; text-decoration:none; }
 
@@ -73,15 +75,14 @@
     .sms { background:#e9f0ff; border-radius:12px 12px 12px 3px; padding:10px 13px; font-size:0.85rem; color:#1e293b; line-height:1.5; }
     .tag { display:inline-block; font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:100px; margin-bottom:8px; }
     .tag-blue { background:#dbeafe; color:#1d4ed8; }
-    .tag-green { background:#dcfce7; color:#15803d; }
     .tag-purple { background:#f3e8ff; color:#7e22ce; }
-    .tag-amber { background:#fef9c3; color:#a16207; }
 
-    /* Screenshot cards — real phone screenshots */
+    /* Screenshot cards - real phone screenshots */
     .phone .shot {
       width:100%; max-height:240px;
       object-fit:cover; object-position:top;
       display:block;
+      border-radius:0 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px);
     }
 
     /* Full-flow panels */
@@ -91,32 +92,29 @@
     .flow-panel .fp-head { padding:16px 18px 12px; border-bottom:1px solid var(--border); }
     .flow-panel .fp-head h3 { font-size:0.95rem; font-weight:700; margin-bottom:2px; }
     .flow-panel .fp-head p { font-size:0.8rem; color:var(--slate); }
-    .flow-panel .fp-body { padding:16px 18px; }
-    .shot-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .phone-shot {
-      border-radius:10px; overflow:hidden;
-      box-shadow:0 2px 12px rgba(0,0,0,0.18);
-    }
-    .phone-shot img { width:100%; display:block; max-height:440px; object-fit:cover; object-position:top; }
-    .phone-shot.tall img { max-height:520px; }
+    .flow-panel .fp-body { padding:16px 18px; display:flex; flex-direction:column; gap:12px; }
+    .phone-shot { border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.18); }
+    .phone-shot img { width:100%; display:block; max-height:460px; object-fit:cover; object-position:top; }
+    .phone-shot.tall img { max-height:560px; }
 
-    /* Tech schedule */
-    .sched-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+    /* Tech schedule section */
+    .sched-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; }
+    .sched-label { font-size:0.72rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
 
     footer { padding:36px 0 56px; }
     footer p { font-size:0.8rem; color:var(--slate); }
-    @media(max-width:640px){ .widget-frame iframe{ height:480px; } }
+    @media(max-width:640px){ .widget-frame iframe{ height:700px; } }
   </style>
 </head>
 <body>
 
-<div class="private-bar">&#128274; Private demo page &mdash; <span>not linked publicly.</span> For use on sales/demo calls only.</div>
+<div class="private-bar">&#128274; Private demo page. <span>Not linked publicly.</span> For use on sales/demo calls only.</div>
 
 <header>
   <div class="wrap">
     <div class="badge"><span></span> Live Product Demo</div>
     <h1>This is what your customers <em>actually experience.</em></h1>
-    <p>A working preview of the platform we build and manage for you &mdash; backed by a real demo account, not screenshots. Try the live widget below and see the automated flows that follow.</p>
+    <p>A working preview of the platform we build and manage for you, backed by a real demo account with live, interactive widgets. The notifications and messages you see below are real - pulled from actual test runs on the platform.</p>
   </div>
 </header>
 
@@ -128,9 +126,9 @@
       <h2>Contact Widget</h2>
       <span class="pill pill-live">Live &middot; Starter</span>
     </div>
-    <p class="sec-sub">The embeddable lead-capture form that goes on the client&rsquo;s website. Every submission triggers the AI responder, lands in the dashboard, and (with consent) can reply by text. This is the real, live widget &mdash; go ahead and submit a test.</p>
+    <p class="sec-sub">The embeddable lead-capture form that goes on your website. Every submission triggers the AI responder, lands in your dashboard, and can reply by text with customer consent. This is the real, live widget - go ahead and submit a test.</p>
     <div class="widget-frame">
-      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live contact widget &mdash; Space Coast Studios demo account</span></div>
+      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live contact widget - Space Coast Studios demo account</span></div>
       <iframe id="contactFrame" src="https://api.spacecoaststudios.com/embed/default/contact" title="Live contact widget demo" loading="lazy"></iframe>
     </div>
     <p class="frame-note">Widget not loading? Open directly: <a href="https://api.spacecoaststudios.com/embed/default/contact" target="_blank" rel="noopener">api.spacecoaststudios.com/embed/default/contact</a></p>
@@ -147,7 +145,7 @@
     </div>
     <p class="sec-sub">The Professional-tier upgrade: customers see live calendar availability and book their own slot without calling.</p>
     <div class="widget-frame">
-      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live booking widget &mdash; Space Coast Studios demo account</span></div>
+      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live booking widget - Space Coast Studios demo account</span></div>
       <iframe id="bookingFrame" src="https://api.spacecoaststudios.com/embed/default/booking" title="Live self-scheduling booking widget" loading="lazy" style="height:560px;"></iframe>
     </div>
     <p class="frame-note">Widget not loading? Open directly: <a href="https://api.spacecoaststudios.com/embed/default/booking" target="_blank" rel="noopener">api.spacecoaststudios.com/embed/default/booking</a></p>
@@ -162,36 +160,36 @@
       <h2>Automated Customer Communications</h2>
       <span class="pill pill-live">Live</span>
     </div>
-    <p class="sec-sub">Every message below fired automatically &mdash; no one typed them. Confirmations, reminders, on-the-way alerts, review requests, and emergency dispatch all run without any staff involvement.</p>
+    <p class="sec-sub">Every message below fired automatically. No one typed them. Confirmations, reminders, on-the-way alerts, review requests, and emergency dispatch all run without any staff involvement.</p>
 
     <!-- Quick-overview cards -->
     <div class="notif-grid">
 
-      <!-- Confirmation — real screenshot -->
+      <!-- Confirmation - real screenshot -->
       <div class="phone">
         <div class="who">Booking Confirmation &middot; SMS</div>
         <img class="shot" src="Customer%20Appointment%20Confirmation%20Text.png" alt="Booking confirmation SMS" />
       </div>
 
-      <!-- 24h Reminder — styled -->
+      <!-- 24h Reminder - styled -->
       <div class="phone">
         <div class="who">24-Hour Reminder &middot; SMS</div>
         <div class="body">
           <span class="tag tag-blue">Reminder</span>
-          <div class="sms">Reminder: your AC Repair appointment is tomorrow at 10:00 AM. Reply C to confirm or call us to reschedule.</div>
+          <div class="sms">Reminder: your AC Repair appointment is tomorrow at 10:00 AM. We'll see you then! Call us if anything changes.</div>
         </div>
       </div>
 
-      <!-- OTW — styled -->
+      <!-- OTW - styled -->
       <div class="phone">
         <div class="who">On The Way &middot; SMS</div>
         <div class="body">
           <span class="tag tag-purple">En route</span>
-          <div class="sms">Good news! Your technician Tyler is on the way and should arrive within 30 minutes. &#128665;</div>
+          <div class="sms">Good news! Your technician Tyler is on the way. We'll see you soon! &#128665;</div>
         </div>
       </div>
 
-      <!-- Review Request — real screenshot -->
+      <!-- Review Request - real screenshot -->
       <div class="phone">
         <div class="who">Review Request &middot; SMS</div>
         <img class="shot" src="Customer%20Review%20Request.png" alt="Review request SMS" />
@@ -203,7 +201,7 @@
     <div style="margin-top:36px;">
       <div style="margin-bottom:20px;">
         <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">See the real flows</h3>
-        <p style="font-size:0.9rem;color:var(--slate);">These are actual screenshots &mdash; no staging, no edits.</p>
+        <p style="font-size:0.9rem;color:var(--slate);">These are actual screenshots - no staging, no edits.</p>
       </div>
 
       <div class="flow-grid">
@@ -212,7 +210,7 @@
         <div class="flow-panel">
           <div class="fp-head">
             <h3>&#128680; Emergency AI dispatch</h3>
-            <p>Customer texts in an urgent situation &rarr; AI triages intelligently &rarr; on-call tech alerted with full context</p>
+            <p>Customer texts in an urgent situation. AI triages intelligently. On-call tech alerted with full context.</p>
           </div>
           <div class="fp-body">
             <div class="phone-shot tall">
@@ -221,20 +219,18 @@
           </div>
         </div>
 
-        <!-- Tech kickoff / OTW day cycle -->
+        <!-- Tech kickoff / OTW day cycle - stacked for readability -->
         <div class="flow-panel">
           <div class="fp-head">
             <h3>&#9728;&#65039; Full tech day cycle</h3>
-            <p>Morning kickoff &rarr; tech replies YES &rarr; stop-by-stop OTW flow &rarr; end-of-day wrap &mdash; all automated</p>
+            <p>Morning kickoff with the day's jobs. Tech replies YES at each stop. Automated all the way through the end-of-day wrap.</p>
           </div>
           <div class="fp-body">
-            <div class="shot-row">
-              <div class="phone-shot">
-                <img src="Tech%20Daily%20Kickoff%20thread%201.png" alt="Tech morning kickoff SMS and first YES reply" />
-              </div>
-              <div class="phone-shot">
-                <img src="Tech%20Daily%20Kickoff%20thread%202.png" alt="Tech OTW flow through end-of-day wrap" />
-              </div>
+            <div class="phone-shot">
+              <img src="Tech%20Daily%20Kickoff%20thread%201.png" alt="Tech morning kickoff SMS and first YES reply" />
+            </div>
+            <div class="phone-shot">
+              <img src="Tech%20Daily%20Kickoff%20thread%202.png" alt="Tech OTW flow through end-of-day wrap" />
             </div>
           </div>
         </div>
@@ -252,50 +248,45 @@
       <h2>Technician Daily Schedule</h2>
       <span class="pill pill-live">Live</span>
     </div>
-    <p class="sec-sub">Each technician gets a private mobile link (no login) showing their stops for the day &mdash; times, customers, addresses with one-tap maps, and the reported problem. Shared automatically in the morning kickoff text.</p>
+    <p class="sec-sub">Each technician gets a private mobile link (no login) showing their stops for the day - times, customers, addresses with one-tap maps, and the reported problem. The link is included in the morning kickoff text automatically.</p>
 
     <div class="sched-grid">
 
-      <!-- Active day mockup -->
-      <div class="phone" style="padding:0;">
-        <div class="who" style="padding:14px 16px 10px;">Tech schedule &mdash; active day</div>
-        <div style="padding:0 16px 16px;">
-          <div style="font-size:0.78rem;font-weight:700;color:var(--navy);margin-bottom:12px;">Tyler&rsquo;s Schedule &middot; Today</div>
-
-          <div style="border-left:3px solid var(--orange);padding:10px 12px;background:#fff7ed;border-radius:0 8px 8px 0;margin-bottom:10px;">
-            <div style="font-size:0.72rem;font-weight:700;color:var(--orange2);margin-bottom:4px;">STOP 1 &middot; 9:00 AM</div>
-            <div style="font-size:0.88rem;font-weight:600;">Jane Smith</div>
-            <div style="font-size:0.8rem;color:var(--slate);">AC Repair</div>
-            <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 123 Ocean Blvd, Cocoa &#8594;</div>
-            <div style="font-size:0.78rem;color:var(--slate);margin-top:3px;font-style:italic;">Unit not cooling &mdash; compressor noise</div>
-          </div>
-
-          <div style="border-left:3px solid #94a3b8;padding:10px 12px;background:var(--light);border-radius:0 8px 8px 0;margin-bottom:10px;">
-            <div style="font-size:0.72rem;font-weight:700;color:var(--slate);margin-bottom:4px;">STOP 2 &middot; 1:00 PM</div>
-            <div style="font-size:0.88rem;font-weight:600;">Mike Torres</div>
-            <div style="font-size:0.8rem;color:var(--slate);">Annual Tune-Up</div>
-            <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 47 Banana River Dr &#8594;</div>
-          </div>
-
-          <div style="border-left:3px solid #94a3b8;padding:10px 12px;background:var(--light);border-radius:0 8px 8px 0;">
-            <div style="font-size:0.72rem;font-weight:700;color:var(--slate);margin-bottom:4px;">STOP 3 &middot; 3:30 PM</div>
-            <div style="font-size:0.88rem;font-weight:600;">Lisa Carpenter</div>
-            <div style="font-size:0.8rem;color:var(--slate);">Filter Replacement</div>
-            <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 8812 Merritt Island Cswy &#8594;</div>
-          </div>
+      <!-- Morning kickoff SMS with schedule link - real screenshot -->
+      <div>
+        <div class="sched-label">What the tech receives each morning</div>
+        <div class="phone-shot" style="max-width:360px;">
+          <img src="Tech%20Kickoff%20Thread%20with%20schedule%20link.png" alt="Morning kickoff SMS showing jobs and schedule link" style="max-height:480px;object-fit:contain;background:#1c1c1e;" />
         </div>
       </div>
 
-      <!-- Day off — real screenshot -->
-      <div style="max-width:360px;">
-        <div style="font-size:0.72rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Tech schedule &mdash; day off</div>
-        <div class="phone-shot" style="border-radius:var(--radius);">
-          <img src="Tech%20Kickoff%20No%20Appointments.png" alt="Tech schedule showing no appointments today screen" style="max-height:480px;object-fit:contain;object-position:top;background:#f1f5f9;" />
+      <!-- Schedule page mockup - what they see when they click the link -->
+      <div>
+        <div class="sched-label">What they see when they tap the link</div>
+        <div class="phone" style="max-width:360px;padding:0;">
+          <div style="padding:14px 16px 12px;">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--navy);margin-bottom:12px;">Tyler's Schedule &middot; Today</div>
+
+            <div style="border-left:3px solid var(--orange);padding:10px 12px;background:#fff7ed;border-radius:0 8px 8px 0;margin-bottom:10px;">
+              <div style="font-size:0.72rem;font-weight:700;color:var(--orange2);margin-bottom:4px;">STOP 1 &middot; 11:00 AM</div>
+              <div style="font-size:0.88rem;font-weight:600;">David Chen</div>
+              <div style="font-size:0.8rem;color:var(--slate);">Plumbing Inspection</div>
+              <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 456 Palm Ave &#8594;</div>
+              <div style="font-size:0.78rem;color:var(--slate);margin-top:3px;font-style:italic;">Bathroom Remodel - wants inspection before starting</div>
+            </div>
+
+            <div style="border-left:3px solid #94a3b8;padding:10px 12px;background:var(--light);border-radius:0 8px 8px 0;">
+              <div style="font-size:0.72rem;font-weight:700;color:var(--slate);margin-bottom:4px;">STOP 2 &middot; 1:00 PM</div>
+              <div style="font-size:0.88rem;font-weight:600;">Susan Williams</div>
+              <div style="font-size:0.8rem;color:var(--slate);">Light Fixture Install</div>
+              <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 789 Citrus Blvd &#8594;</div>
+            </div>
+          </div>
         </div>
       </div>
 
     </div>
-    <p class="frame-note" style="margin-top:16px;">Live on every technician account &mdash; demo a real link on the call to show actual data.</p>
+    <p class="frame-note" style="margin-top:16px;">Live on every technician account. Demo a real link on the call to show actual data.</p>
   </div>
 </section>
 
@@ -306,7 +297,7 @@
 </footer>
 
 <script>
-  // Auto-size both live iframes so they never show an inner scroll bar.
+  // Auto-size both live iframes so they never show a scroll bar.
   window.addEventListener("message", function(e){
     var d = e.data || {};
     if(d.type === "scs_booking_resize" && typeof d.height === "number"){
