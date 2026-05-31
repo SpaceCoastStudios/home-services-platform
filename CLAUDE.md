@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-30 (self-scheduling booking widget Phase 1 shipped + tested; Cowork automated maintenance scheduled tasks created for quarterly LLM model check, quarterly dependency audit, monthly infrastructure check, and annual reminders)
+> Last substantive update: 2026-05-30 (GTM groundwork for first founding client: 109-prospect tracker built + scored across 6 trades, verified competitor battlecard, and full cold-email sequence — see Activity Log + `docs/action-plan-gtm-and-booking-widget.md`. Booking widget Phase 1 shipped + tested earlier same day.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -1120,6 +1120,15 @@ $result.url  # open in browser — $2 total, refund immediately after
 
 ### Features Built by Session
 
+**2026-05-30 (GTM / Track A groundwork — sales assets, non-code):**
+- **Prospect tracker expanded + scored** — `SCS Prospect Tracker.xlsx` (and a working copy `SCS Prospect Tracker Updated.xlsx`) in the Test Project root now holds **109 prospects** across 6 trade tabs: HVAC/Landscaping/Roofing (original 55 on the `Prospects` tab) + **Plumbing (13), Septic (14), Pool Service (19), House Cleaning (8)**; Tree Service + Pressure Washing tabs exist but intentionally empty (held until the quote/estimate workflow ships). Every prospect carries owner/email/website/GBP rating+reviews/Response-Gap notes, plus a computed **Priority** (57 High / 27 Medium / 25 Low, color-coded) and **Next Action**. Dashboard tab aggregates counts across all trade sheets.
+- **Scoring logic:** High = clear response gap + fit ≥4 (or a low-rating-but-busy "response-gap signal"); DIY-tool shops (Housecall Pro/Jobber/etc.) auto-set Low "skip/example"; roofing dropped to Low (estimate-first). Standouts: **Pool Service 15/19 High** (strongest founding pool), ARK Plumbing & Septic flagged as a "broken ServiceTitan" swoop-in.
+- **Competitor battlecard** — `SCS Competitor Comparison.xlsx` (Test Project root): side-by-side matrix of ServiceTitan, Housecall Pro, Jobber, Workiz, Service Fusion + SCS across ~19 data points, with **web-verified pricing (May 2026)** and a Notes/Positioning tab. Three positioning wedges: **done-for-you vs DIY, AI-first (included not add-on), and local.** Includes objection scripts.
+- **Cold email sequence** — `SCS Cold Email Sequence.docx` (Test Project root): core 3-email cadence (opener → outcome+founding offer → breakup) + **5 trade-specific Email #1 variants** (HVAC, Pool, Plumbing, Septic, House Cleaning) + "already have a system" rebuttal + phone/voicemail script. CAN-SPAM compliant; merge-field driven.
+- **New trades fact-checked** as plentiful in Brevard (web search): tree, pool, pressure washing, septic, house cleaning — all confirmed. Pool service + house cleaning flagged as best recurring-revenue fits (drove elevating the Recurring UI to top build priority).
+- All four files live in the Test Project root (outside the repo) — saved on Ryan's computer, not part of git pushes.
+
+
 **2026-05-30 (Cowork automated maintenance tasks):**
 - Created 4 Cowork scheduled tasks covering all periodic maintenance items from Section 23:
   - `scs-quarterly-llm-model-check` — runs Jan/Apr/Jul/Oct 1 at 9am; fetches Anthropic docs, validates `LLM_MODEL` + `SMS_AGENT_MODEL`, auto-updates `config.py` if deprecated, provides DO env var + git instructions
@@ -1233,23 +1242,4 @@ $result.url  # open in browser — $2 total, refund immediately after
 - `4ca79a0` — **Technician first/last name split in UI** (frontend-only). Form splits existing `name` on open, joins on save. Last name optional, first name required. Underlying model still stores a single `name` column.
 - `9cf3d06` — **Soft delete** (appointments, customers, contact submissions):
   - Added `is_deleted` boolean (default `False`) to `Appointment`, `Customer`, `ContactSubmission` models. Migrations in `run_migrations()`.
-  - All list endpoints + availability engine filter `is_deleted = False`.
-  - Dashboard: delete buttons added to AppointmentsPage, CustomersPage, ContactsPage row menus.
-  - Embed contact form now resets to blank after successful submission.
-  - Contact responder session fix: resolved a DB session/context issue causing AI responder failures.
-- `6b75ba7` — Fix LLM model string in `config.py` default + startup health check added to `main.py` (validates model at boot, logs prominent WARNING if unreachable). See Section 22.
-- `2a7e9bf` — Added Section 23: Periodic Maintenance Schedule to CLAUDE.md.
-- `8743402` — **Contact responder channel awareness + SMS truncation fix**:
-  - AI reply now references only the customer's preferred contact channel. Pref "text" → "reply to this text"; "email" → "reply to this email"; "call" → mentions business phone, says we'll call. No more channel mismatches.
-  - SMS truncation overhaul: old code took first paragraph (~155 chars — usually just the greeting "Hi Name,"). New code skips greeting lines (short line ending with comma), joins remaining paragraphs, caps at 300 chars (~2 SMS segments). Leads with actual useful content.
-- **SMS consent compliance (A2P):**
-  - `sms_consent: bool` column added to `ContactSubmission` model + migration (default `False`).
-  - Schema (`ContactFormSubmit`, `ContactSubmissionResponse`) and contact router updated to save it.
-  - SMS only sent when `sms_consent = True` — never assumed.
-  - Embed form consent checkbox made **optional** (no `required` attribute) per approved A2P campaign. Exact approved consent language: `(Optional) I agree to receive SMS messages... SMS consent is not required to submit this form or receive service.`
-  - Inline form hint: when "text" selected but consent unchecked → `"To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead."` Hint disappears when both are selected.
-- **Single-channel send logic:** Contact responder now sends via exactly one channel — text+consent=SMS only, everything else=email only. Prevents duplicate messages and language mismatches.
-- **`pref` scope bug fix:** `pref` was computed inside `_call_llm` (local scope) but referenced in `_process` after the call returned → `NameError`. Fixed by computing `pref` and `sms_consented` at the top of `_process` and passing `pref` into `_call_llm` as a parameter.
-- **A2P section corrected in CLAUDE.md:** Campaign is APPROVED with optional checkbox. Section now shows exact Twilio-verified campaign details (use case, keywords, consent language).
-- **Periodic Maintenance Schedule added** (Section 23): monthly/quarterly/annual/event-triggered task tables + quick diagnostic reference.
-- **Git workflow note added to CLAUDE.md header:** Claude handles `git add` + `git commit` via Bash; Ryan only needs to run `git push`.
+  - All list endpoints + availability engine filter
