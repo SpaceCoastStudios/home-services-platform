@@ -60,8 +60,14 @@
     .frame-note { font-size:0.8rem; color:var(--slate); margin-top:10px; }
     .frame-note a { color:var(--orange); font-weight:600; text-decoration:none; }
 
-    /* Notification overview cards */
-    .notif-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; }
+    /* Notification overview cards - fixed 2 columns for symmetrical 2x2 */
+    .notif-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+    }
+    @media(max-width:600px){ .notif-grid { grid-template-columns:1fr; } }
+
     .phone {
       background:#fff; border:1px solid var(--border); border-radius:var(--radius);
       box-shadow:0 4px 16px rgba(15,23,42,0.05); overflow:hidden;
@@ -69,27 +75,29 @@
     .phone .who {
       font-size:0.72rem; font-weight:700; color:var(--slate);
       text-transform:uppercase; letter-spacing:0.05em;
-      padding:14px 16px 10px;
+      padding:14px 16px 12px;
+      text-align:center;
     }
 
-    /* Screenshot cards - framed with all-corner radius */
+    /* Screenshot cards - centered with all-corner radius */
     .phone .shot {
       display:block;
-      width:calc(100% - 24px);
-      margin:0 12px 14px;
+      width:calc(100% - 32px);
+      margin:0 auto 16px;
       height:auto;
       border-radius:10px;
       box-shadow:0 2px 10px rgba(0,0,0,0.18);
     }
 
-    /* Full-flow panels - 3 wide */
+    /* Full-flow panels - 2x2 grid */
     .flow-grid {
       display:grid;
-      grid-template-columns:1fr 1fr 1fr;
+      grid-template-columns:1fr 1fr;
       gap:20px;
       margin-top:36px;
     }
-    @media(max-width:860px){ .flow-grid { grid-template-columns:1fr; } }
+    @media(max-width:700px){ .flow-grid { grid-template-columns:1fr; } }
+
     .flow-panel { background:#fff; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:0 4px 20px rgba(15,23,42,0.07); }
     .flow-panel .fp-head { padding:16px 18px 12px; border-bottom:1px solid var(--border); }
     .flow-panel .fp-head h3 { font-size:0.95rem; font-weight:700; margin-bottom:2px; }
@@ -100,7 +108,7 @@
     .phone-shot { border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.18); }
     .phone-shot img {
       width:100%; display:block; height:auto;
-      border-radius:10px; /* belt-and-suspenders for Safari */
+      border-radius:10px;
     }
 
     /* Tech schedule section */
@@ -168,7 +176,7 @@
     </div>
     <p class="sec-sub">Every message below fired automatically. No one typed them. Confirmations, reminders, on-the-way alerts, review requests, and emergency dispatch all run without any staff involvement.</p>
 
-    <!-- All-screenshot overview cards -->
+    <!-- 2x2 screenshot overview grid -->
     <div class="notif-grid">
       <div class="phone">
         <div class="who">Booking Confirmation &middot; SMS</div>
@@ -188,7 +196,7 @@
       </div>
     </div>
 
-    <!-- Full-flow panels - 3 wide, full screenshots -->
+    <!-- 2x2 full-flow panels -->
     <div style="margin-top:40px; margin-bottom:4px;">
       <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">See the real flows</h3>
       <p style="font-size:0.9rem;color:var(--slate);">These are actual screenshots - no staging, no edits.</p>
@@ -196,18 +204,33 @@
 
     <div class="flow-grid">
 
+      <!-- Top-left: emergency customer thread -->
       <div class="flow-panel">
         <div class="fp-head">
-          <h3>&#128680; Emergency AI dispatch</h3>
-          <p>Customer texts an emergency. AI triages. On-call tech alerted with full context.</p>
+          <h3>&#128680; Emergency AI dispatch - customer</h3>
+          <p>Customer texts an emergency. AI triages with qualifying questions and dispatches the on-call tech.</p>
         </div>
         <div class="fp-body">
           <div class="phone-shot">
-            <img src="Full%20Emergency%20Cold%20Text%20Thread%20with%20Tech%20Notification.png" alt="Emergency SMS conversation and tech dispatch" />
+            <img src="Emergency%20Text%20Thread.jpg" alt="Emergency customer SMS conversation with AI" />
           </div>
         </div>
       </div>
 
+      <!-- Top-right: emergency tech alert -->
+      <div class="flow-panel">
+        <div class="fp-head">
+          <h3>&#128680; Emergency AI dispatch - tech alert</h3>
+          <p>The on-call tech gets an immediate SMS with the customer's name, phone, address, and issue summary.</p>
+        </div>
+        <div class="fp-body">
+          <div class="phone-shot">
+            <img src="Emergency%20Text%20Tech%20Message.png" alt="Emergency tech dispatch SMS notification" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom-left: morning kickoff -->
       <div class="flow-panel">
         <div class="fp-head">
           <h3>&#9728;&#65039; Morning kickoff</h3>
@@ -220,6 +243,7 @@
         </div>
       </div>
 
+      <!-- Bottom-right: full OTW day cycle -->
       <div class="flow-panel">
         <div class="fp-head">
           <h3>&#9989; Full OTW day cycle</h3>
