@@ -70,6 +70,23 @@ The high-value flow: **the prospect drives the customer experience on the demo p
 - **13–15 min:** pricing + **5-spot founding** offer; A2P timeline expectation ("platform live in days; SMS features 2–4 weeks after carrier registration, which we start Day 1"); close to CSA + provisioning.
 - **Demo prerequisite:** the demo page must be polished first (see Roadmap — realistic sample notifications + iframe sizing) before running live demos.
 
+### A6.5. End-to-end demo readiness test
+**Trigger: CSA attorney review complete.** This is the gate before sending the demo link to any real prospect or booking a live call. Run it once when the CSA is signed off — you'll be in "ready to close" mode and need to know the full flow works cold.
+
+**What to test (~30 min):**
+1. Open `spacecoaststudios.com/demo.html` in a fresh browser (incognito, no cached state).
+2. **Contact widget (Section 1):** submit a test inquiry — real name/email, a test phone number, check the SMS consent box, pick a service, describe a problem. Verify: no scroll bar, form submits cleanly, success state appears.
+3. **Dashboard — Contacts queue:** submission appears, AI response shows (auto-send or draft depending on demo tenant setting), response copy reads naturally.
+4. **Booking widget (Section 2):** book a slot — pick service, day, time, fill in details, confirm. Verify: success screen shows, no errors, iframe auto-resizes.
+5. **Dashboard — Appointments:** new booking appears with correct service, tech auto-assigned, address populated, confirmation SMS + email fired (check the demo number).
+6. **Dashboard — Recurring tab:** open the Recurring Series tab, verify it loads cleanly (even if empty on demo).
+7. **Tech schedule page:** grab a technician's schedule link from the dashboard (Technicians → copy the schedule URL), open it on mobile — verify it renders and the active-day or day-off state looks right.
+8. **Notification screenshots (Section 3):** scroll through the demo page — confirm all 4 screenshot images load, the two full-flow panels (emergency + kickoff) render without distortion.
+9. **Dry run the A6 script:** run the full 15-min demo solo, timed. Confirm the "aha" moment (their own text landing) works and the dashboard screen-share flow is smooth.
+10. **Clean up:** cancel/delete the test appointment, note any rough edges to fix before the first real call.
+
+**If anything breaks:** fix it before outreach resumes. Log it here.
+
 ### A7. Close + contract
 - [ ] CSA signed (attorney-reviewed version).
 - [ ] Payment: founding client → manual provisioning per `docs/founder-client-onboarding.md`; or standard → Stripe Checkout.
