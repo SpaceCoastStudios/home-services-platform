@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-29 (on-call rotation + emergency dispatch tested end-to-end; on-call timezone bug fixed; emergency now creates an `emergency`-status appointment with in-chat address capture; customer-facing phone numbers formatted as (xxx) xxx-xxxx; docs updated)
+> Last substantive update: 2026-05-30 (self-scheduling booking widget Phase 1 shipped + tested; Cowork automated maintenance scheduled tasks created for quarterly LLM model check, quarterly dependency audit, monthly infrastructure check, and annual reminders)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -923,6 +923,21 @@ These are recurring tasks that keep the platform running correctly. Most are low
 | Stripe webhooks failing | Stripe → Developers → Webhooks → click endpoint → view failed events |
 | App won't start after deploy | DO Runtime Logs → look for migration errors or import errors |
 
+### Automated Scheduled Tasks (Cowork)
+
+The following maintenance tasks are automated via Cowork scheduled tasks (stored in `C:\Users\Ryan\Documents\Claude\Scheduled\`). They run while the Cowork app is open; if the app is closed at fire time, they run on next launch.
+
+| Task ID | Schedule | What It Does |
+|---------|----------|-------------|
+| `scs-quarterly-llm-model-check` | Quarterly — Jan/Apr/Jul/Oct 1 at 9am | Fetches Anthropic docs, checks `LLM_MODEL` + `SMS_AGENT_MODEL` against current supported models, **auto-updates `config.py`** if either is deprecated, and gives exact DO env var + git steps to complete the update |
+| `scs-quarterly-dependency-audit` | Quarterly — Jan/Apr/Jul/Oct 1 at 9am | Reads `requirements.txt` + `package.json`, checks key packages (fastapi, stripe, anthropic, twilio, react, vite, etc.) for outdated versions and CVEs, delivers a prioritized update list with pip/npm commands |
+| `scs-monthly-infrastructure-check` | Monthly — 1st of month at 9am | Reminds Ryan to verify DO DB backups, Twilio balance (>$20 threshold), and SendGrid bounce/spam rates |
+| `scs-annual-maintenance-reminder` | Annually — Jan 1 at 9am | Walks through JWT/SECRET key rotation, domain renewal, SSL cert check, Stripe price ID review, and CSA template review |
+
+**LLM model check detail:** The quarterly task is the most critical — a deprecated model string causes silent "Error" status on all contact form submissions (customers get no reply). The task auto-patches `config.py` but Ryan still needs to update the DO env vars and redeploy. After running, watch for `LLM model validated OK` in the DigitalOcean Runtime Logs.
+
+**First-run tip:** Click **Run now** on `scs-quarterly-llm-model-check` once from the Cowork Scheduled sidebar to pre-approve the web fetch tool, so future runs don't pause on permission prompts.
+
 ---
 
 ## 24. Build Roadmap
@@ -1104,6 +1119,15 @@ $result.url  # open in browser — $2 total, refund immediately after
 ## 30. Activity Log
 
 ### Features Built by Session
+
+**2026-05-30 (Cowork automated maintenance tasks):**
+- Created 4 Cowork scheduled tasks covering all periodic maintenance items from Section 23:
+  - `scs-quarterly-llm-model-check` — runs Jan/Apr/Jul/Oct 1 at 9am; fetches Anthropic docs, validates `LLM_MODEL` + `SMS_AGENT_MODEL`, auto-updates `config.py` if deprecated, provides DO env var + git instructions
+  - `scs-quarterly-dependency-audit` — same quarterly schedule; checks key Python + npm packages for outdated versions and CVEs, delivers prioritized update list with commands
+  - `scs-monthly-infrastructure-check` — runs 1st of every month at 9am; reminds Ryan to check DO DB backups, Twilio balance (>$20), SendGrid bounce/spam rates
+  - `scs-annual-maintenance-reminder` — runs Jan 1 at 9am; covers JWT/SECRET key rotation, domain renewal, SSL cert, Stripe price ID review, CSA template review
+- Task files stored at `C:\Users\Ryan\Documents\Claude\Scheduled\<task-id>\SKILL.md`
+- Section 23 updated with full task table and first-run instructions
 
 **2026-05-30 (self-scheduling booking widget — Phase 1, shipped + tested):**
 - New public, slug-scoped endpoints in `routers/embed.py`: `GET /embed/{slug}/booking-config`, `GET /embed/{slug}/availability`, `POST /embed/{slug}/book`, and `GET /embed/{slug}/booking` (embeddable widget UI). Reuse `services/scheduling.get_available_slots` + `auto_assign_technician` + `send_confirmation`. Honeypot field + slot re-validation guard against spam/double-booking; the internal "Emergency Service" type is excluded from public booking.
