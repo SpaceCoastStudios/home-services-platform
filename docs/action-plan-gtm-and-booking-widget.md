@@ -61,12 +61,14 @@ Your **55 businesses** (HVAC 20, Landscaping 20, Roofing 15) are loaded into **`
 - [ ] **Light paid test (optional, low budget):** Google Search ads on "[trade] scheduling software" + local geo, or FB ads targeting local home-service owners → demo page. Cap spend; treat as learning, not lifeline.
 - [ ] Inbound self-booking on the **main site** is already covered (Get a Demo / Schedule a Free Demo → `#contact`, plus the Calendly under “Prefer to talk first?”). **Add a “Schedule a call” CTA (Calendly link) to the standalone `/demo.html`** so a prospect sent straight to the demo page can also self-book.
 
-### A6. Demo-call playbook
-- Open with their pain (the response gap you found).
-- Walk the **live demo page**: submit the real contact widget → show the AI reply concept → the dashboard → notification examples → emergency dispatch.
-- Be honest about tiers: Starter = lead capture + AI responder + notifications + dashboard (live today); self-scheduling widget is Professional and shipping soon.
-- Present pricing + the **founding 5-spot** offer; set the A2P timeline expectation ("platform live in days; SMS features 2–4 weeks after carrier registration, which we start Day 1").
-- Close to next step: send CSA + Stripe link (or manual founding provisioning).
+### A6. Demo-call playbook (full 15-min script in `SCS Cold Email Sequence.docx`)
+The high-value flow: **the prospect drives the customer experience on the demo page themselves, then you screen-share the dashboard** (the part they can't self-serve).
+- **0–2 min:** anchor their pain in their own words (the response gap you found).
+- **2–6 min:** they fill out the booking widget on the demo page using their own cell → the confirmation text lands on their phone (the "aha").
+- **6–11 min:** you reveal the dashboard — **Contacts queue → SMS Conversations → the Appointment that was just created** (tech auto-assigned, address + problem description in the detail row). There is no "notification log" screen — demonstrate notifications by showing the real text landing + the appointment it's attached to.
+- **11–13 min:** trade-specific closer — emergency dispatch (HVAC/plumbing/septic) or recurring scheduling (pool/cleaning).
+- **13–15 min:** pricing + **5-spot founding** offer; A2P timeline expectation ("platform live in days; SMS features 2–4 weeks after carrier registration, which we start Day 1"); close to CSA + provisioning.
+- **Demo prerequisite:** the demo page must be polished first (see Roadmap — realistic sample notifications + iframe sizing) before running live demos.
 
 ### A7. Close + contract
 - [ ] CSA signed (attorney-reviewed version).
