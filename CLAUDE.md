@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-30 (GTM groundwork for first founding client: 109-prospect tracker built + scored across 6 trades, verified competitor battlecard, and full cold-email sequence — see Activity Log + `docs/action-plan-gtm-and-booking-widget.md`. Booking widget Phase 1 shipped + tested earlier same day.)
+> Last substantive update: 2026-05-30 (Automated context-sync run confirmed all of today's work is captured. GTM groundwork for first founding client: 109-prospect tracker built + scored across 6 trades, verified competitor battlecard, and full cold-email sequence — see Activity Log + `docs/action-plan-gtm-and-booking-widget.md`. Booking widget Phase 1 shipped + tested earlier same day.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -1119,6 +1119,11 @@ $result.url  # open in browser — $2 total, refund immediately after
 ## 30. Activity Log
 
 ### Features Built by Session
+
+**2026-05-30 (automated CLAUDE.md context-sync run — no code changes):**
+- Scheduled daily maintenance run. Reviewed `git log` (HEAD `3b3b0bb`, 20:03 today): today's GTM groundwork (109-prospect tracker, competitor battlecard, 5-touch cold-email sequence) and booking widget Phase 1 (shipped + tested) are already captured in this log and reflected in Sections 21–26. No new commits since the last update — nothing to reclassify in the capability/roadmap/A2P/CSA sections.
+- **Flag for Ryan:** an uncommitted, apparently-truncated edit to `frontend/dashboard/src/pages/AppointmentsPage.jsx` is sitting in the working tree (closing `</div>)}` removed, no trailing newline — looks like a stray/broken edit that would fail the build). Left untouched (this context task makes no code changes). Recommend reverting: `git checkout -- frontend/dashboard/src/pages/AppointmentsPage.jsx`.
+- **Commit note:** per the git-workflow rule atop this file, the sandbox cannot run git (a stale `.git/index.lock` is present and unremovable here), so this CLAUDE.md update must be committed by Ryan from his terminal.
 
 **2026-05-30 (GTM / Track A groundwork — sales assets, non-code):**
 - **Prospect tracker expanded + scored** — `SCS Prospect Tracker.xlsx` (and a working copy `SCS Prospect Tracker Updated.xlsx`) in the Test Project root now holds **109 prospects** across 6 trade tabs: HVAC/Landscaping/Roofing (original 55 on the `Prospects` tab) + **Plumbing (13), Septic (14), Pool Service (19), House Cleaning (8)**; Tree Service + Pressure Washing tabs exist but intentionally empty (held until the quote/estimate workflow ships). Every prospect carries owner/email/website/GBP rating+reviews/Response-Gap notes, plus a computed **Priority** (57 High / 27 Medium / 25 Low, color-coded) and **Next Action**. Dashboard tab aggregates counts across all trade sheets.
