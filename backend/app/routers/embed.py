@@ -473,14 +473,32 @@ def contact_embed(slug: str, db: Session = Depends(get_db)):
 
         // Notify parent window (useful for resizing the iframe)
         window.parent.postMessage({{ type: "scs_form_submitted" }}, "*");
+        resize();
 
       }} catch (err) {{
         errorAlert.textContent = err.message;
         errorAlert.style.display = "block";
         btn.disabled    = false;
         btn.textContent = "Send Message";
+        resize();
       }}
     }});
+
+    // Auto-resize the iframe in the parent page whenever content height changes
+    (function() {{
+      function resize() {{
+        try {{
+          window.parent.postMessage({{ type: "scs_contact_resize", height: document.body.scrollHeight }}, "*");
+        }} catch(e) {{}}
+      }}
+      resize();
+      try {{
+        new ResizeObserver(resize).observe(document.body);
+      }} catch(e) {{
+        document.addEventListener("change", resize);
+        document.addEventListener("input", resize);
+      }}
+    }})();
   </script>
 
 </body>
