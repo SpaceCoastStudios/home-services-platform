@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-31 (Outreach assets finalized: cold-email sequence revised — booking+contact demo wording, {{Founding_Offer}} merge field, natural-language opt-outs + CAN-SPAM mailing-address footer, and a full 15-minute demo-call script; action-plan A6 updated to match. Roadmap: demo-page polish is now a ★ pre-demo prerequisite, and a platform-admin cross-tenant activity log was added. No code changes this session. Recurring Appointments UI remains the next build priority.)
+> Last substantive update: 2026-05-31 (Model selection guide added: Section 22 now has a Haiku/Sonnet/Opus guide with rules for when to use each; Platform Capability Checklist.docx and SCS Platform Roadmap.docx updated with per-item model tags on all AI features; roadmap gains a callout box with the full guide. No code changes. Previous update same date: outreach assets finalized.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -841,12 +841,27 @@ Contact form + AI auto-responder, emergency SMS call routing, business hours con
 
 ## 22. AI Model Maintenance
 
-### Current Model
+### Model Selection Guide
+
+Pick the cheapest model that reliably handles the task. Upgrade only when a simpler model produces bad results.
+
+| Model | When to use | SCS example |
+|---|---|---|
+| `claude-haiku-4-5-20251001` | Single-turn responses, classification, summarization, high-volume tasks where cost matters | Contact form auto-responder, urgency detection on contact form, AI-generated analytics summaries |
+| `claude-sonnet-4-6` | Multi-turn conversations, tool use with several steps, tasks requiring judgment or complex reasoning | SMS booking agent (multi-turn + 4 tools), quote/estimate generation |
+| Opus | Not needed for any current SCS use case — only reach for it if a task repeatedly fails on Sonnet | — |
+
+**Rule of thumb:** if a feature calls the API once per event and just needs a well-worded reply → Haiku. If it loops over tools or must hold context across turns → Sonnet.
+
+### Current Models in Production
+
 `LLM_MODEL` is set to `claude-haiku-4-5-20251001` in both `backend/app/config.py` (default fallback) and the DigitalOcean App-Level Environment Variables (production value).
 
-This model is used by:
-- **Contact form auto-responder** (`services/contact_responder.py`) — AI replies to customer inquiries
-- **SMS booking agent** (`services/sms_agent.py`) — AI handles inbound SMS conversations
+`SMS_AGENT_MODEL` is set to `claude-sonnet-4-6` in `config.py` (override via DO env var `SMS_AGENT_MODEL`).
+
+These models are used by:
+- **Contact form auto-responder** (`services/contact_responder.py`) — uses `LLM_MODEL` (Haiku): single-turn, high volume
+- **SMS booking agent** (`services/sms_agent.py`) — uses `SMS_AGENT_MODEL` (Sonnet): multi-turn, tool use, needs reliable reasoning
 
 ### What Breaks When the Model String is Wrong
 A 404 `not_found_error` from Anthropic's API silently sets contact submissions to **"Error"** status. The customer receives no reply and staff must follow up manually. The error appears in DigitalOcean Runtime Logs as:
