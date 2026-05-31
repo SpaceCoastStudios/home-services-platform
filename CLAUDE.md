@@ -851,7 +851,7 @@ Pick the cheapest model that reliably handles the task. Upgrade only when a simp
 | `claude-sonnet-4-6` | Multi-turn conversations, tool use with several steps, tasks requiring judgment or complex reasoning | SMS booking agent (multi-turn + 4 tools), quote/estimate generation |
 | Opus | Not needed for any current SCS use case — only reach for it if a task repeatedly fails on Sonnet | — |
 
-**Rule of thumb:** if a feature calls the API once per event and just needs a well-worded reply → Haiku. If it loops over tools or must hold context across turns → Sonnet.
+**Starting point:** single-turn / high-volume → try Haiku first; multi-turn / tool use → try Sonnet first. Test on the simpler model and only upgrade if the output quality isn't there. Either model can surprise you — Haiku handles more than you'd expect, and sometimes a task that looks complex is fine on Haiku once you see it in practice.
 
 ### Current Models in Production
 
