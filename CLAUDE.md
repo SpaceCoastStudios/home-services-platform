@@ -14,7 +14,9 @@
 >
 > **Push rule:** ALL file changes require a push to be saved to GitHub — including CLAUDE.md and README.md. Without a push, changes only exist locally and could be lost. There are no exceptions.
 >
-> **Always provide git commands:** After any session where files are changed, Claude must provide Ryan with the exact `git add`, `git commit`, and `git push` commands in a code block. List every changed file explicitly — never use `git add .` as it may stage unintended files.
+> **Always provide git commands:** After any session where files are changed, Claude must provide Ryan with the exact `git add`, `git commit`, and `git push` commands in a code block. List every changed file explicitly -- never use `git add .` as it may stage unintended files.
+>
+> **Confirm before acting:** When Ryan asks a question or asks for thoughts ("what do you think?", "should we?", "do we need to?"), provide information only -- do not make any changes until Ryan explicitly confirms. Questions = gather information to decide. "Yes, go ahead" = act.
 
 ---
 
@@ -976,7 +978,12 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 7. **A6.5 end-to-end demo readiness test** -- trigger: CSA attorney review complete + screenshots updated. Gate before first live prospect demo call.
 8. **Start outreach (Track A)** -- prospect tracker loaded, templates ready. Begin cold email now; CSA review does not need to be complete to start outreach, only to sign.
 
+### Pending Tests (High Priority -- before first client goes live)
+- **Recurring appointments end-to-end** -- ⚠️ HIGH PRIORITY. UI and backend built (2026-05-31) but never tested end-to-end. Must confirm: create schedule → generate instances → appointments appear in feed → notifications fire correctly → disabling schedule stops generation. Run during A6.5 test.
+- **Review requests** -- ✅ Confirmed working (2026-06-01). Tech replies YES to complete prompt, review request SMS fires and link works. NOTE: demo tenant Google Review URL is set to `https://www.spacecoaststudios.com` (placeholder). Must set a real Google Review URL on the demo tenant before any prospect demo, and on every new client tenant at onboarding. Set via dashboard Settings → Google Review URL.
+
 ### Roadmap (later)
+- **Plan enforcement (service type + technician caps)** -- Triggered by first paying client. The 5 service type / 5 technician Starter cap and Pro unlimited are marketing/CSA commitments but not currently enforced in backend code. Add server-side validation on service and technician create endpoints that checks the business plan and rejects if over limit.
 - **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
 - Visual calendar view (day/week/month) in dashboard
 - Customer portal (magic link login, view/reschedule)
