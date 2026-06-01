@@ -73,20 +73,19 @@
       box-shadow:0 4px 16px rgba(15,23,42,0.05); overflow:hidden;
     }
     .phone .who {
-      font-size:0.72rem; font-weight:700; color:var(--slate);
-      text-transform:uppercase; letter-spacing:0.05em;
+      font-size:0.9rem; font-weight:700; color:var(--navy);
       padding:14px 16px 12px;
       text-align:center;
     }
 
-    /* Screenshot cards - centered, fixed height so all cards are even */
+    /* Screenshot cards - centered, fixed height, full message visible */
     .phone .shot {
       display:block;
       width:calc(100% - 32px);
       margin:0 auto 16px;
       height:220px;
-      object-fit:cover;
-      object-position:top;
+      object-fit:contain;
+      background:#111827;
       border-radius:10px;
       box-shadow:0 2px 10px rgba(0,0,0,0.18);
     }
@@ -102,7 +101,7 @@
 
     .flow-panel { background:#fff; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:0 4px 20px rgba(15,23,42,0.07); }
     .flow-panel .fp-head { padding:16px 18px 12px; border-bottom:1px solid var(--border); }
-    .flow-panel .fp-head h3 { font-size:0.95rem; font-weight:700; margin-bottom:2px; text-align:center; }
+    .flow-panel .fp-head h3 { font-size:0.9rem; font-weight:700; margin-bottom:2px; text-align:center; }
     .flow-panel .fp-head p { font-size:0.8rem; color:var(--slate); text-align:center; }
     .flow-panel .fp-body { padding:16px 18px; }
 
@@ -209,7 +208,7 @@
       <!-- Top-left: emergency customer thread -->
       <div class="flow-panel">
         <div class="fp-head">
-          <h3>Emergency AI Dispatch - Customer</h3>
+          <h3>Emergency AI Dispatch Flow</h3>
           <p>Customer texts an emergency. AI triages with qualifying questions and dispatches the on-call tech.</p>
         </div>
         <div class="fp-body">
