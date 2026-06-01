@@ -100,14 +100,14 @@ Each client gets a fully managed platform instance. Features depend on plan:
 - Embeddable contact form widget (iframe on their website)
 - AI-powered auto-responder to contact form submissions
 - Appointment management dashboard
-- Email confirmations and 24h reminders
+- SMS and email confirmations and 24h reminders
 - Up to 5 service types, 5 technicians
 
 **Professional plan (everything in Starter plus):**
 - Self-scheduling booking widget (customer picks own slot from live calendar) — **backend ready, widget UI not yet built**
 - AI SMS booking agent (inbound texts → Claude handles booking)
-- SMS confirmations, reminders, OTW alerts, review requests
-- On The Way technician notifications
+- On The Way (OTW) technician & customer alerts
+- Automated review requests via SMS
 - Automated Google review requests
 - Emergency dispatch with on-call rotation management
 - Recurring appointment scheduling
