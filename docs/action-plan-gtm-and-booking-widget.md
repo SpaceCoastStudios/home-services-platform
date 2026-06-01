@@ -1,19 +1,29 @@
-# SCS Action Plan — First Client (GTM) + Self-Scheduling Booking Widget
+# Launchpad by Space Coast Studios — Action Plan: First Client (GTM)
 
-*Created 2026-05-29 · Owner: Ryan · Two parallel tracks: land a founding Starter client while building the self-scheduling widget so the platform is Professional-ready.*
+*Created 2026-05-29 · Updated 2026-06-01 · Owner: Ryan*
 
 ---
 
-## Status snapshot (start of plan)
+## Current status (2026-06-01)
+
+- **Platform brand:** now **Launchpad** (product name). Company remains Space Coast Studios LLC. Branding applied across all files, dashboard, email templates, and CSA v3.
+- **Demo tenant:** renamed to "Launchpad Demo" -- widgets now reflect the correct brand name.
+- **CSA v3:** ready. Ryan sending to Anjali Sareen (Uncommon Counsel) today with three questions (6-month term language, Launchpad platform name, SMS consent text vs. A2P registration). Awaiting attorney review.
+- **Track B (self-scheduling booking widget):** COMPLETE -- shipped and tested 2026-05-30.
+- **Next gate (A6.5):** populate demo appointments for fresh screenshots, then run full end-to-end test once CSA review is back. This is the gate before the first live prospect demo call.
+
+---
+
+## Status snapshot (start of plan -- 2026-05-29)
 
 - **Platform:** production-deployed, multi-tenant, 36/48 capabilities built. Starter tier has **zero functional gaps**.
-- **Only live tenant:** Space Coast Studios Demo (slug `default`). `seed_peak_hvac.py` is an unused template.
+- **Only live tenant:** Launchpad Demo (slug `default`, formerly "Space Coast Studios Demo"). `seed_peak_hvac.py` is an unused template.
 - **Marketing site + unlisted demo page:** live (`/` and `/demo.html`).
 - **A2P 10DLC:** approved for SCS itself. **Each client needs their own Brand + Campaign (2–4 weeks, carrier-controlled).**
-- **CSA:** attorney shortlisted; Ryan selecting + signing week of **June 1, 2026**. CSA must be attorney-reviewed before the first client signs.
-- **Founding offer:** 5 spots — Starter $497 setup + $99/mo (3 mo) then $249; Pro $997 + $199/mo (3 mo) then $399.
-- **Living docs to keep current:** CLAUDE.md, README, Capability Checklist, Roadmap, **and `SCS_Onboarding_Checklist.docx`** (review now — many features shipped since last update).
-- **Prospect list:** 55 businesses loaded into `SCS Prospect Tracker.xlsx` (HVAC 20, Landscaping 20, Roofing 15).
+- **CSA:** v3 sent to Anjali Sareen (Uncommon Counsel) for review 2026-06-01. Must be attorney-reviewed before the first client signs.
+- **Founding offer:** 5 spots -- Starter $497 setup + $99/mo (3 mo) then $249; Pro $997 + $199/mo (3 mo) then $399.
+- **Living docs to keep current:** CLAUDE.md, README, Capability Checklist, Roadmap, **and `SCS_Onboarding_Checklist.docx`**.
+- **Prospect list:** 109 businesses loaded into `SCS Prospect Tracker.xlsx` across 6 trade tabs.
 
 ---
 
@@ -71,7 +81,15 @@ The high-value flow: **the prospect drives the customer experience on the demo p
 - **Demo prerequisite:** the demo page must be polished first (see Roadmap — realistic sample notifications + iframe sizing) before running live demos.
 
 ### A6.5. End-to-end demo readiness test
-**Trigger: CSA attorney review complete.** This is the gate before sending the demo link to any real prospect or booking a live call. Run it once when the CSA is signed off — you'll be in "ready to close" mode and need to know the full flow works cold.
+**Trigger: CSA attorney review complete + fresh screenshots taken.** This is the gate before sending the demo link to any real prospect or booking a live call.
+
+**Pre-test checklist (do while waiting for Anjali's review):**
+- [ ] Populate the Launchpad Demo tenant with enough appointments and customers to generate realistic notification screenshots (confirmation text, reminder, OTW alert, review request, tech kickoff).
+- [ ] Retake all 4 notification card screenshots and both full-flow panels (emergency + kickoff) with the "Launchpad Demo" business name showing.
+- [ ] Update screenshot files in `marketing-site/` and replace the demo page images.
+- [ ] Push updated screenshots to GitHub.
+
+**Run full test once CSA review is back (~30 min):**
 
 **What to test (~30 min):**
 1. Open `spacecoaststudios.com/demo.html` in a fresh browser (incognito, no cached state).
@@ -160,12 +178,14 @@ Once the platform is production-ready / semi-complete (after the widget), build 
 
 Scope this against a **stable target** (post-widget) so we templatize a finished product, not a moving one.
 
-## Sequencing & how the tracks interact
+## Sequencing & how the tracks interact (updated 2026-06-01)
 
-- **This week:** Ryan selects + signs the attorney (week of June 1) and starts building the prospect list (A3). Claude starts Track B (B1–B2 backend).
-- **Track A** can run fully in parallel — outreach doesn't depend on the widget. Sell Starter honestly now.
-- **Track B** makes you Professional-ready. Aim to have the widget demoable on `/demo.html` before Pro-focused outreach ramps.
-- **Shared dependency:** A2P registration is per-client and slow — always Day 1 of onboarding, regardless of track.
+- **Now (while waiting for Anjali):** Populate demo tenant with appointments + customers. Retake notification screenshots. Update demo page images.
+- **On CSA review complete:** Run A6.5 end-to-end test. If clean, book the first live prospect demo call.
+- **Track A** (cold outreach): can begin now -- CSA is not required to start outreach, only to sign. Don't let the attorney review gate your pipeline building.
+- **Track B** (self-scheduling widget): COMPLETE -- the platform is now Professional-ready and demoable.
+- **First demo call:** use the A6 script. The prospect drives the demo page, you screen-share the dashboard. Close to CSA + founding-client terms.
+- **Shared dependency:** A2P registration is per-client and slow -- always Day 1 of onboarding, regardless of track.
 
 ---
 

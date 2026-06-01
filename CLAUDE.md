@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-31 (Session 2: Recurring appointments UI fully enhanced — expandable rows, edit modal, appointment history, Generate Now button; demo page major polish pass — all-screenshot notification cards, real emergency/kickoff flow screenshots, 2x2 layouts, contact iframe auto-resize, unified card titles, green badge; action plan A6.5 added. Previous update same date: model selection guide added to Section 22 + docx files; outreach assets finalized.)
+> Last substantive update: 2026-06-01 (Platform rebranded as **Launchpad**; CSA updated to v3 with Launchpad platform name and sent to Anjali Sareen (Uncommon Counsel) for review; Launchpad branding applied across marketing site, dashboard UI, email templates, CLAUDE.md, README; em dashes removed from marketing site; marketing copy updated; action plan updated with current status and screenshot pre-test checklist.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -967,13 +967,14 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 4. ✅ **AI model selection guide** — added to Section 22 + per-item tags in Platform Capability Checklist.docx and SCS Platform Roadmap.docx.
 
 ### Next Session Priorities
-1. ✅ **Test on-call rotation + override** — DONE 2026-05-29.
-2. ✅ **Test emergency dispatch** — DONE 2026-05-29.
-3. ✅ **Recurring appointments UI** — DONE 2026-05-31. Full dashboard UI in AppointmentsPage Recurring Series tab.
-4. ✅ **Build self-scheduling booking widget** — DONE 2026-05-30 (Phase 1 internal-only).
-5. ✅ **Demo-page polish** — DONE 2026-05-31. Ready for live demos pending A6.5 test.
-6. **A6.5 end-to-end demo readiness test** — triggered by CSA attorney sign-off (see action plan A6.5). Run before sending demo link to any prospect.
-7. **Start outreach (Track A)** — prospect tracker loaded, templates ready. Can begin cold email now; no platform blockers.
+1. ✅ **Test on-call rotation + override** -- DONE 2026-05-29.
+2. ✅ **Recurring appointments UI** -- DONE 2026-05-31.
+3. ✅ **Build self-scheduling booking widget** -- DONE 2026-05-30 (Phase 1 internal-only).
+4. ✅ **Demo-page polish** -- DONE 2026-05-31.
+5. ✅ **Platform rebrand to Launchpad** -- DONE 2026-06-01. Branding applied across all files; CSA v3 sent to Anjali Sareen for review.
+6. **Screenshot refresh** -- populate Launchpad Demo tenant with appointments, retake all notification + flow screenshots, update demo page. Do while waiting for CSA review.
+7. **A6.5 end-to-end demo readiness test** -- trigger: CSA attorney review complete + screenshots updated. Gate before first live prospect demo call.
+8. **Start outreach (Track A)** -- prospect tracker loaded, templates ready. Begin cold email now; CSA review does not need to be complete to start outreach, only to sign.
 
 ### Roadmap (later)
 - **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
@@ -986,7 +987,8 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 - Quote / estimate workflow (request → estimate → quote → approve → schedule) — makes estimate-first trades (tree, pressure washing, roofing) a great fit
 
 ### Blocked / Pending
-- **CSA attorney review** — attorney shortlisted; Ryan selecting + signing engagement letter week of June 1, 2026, then review follows. Must be reviewed before first client signs (see Section 26). Unblocks A6.5 demo readiness test.
+- **CSA attorney review** -- v3 sent to Anjali Sareen (Uncommon Counsel) 2026-06-01 with three questions (6-month term, Launchpad platform name, SMS consent text vs. A2P). Awaiting redline. Must be reviewed before first client signs. Unblocks A6.5 demo readiness test.
+- **Screenshot refresh** -- populate Launchpad Demo tenant with appointments, retake all notification + flow panel screenshots, update demo page images. Do while waiting for CSA review.
 
 ### Business Development
 - Founding client outreach — templates ready, advised to start now (don't wait for A2P)
@@ -1169,6 +1171,28 @@ $result.url  # open in browser — $2 total, refund immediately after
 - **Fixed a broken working-tree file:** `frontend/dashboard/src/pages/AppointmentsPage.jsx` had a truncated/unclosed edit (missing closing `</div>)}`, would have failed the build); reverted via `git checkout --` after clearing a stale `.git/index.lock`. No intended changes lost.
 - Outreach is otherwise ready to send pending Ryan filling `{{Your_Phone}}` + `{{Mailing_Address}}` and the demo-page polish pass.
 
+
+**2026-06-01 (Launchpad rebrand + CSA v2/v3 + attorney engagement):**
+- **Attorney selected:** Anjali Sareen, Uncommon Counsel (Altamonte Springs, FL). Licensed in FL/NY/CA, AIGP-certified, specializes in SaaS contracts and AI law. Flat fee $1,050 for initial review + redline. Ryan sending v3 CSA today.
+- **CSA v2** -- fixed three issues found in audit: (1) Section 12.5 wrong AI provider "OpenAI" changed to "Anthropic, PBC"; (2) Schedule A pricing updated to match Stripe ($1,997/$249 Starter, $2,997/$399 Pro); (3) name corrected from "Ryan Usser" to "Ryan Ussery" throughout.
+- **CSA v3** -- added "Launchpad" as the platform brand name in Section 1.1 ("branded as 'Launchpad'") and Schedule A title updated to "SCHEDULE A: LAUNCHPAD SERVICES AND PRICING."
+- **Three questions sent to Anjali:** (1) 6-month initial term -- marketing copy "no long contracts" removed but flagging for her awareness; (2) "Launchpad" platform name -- is v3 language sufficient or should it be strengthened?; (3) SMS consent text says "Space Coast Studios" per A2P approval -- if product is "Launchpad by SCS," does consent need updating? Would that require TCR re-submission?
+- **Platform rebranded as Launchpad** (product name; Space Coast Studios LLC remains company/legal entity; no DBA filed):
+  - `marketing-site/index.html` -- title, meta, hero copy, nav, footer updated. "Launchpad by Space Coast Studios" in footer; "Launchpad" in headlines.
+  - `marketing-site/booking-demo.html`, `demo.html`, `privacy.html`, `terms.html` -- all updated.
+  - `frontend/dashboard/src/components/Layout.jsx` -- platform admin header now shows "Launchpad."
+  - `frontend/dashboard/src/pages/` -- WelcomePage, SetupPage, ForgotPasswordPage, SetPasswordPage: "Welcome to Space Coast Studios" → "Welcome to Launchpad."
+  - `backend/app/routers/auth.py` -- password reset email subject/body updated.
+  - `backend/app/routers/billing.py` -- welcome email subject/body updated.
+  - `CLAUDE.md` Section 1 -- added platform branding note; corrected Ryan's last name.
+  - `README.md` -- title updated to "Launchpad by Space Coast Studios."
+  - SMS consent text intentionally left as "Space Coast Studios" -- A2P approved language, cannot change without TCR re-submission.
+- **Marketing site em dashes removed** -- all 31 em dashes across `index.html` replaced with contextually appropriate punctuation.
+- **Marketing copy updated** -- "no long contracts or complicated onboarding" changed to "No complicated onboarding." (removed the contract duration claim to match the 6-month initial term in the CSA).
+- **Demo tenant renamed** -- "Space Coast Studios Demo" updated to "Launchpad Demo" via dashboard Settings. Widget headers now show the correct brand.
+- **Action plan updated** -- `docs/action-plan-gtm-and-booking-widget.md` reflects current status, Track B marked complete, A6.5 updated with screenshot pre-test checklist.
+- **Next steps:** populate Launchpad Demo with appointments for screenshot refresh; await Anjali's redline; then run A6.5 end-to-end test; then first prospect demo call.
+- **Files committed:** `CLAUDE.md`, `README.md`, `marketing-site/index.html`, `marketing-site/booking-demo.html`, `marketing-site/demo.html`, `marketing-site/privacy.html`, `marketing-site/terms.html`, `frontend/dashboard/src/components/Layout.jsx`, `frontend/dashboard/src/pages/WelcomePage.jsx`, `frontend/dashboard/src/pages/SetupPage.jsx`, `frontend/dashboard/src/pages/ForgotPasswordPage.jsx`, `frontend/dashboard/src/pages/SetPasswordPage.jsx`, `backend/app/routers/auth.py`, `backend/app/routers/billing.py`. CSA v2 and v3 saved to Test Project/ (outside repo).
 
 **2026-05-30 (automated CLAUDE.md context-sync run — no code changes):**
 - Scheduled daily maintenance run. Reviewed `git log` (HEAD `3b3b0bb`, 20:03 today): today's GTM groundwork (109-prospect tracker, competitor battlecard, 5-touch cold-email sequence) and booking widget Phase 1 (shipped + tested) are already captured in this log and reflected in Sections 21–26. No new commits since the last update — nothing to reclassify in the capability/roadmap/A2P/CSA sections.
