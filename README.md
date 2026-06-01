@@ -2,7 +2,7 @@
 
 Multi-tenant AI-powered scheduling, dispatch, and notifications platform.
 
-**Last updated:** 2026-05-29 | **Status:** Production-ready — founding client phase
+**Last updated:** 2026-05-31 | **Status:** Production-ready — demo page polished, recurring UI complete, founding client outreach ready
 
 ---
 
@@ -172,6 +172,7 @@ See `docs/founder-client-onboarding.md`.
 | Contact form AI auto-responder | Channel routing, local timezone slots, 2-slot offer, 480-char SMS cap, draft mode |
 | **SMS booking agent (end-to-end)** | Form → AI reply → customer texts → agent books → confirmed appt, enriched customer record |
 | Appointment creation & management | Expandable rows, Edit Details modal (technician pre-populated), problem description, address |
+| **Recurring appointments dashboard UI** | Recurring Series tab: expandable rows, edit modal (frequency/day/time/tech/end date/address/notes), appointment history (upcoming + past), Generate Now button |
 | Customer records | Created/enriched from SMS booking; inline edit in dashboard |
 | Tech daily schedule page | Public mobile page, completed appts filtered out, city in address, problem description shown |
 | Morning kickoff SMS (with appointments) | Full day summary, numbered stops, schedule URL, 2h trigger window |
@@ -201,18 +202,19 @@ See `docs/founder-client-onboarding.md`.
 
 | Feature | Notes |
 |---|---|
-| Recurring appointments | Backend router + model built; no dashboard UI page |
 | Booking widget — calendar sync (Phase 2/3) | Phase 1 (internal) shipped; Google Calendar / Outlook two-way sync not yet built |
 
-### 🎯 Next Session Priorities
+### 🎯 Next Priorities
 
 | Priority | Task | Notes |
 |---|---|---|
-| ✅ | ~~Test on-call rotation + override~~ | DONE 2026-05-29 — verified end-to-end; timezone bug fixed |
-| ✅ | ~~Test emergency dispatch~~ | DONE 2026-05-29 — AI captures address, tech alerted, `emergency` appointment created |
-| 1 | Build recurring appointments UI | Backend complete, need `/recurring` frontend page — top priority (pool/cleaning fit) |
-| 2 | Demo-page polish (pre-demo prerequisite) | Size contact-widget iframe, realistic sample notifications, full click-through before live demos |
-| ✅ | ~~Build self-scheduling booking widget~~ | DONE 2026-05-30 — Phase 1 internal-only; built, tested, embedded on demo page |
+| ✅ | ~~Test on-call rotation + override~~ | DONE 2026-05-29 |
+| ✅ | ~~Test emergency dispatch~~ | DONE 2026-05-29 |
+| ✅ | ~~Build recurring appointments UI~~ | DONE 2026-05-31 — expandable rows, edit modal, appointment history, Generate Now |
+| ✅ | ~~Demo-page polish~~ | DONE 2026-05-31 — all-screenshot cards, real flow panels, auto-resize, ready for demos |
+| ✅ | ~~Build self-scheduling booking widget~~ | DONE 2026-05-30 — Phase 1 internal-only |
+| 1 | A6.5 demo readiness test | Triggered by CSA attorney sign-off — run before sending demo link to prospects |
+| 2 | Start outreach (Track A) | Prospect tracker + templates ready; no platform blockers |
 
 ### ❌ Not Yet Built (Roadmap)
 

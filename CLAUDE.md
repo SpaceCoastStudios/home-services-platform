@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-05-31 (Model selection guide added: Section 22 now has a Haiku/Sonnet/Opus guide with rules for when to use each; Platform Capability Checklist.docx and SCS Platform Roadmap.docx updated with per-item model tags on all AI features; roadmap gains a callout box with the full guide. No code changes. Previous update same date: outreach assets finalized.)
+> Last substantive update: 2026-05-31 (Session 2: Recurring appointments UI fully enhanced — expandable rows, edit modal, appointment history, Generate Now button; demo page major polish pass — all-screenshot notification cards, real emergency/kickoff flow screenshots, 2x2 layouts, contact iframe auto-resize, unified card titles, green badge; action plan A6.5 added. Previous update same date: model selection guide added to Section 22 + docx files; outreach assets finalized.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -823,13 +823,12 @@ The API does not differentiate impersonation — it's a valid JWT for the busine
 ## 21. Platform Capability Status
 
 ### ✅ Fully Built
-Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone)**, **emergency SMS dispatch (tested end-to-end)** — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164), **self-scheduling booking widget (Phase 1 — shipped + tested 2026-05-30)**: public slug-scoped `/embed/{slug}/booking-config|availability|book` + embeddable `/embed/{slug}/booking` UI reusing the availability engine; books a confirmed appointment, assigns a tech, fires the confirmation, is capacity-aware, excludes the internal Emergency Service type, and is embedded live on the demo page
+Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone)**, **emergency SMS dispatch (tested end-to-end)** — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164), **recurring appointments dashboard UI (2026-05-31)**: expandable rows showing details/address/notes, Edit modal (frequency, day, time, technician, end date, address, notes), appointment history panel (upcoming + last 5 past per schedule), "Generate appointments now" button — all in the existing Recurring Series tab of the Appointments page, **self-scheduling booking widget (Phase 1 — shipped + tested 2026-05-30)**: public slug-scoped `/embed/{slug}/booking-config|availability|book` + embeddable `/embed/{slug}/booking` UI reusing the availability engine; books a confirmed appointment, assigns a tech, fires the confirmation, is capacity-aware, excludes the internal Emergency Service type, and is embedded live on the demo page
 
 ### ⚠️ Partially Built
 - **Online self-booking widget** — Phase 1 (internal-only) **shipped + tested 2026-05-30** (public endpoints + embeddable UI). Phase 2 (Google Calendar two-way sync) / Phase 3 (Outlook) not yet built.
 - **Emergency contact form routing** — AI handles urgency in SMS; contact form doesn't route to on-call (SMS flow does)
 - **Lead deduplication** — customer lookup exists; auto-linking on contact form submission not fully wired
-- **Recurring appointments** — backend router + model built; no dashboard UI page yet
 
 ### ❌ Not Yet Built
 - Visual calendar view (day/week/month) in dashboard — currently list-only
@@ -957,15 +956,23 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 
 ## 24. Build Roadmap
 
-### Next Session Priorities (in order)
-1. ✅ **Test on-call rotation + override** — DONE 2026-05-29. Day-of-week rotation, manual override (beats rotation), clear-override, and fallback all verified via `/api/oncall/current` and the dashboard card. Timezone bug found and fixed.
-2. ✅ **Test emergency dispatch** — DONE 2026-05-29. Emergency SMS → AI qualifying questions → in-chat address confirmation → on-call tech alerted (with address + issue) → `emergency`-status appointment created with no automated notifications. Fully working. See `docs/on-call-emergency-testing.md`.
-3. **Build recurring appointments UI ★ NEXT PRIORITY** — backend router + model complete, need frontend page (`/recurring`). Elevated: key fit-deepener for pool service + house cleaning (high local demand) and landscaping.
-4. ✅ **Build self-scheduling booking widget** — DONE 2026-05-30 (Phase 1 internal-only). Public endpoints + embeddable UI; booked/tested end-to-end on the demo tenant (incl. capacity removal); embedded on the demo page. Phase 2 (Google Calendar) / Phase 3 (Outlook) deferred.
+### Completed This Session (2026-05-31 session 2)
+1. ✅ **Recurring appointments UI** — enhanced the existing Recurring Series tab: expandable rows, edit modal, appointment history, Generate Now button. Full CRUD + history in `AppointmentsPage.jsx`.
+2. ✅ **Demo page polish** — `marketing-site/demo.html` fully polished: contact widget iframe auto-resize (ResizeObserver added to `embed.py`), all-screenshot 2x2 notification cards, 2x2 real-flow panels (emergency + kickoff), unified card titles, green badge, no em dashes. Ready for first demo calls pending A6.5 readiness test.
+3. ✅ **Action plan A6.5** — end-to-end demo readiness test checklist added to `docs/action-plan-gtm-and-booking-widget.md`, triggered by CSA finalization.
+4. ✅ **AI model selection guide** — added to Section 22 + per-item tags in Platform Capability Checklist.docx and SCS Platform Roadmap.docx.
+
+### Next Session Priorities
+1. ✅ **Test on-call rotation + override** — DONE 2026-05-29.
+2. ✅ **Test emergency dispatch** — DONE 2026-05-29.
+3. ✅ **Recurring appointments UI** — DONE 2026-05-31. Full dashboard UI in AppointmentsPage Recurring Series tab.
+4. ✅ **Build self-scheduling booking widget** — DONE 2026-05-30 (Phase 1 internal-only).
+5. ✅ **Demo-page polish** — DONE 2026-05-31. Ready for live demos pending A6.5 test.
+6. **A6.5 end-to-end demo readiness test** — triggered by CSA attorney sign-off (see action plan A6.5). Run before sending demo link to any prospect.
+7. **Start outreach (Track A)** — prospect tracker loaded, templates ready. Can begin cold email now; no platform blockers.
 
 ### Roadmap (later)
-- **Demo-page polish ★ pre-demo prerequisite** — before running live sales demos, polish `marketing-site/demo.html`: size the contact-widget iframe to fit (remove scroll bar; booking widget already auto-resizes), replace sample notification copy with realistic examples (incl. the tech "day off" empty state), full click-through. Do this before sending the demo link to prospects.
-- **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters, to diagnose client-reported issues. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
+- **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
 - Visual calendar view (day/week/month) in dashboard
 - Customer portal (magic link login, view/reschedule)
 - Usage/analytics dashboard across tenants
@@ -975,8 +982,7 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 - Quote / estimate workflow (request → estimate → quote → approve → schedule) — makes estimate-first trades (tree, pressure washing, roofing) a great fit
 
 ### Blocked / Pending
-- **Step 6 (morning kickoff no-appointments variant)** — testing tomorrow morning 7-8am local, auto-fires if tech has no appointments
-- **CSA attorney review** — attorney shortlisted; Ryan selecting + signing engagement letter week of June 1, 2026, then review follows. Must be reviewed before first client signs (see Section 26).
+- **CSA attorney review** — attorney shortlisted; Ryan selecting + signing engagement letter week of June 1, 2026, then review follows. Must be reviewed before first client signs (see Section 26). Unblocks A6.5 demo readiness test.
 
 ### Business Development
 - Founding client outreach — templates ready, advised to start now (don't wait for A2P)
@@ -1136,6 +1142,21 @@ $result.url  # open in browser — $2 total, refund immediately after
 ## 30. Activity Log
 
 ### Features Built by Session
+
+**2026-05-31 (session 2 — recurring UI + demo page polish):**
+- **Recurring appointments dashboard UI** — enhanced `AppointmentsPage.jsx` Recurring Series tab: clickable expandable rows revealing address, notes, start/end dates; Edit modal for frequency, day/time, tech, end date, address, notes; appointment history panel showing upcoming (next 5) and past (last 5) per schedule loaded alongside schedules; "Generate appointments now" button triggering `POST /api/recurring/{id}/generate` with a toast. `generateRecurringSchedule` added to `api.js` imports. No backend changes needed.
+- **AI model selection guide** — added to CLAUDE.md Section 22 with Haiku/Sonnet/Opus decision rules; Platform Capability Checklist.docx and SCS Platform Roadmap.docx updated with per-item model tags on all AI features; roadmap gains a callout box with the full guide.
+- **Action plan A6.5** — end-to-end demo readiness test (10-step checklist) added to `docs/action-plan-gtm-and-booking-widget.md` as a gate before sending the demo link to any prospect, triggered by CSA attorney sign-off.
+- **Demo page major polish** (`marketing-site/demo.html`):
+  - Contact widget iframe auto-resize: `ResizeObserver` + `scs_contact_resize` postMessage added to `backend/app/routers/embed.py`; demo page listener added. Contact iframe starting height raised to 900px.
+  - Badge changed from orange to green; header reworded to remove "not screenshots" (since screenshots are used); copy updated to "your website / your dashboard."
+  - All 4 notification overview cards replaced with real screenshots: `Customer Appointment Confirmation Text.png`, `Reminder Text.png`, `Customer on the way text.png`, `Customer Review Request.png`. Fixed 2-column 2x2 grid.
+  - "See the Real Flows" 2x2 panels: Emergency AI Dispatch Flow (`Emergency Text Thread.jpg`) + Emergency Tech Alert (`Emergency Text Tech Message.png`) on top row; Morning Kickoff (`Tech Daily Kickoff thread 1.png`) + Full OTW Day Cycle (`Tech Daily Kickoff thread 2.png`) on bottom row. All full natural height, rounded corners.
+  - Section 4 redesigned: morning kickoff SMS screenshot (`Tech Kickoff Thread with schedule link.png`) + schedule page mockup side by side.
+  - Unified card titles across all cards: `0.9rem`, bold, dark navy, centered, no emojis, no uppercase.
+  - Screenshot cards: `object-fit:contain; background:#111827; height:220px` for even card heights without cropping.
+  - Em dashes removed throughout. Saved as standing memory note.
+- **Files committed**: `AppointmentsPage.jsx`, `embed.py`, `demo.html`, all screenshot images.
 
 **2026-05-31 (outreach assets finalized — non-code):**
 - **Cold-email sequence revised** (`SCS Cold Email Sequence.docx`, Test Project root): demo CTA now "try the booking and contact widgets your customers would actually use"; removed the "90-second demo" line; every email's opt-out reworded to natural language with a CAN-SPAM **mailing-address footer** (`{{Mailing_Address}}` placeholder); Email #2 founding offer is now a **`{{Founding_Offer}}` merge field** (Starter vs Pro, chosen per prospect); added a full **15-minute demo-call script** (prospect drives the demo page themselves, then Ryan screen-shares the dashboard: Contacts queue → SMS Conversations → the created Appointment — there is no "notification log" screen).
