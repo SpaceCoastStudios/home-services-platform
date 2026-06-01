@@ -13,6 +13,8 @@
 > Tell Ryan exactly which files to add and what commit message to use.
 >
 > **Push rule:** ALL file changes require a push to be saved to GitHub — including CLAUDE.md and README.md. Without a push, changes only exist locally and could be lost. There are no exceptions.
+>
+> **Always provide git commands:** After any session where files are changed, Claude must provide Ryan with the exact `git add`, `git commit`, and `git push` commands in a code block. List every changed file explicitly — never use `git add .` as it may stage unintended files.
 
 ---
 
@@ -53,11 +55,13 @@
 
 ## 1. What This Project Is
 
-**Space Coast Studios (SCS)** is a B2B SaaS company founded by Ryan Usserery, based in Florida. SCS builds and manages AI-powered booking platforms for home service businesses (HVAC, plumbing, landscaping, roofing, pest control, pool service, etc.) on the Space Coast.
+**Space Coast Studios (SCS)** is a B2B SaaS company founded by Ryan Ussery, based in Florida. SCS builds and manages **Launchpad**, an AI-powered booking platform for home service businesses (HVAC, plumbing, landscaping, roofing, pest control, pool service, etc.) on the Space Coast.
 
-**The business model:** SCS charges a one-time setup fee + monthly retainer. Clients get a fully managed platform — SCS handles all setup, configuration, and ongoing support.
+**Platform branding:** The product is named **Launchpad**. The legal entity remains Space Coast Studios LLC. Use "Launchpad" in all client-facing and product contexts; use "Launchpad by Space Coast Studios" in legal/formal contexts (CSA, invoices, email footers, terms/privacy pages). Domain, emails (@spacecoaststudios.com), and infrastructure remain unchanged -- no DBA filed, no domain change.
 
-**Contact:** Ryan Usserery · ryan@spacecoaststudios.com · usserry@gmail.com
+**The business model:** SCS charges a one-time setup fee + monthly retainer. Clients get a fully managed platform -- SCS handles all setup, configuration, and ongoing support.
+
+**Contact:** Ryan Ussery · ryan@spacecoaststudios.com · usserry@gmail.com
 
 ---
 

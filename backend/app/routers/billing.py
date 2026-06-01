@@ -80,20 +80,20 @@ def _send_welcome_email(email: str, business_name: str, token: str):
     """Send the set-your-password welcome email via SendGrid."""
     from app.services.notifications import send_email
     set_password_url = f"{DASHBOARD_URL}/set-password?token={token}"
-    subject = f"Welcome to Space Coast Studios — Set up your account"
+    subject = f"Welcome to Launchpad — Set up your account"
     plain = (
         f"Hi,\n\n"
-        f"Your account for {business_name} has been created on the Space Coast Studios platform.\n\n"
+        f"Your account for {business_name} has been created on the Launchpad platform by Space Coast Studios.\n\n"
         f"Your login username is: {email}\n\n"
         f"Click the link below to set your password and access your dashboard:\n"
         f"{set_password_url}\n\n"
         f"This link expires in 72 hours.\n\n"
         f"If you have any questions, reply to this email or contact us at support@spacecoaststudios.com.\n\n"
-        f"— Space Coast Studios"
+        f"— Launchpad by Space Coast Studios"
     )
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;">
-      <h2 style="color:#1e40af;">Welcome to Space Coast Studios!</h2>
+      <h2 style="color:#1e40af;">Welcome to Launchpad!</h2>
       <p>Your account for <strong>{business_name}</strong> has been created.</p>
       <p style="margin:20px 0;padding:16px;background:#f0f9ff;border-radius:8px;border-left:4px solid #2563eb;">
         <span style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Your login username</span><br>
@@ -110,7 +110,7 @@ def _send_welcome_email(email: str, business_name: str, token: str):
       <p style="color:#6b7280;font-size:13px;">This link expires in 72 hours.<br>
          If you didn't sign up for this service, you can ignore this email.</p>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-      <p style="color:#9ca3af;font-size:12px;">Space Coast Studios &mdash; support@spacecoaststudios.com</p>
+      <p style="color:#9ca3af;font-size:12px;">Launchpad by Space Coast Studios &mdash; support@spacecoaststudios.com</p>
     </div>
     """
     try:

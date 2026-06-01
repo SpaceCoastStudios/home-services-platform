@@ -1,8 +1,8 @@
-# Space Coast Studios — Home Services Platform
+# Launchpad by Space Coast Studios
 
 Multi-tenant AI-powered scheduling, dispatch, and notifications platform.
 
-**Last updated:** 2026-05-31 | **Status:** Production-ready — demo page polished, recurring UI complete, founding client outreach ready
+**Platform brand:** Launchpad | **Company:** Space Coast Studios LLC | **Last updated:** 2026-06-01 | **Status:** Production-ready -- Launchpad rebrand applied, demo page polished, recurring UI complete, founding client outreach ready
 
 ---
 

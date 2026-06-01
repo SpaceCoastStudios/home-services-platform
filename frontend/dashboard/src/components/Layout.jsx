@@ -149,9 +149,9 @@ export default function Layout() {
             <p className="text-xs text-gray-400">Admin Dashboard</p>
           </div>
         ) : (
-          // Platform admin view — always show Space Coast Studios
+          // Platform admin view — always show Launchpad
           <div className="p-5 border-b border-gray-700">
-            <h1 className="text-lg font-bold">Space Coast Studios</h1>
+            <h1 className="text-lg font-bold">Launchpad</h1>
             <p className="text-xs text-gray-400 mt-1">Platform Admin</p>
           </div>
         )}

@@ -83,7 +83,7 @@ export default function SetPasswordPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
         {/* Logo / branding */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Space Coast Studios</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Launchpad</h1>
           <p className="text-gray-500 text-sm mt-1">
             {isReset ? 'Choose a new password for your account' : 'Set your account password to get started'}
           </p>

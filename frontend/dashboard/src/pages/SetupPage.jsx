@@ -258,7 +258,7 @@ function StepDone({ businessName, onFinish }) {
       </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">You're all set!</h2>
       <p className="text-gray-500 mb-8">
-        Welcome to Space Coast Studios, <strong className="text-gray-700">{businessName}</strong>.
+        Welcome to Launchpad, <strong className="text-gray-700">{businessName}</strong>.
         Here are a few things to do next.
       </p>
 
@@ -424,7 +424,7 @@ export default function SetupPage() {
         {!done && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-1">
-              <h1 className="text-lg font-bold text-gray-900">Space Coast Studios</h1>
+              <h1 className="text-lg font-bold text-gray-900">Launchpad</h1>
               <button
                 onClick={skip}
                 className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2"

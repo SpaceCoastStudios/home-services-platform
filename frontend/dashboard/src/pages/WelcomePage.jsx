@@ -36,7 +36,7 @@ export default function WelcomePage() {
           Payment successful!
         </h1>
         <p className="text-gray-600 mb-6 text-lg leading-relaxed">
-          Welcome to Space Coast Studios.{' '}
+          Welcome to Launchpad.{' '}
           {email
             ? <>We've sent a setup link to <strong>{email}</strong>.</>
             : <>Check your email for a link to set your password and access your new dashboard.</>
@@ -67,7 +67,7 @@ export default function WelcomePage() {
             <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</div>
             <div>
               <p className="font-semibold text-gray-900 text-sm">We'll reach out to onboard you</p>
-              <p className="text-gray-500 text-sm">A member of the Space Coast Studios team will contact you within one business day to get your platform configured.</p>
+              <p className="text-gray-500 text-sm">A member of the Launchpad team will contact you within one business day to get your platform configured.</p>
             </div>
           </div>
         </div>

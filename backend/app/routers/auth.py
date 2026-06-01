@@ -131,20 +131,20 @@ def _send_password_reset_email(email: str, token: str):
     """Send a password reset email via SendGrid."""
     from app.services.notifications import send_email
     reset_url = f"{DASHBOARD_URL}/set-password?token={token}&mode=reset"
-    subject = "Space Coast Studios — Password Reset Request"
+    subject = "Launchpad: Password Reset Request"
     plain = (
         f"Hi,\n\n"
-        f"We received a request to reset the password for your Space Coast Studios account.\n\n"
+        f"We received a request to reset the password for your Launchpad account.\n\n"
         f"Click the link below to choose a new password:\n"
         f"{reset_url}\n\n"
         f"This link expires in 1 hour.\n\n"
         f"If you didn't request a password reset, you can ignore this email — your password won't change.\n\n"
-        f"— Space Coast Studios"
+        f"— Launchpad by Space Coast Studios"
     )
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;">
       <h2 style="color:#1e40af;">Password Reset Request</h2>
-      <p>We received a request to reset the password for your Space Coast Studios account.</p>
+      <p>We received a request to reset the password for your Launchpad account.</p>
       <p>Click the button below to choose a new password:</p>
       <p style="text-align:center;margin:32px 0;">
         <a href="{reset_url}"
@@ -158,7 +158,7 @@ def _send_password_reset_email(email: str, token: str):
         If you didn't request a password reset, you can safely ignore this email.
       </p>
       <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-      <p style="color:#9ca3af;font-size:12px;">Space Coast Studios &mdash; support@spacecoaststudios.com</p>
+      <p style="color:#9ca3af;font-size:12px;">Launchpad by Space Coast Studios &mdash; support@spacecoaststudios.com</p>
     </div>
     """
     try:
