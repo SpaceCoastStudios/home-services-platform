@@ -101,7 +101,7 @@ Each client gets a fully managed platform instance. Features depend on plan:
 - AI-powered auto-responder to contact form submissions
 - Appointment management dashboard
 - Email confirmations and 24h reminders
-- Up to 3 service types, 5 technicians
+- Up to 5 service types, 5 technicians
 
 **Professional plan (everything in Starter plus):**
 - Self-scheduling booking widget (customer picks own slot from live calendar) — **backend ready, widget UI not yet built**

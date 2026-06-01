@@ -73,7 +73,7 @@ print()
 print("STARTER PLAN")
 starter = create_product(
     name="Starter Plan",
-    description="AI contact form, embeddable widget, up to 3 services & 5 techs, email notifications, admin dashboard.",
+    description="AI contact form, embeddable widget, up to 5 services & 5 techs, email notifications, admin dashboard.",
     metadata={"plan": "starter"},
 )
 

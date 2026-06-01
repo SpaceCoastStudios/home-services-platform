@@ -14,7 +14,7 @@ const TIER_FEATURES = {
     'AI-powered contact form responder',
     'Embeddable contact form widget',
     'Dedicated booking request page',
-    'Up to 3 service types & 5 technicians',
+    'Up to 5 service types & 5 technicians',
     'Email confirmations & reminders',
     'Admin dashboard',
     'Email support (2-business-day response)',

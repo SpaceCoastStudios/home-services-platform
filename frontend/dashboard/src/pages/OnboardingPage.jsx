@@ -26,7 +26,7 @@ const PLANS = [
   { value: 'full', label: 'Professional', price: '$2,497 setup + $349/mo',
     desc: 'Full-featured platform with unlimited technicians, SMS reminders, AI persona, and monthly check-in.' },
   { value: 'mini', label: 'Starter', price: '$1,497 setup + $199/mo',
-    desc: 'Core platform — up to 5 technicians, 3 service types, email confirmations, admin dashboard.' },
+    desc: 'Core platform — up to 5 technicians, 5 service types, email confirmations, admin dashboard.' },
 ]
 
 const SKILL_OPTIONS = ['plumbing', 'electrical', 'hvac', 'cleaning', 'landscaping', 'general']
@@ -409,7 +409,7 @@ function StepServices({ services, onChange, onNext, onBack, plan }) {
         <h2 className="text-xl font-bold text-gray-900">Services offered</h2>
         <p className="text-gray-500 text-sm mt-1">
           Add the service types customers can book.
-          {plan === 'mini' && <span className="text-amber-600 ml-1">Starter plan: up to 3 services.</span>}
+          {plan === 'mini' && <span className="text-amber-600 ml-1">Starter plan: up to 5 services.</span>}
         </p>
       </div>
 
