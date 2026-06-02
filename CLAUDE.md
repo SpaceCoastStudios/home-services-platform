@@ -997,6 +997,14 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 
 ### Blocked / Pending
 - **CSA attorney review** -- CSA v5 + Founding Client Pricing Addendum sent to Anjali Sareen (Uncommon Counsel) 2026-06-02 as Word files. Anjali out week of June 9; redline expected week of June 15. Also asked about Schedule A amendment cost if pricing structure changes. Must be reviewed before first client signs. Unblocks A6.5 demo readiness test.
+
+### Pre-Client Business Operations Checklist
+These items must be resolved before the first paying client goes live. None block cold outreach or demos.
+
+- **Find an accountant** -- No accountant currently. Need a Florida CPA or bookkeeper familiar with SaaS/tech small business. Priority questions: (1) Is Launchpad subject to Florida sales tax? (2) Quarterly estimated tax setup. (3) General bookkeeping setup. Find before first client invoice is issued.
+- **Florida SaaS sales tax** -- Florida taxes some software/technology services; SaaS classification is nuanced. Do not collect or not collect from first client until an accountant confirms the obligation. Do not assume either way.
+- **Brevard County local business tax receipt** -- Florida has no statewide business license but Brevard County requires a local business tax receipt. Obtain before first client goes live. Typically straightforward and low cost.
+- **Update LLC industry in Tailor Brands** -- Currently set to "Graphic Design" from original setup. Should be updated to "SaaS." Cosmetic (Tailor Brands internal only, not a government filing) but worth correcting for accurate recommendations.
 - **Screenshot refresh** -- populate Launchpad Demo tenant with appointments, retake all notification + flow panel screenshots, update demo page images. Do while waiting for CSA review.
 
 ### Business Development
