@@ -996,7 +996,7 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 - Quote / estimate workflow (request → estimate → quote → approve → schedule) — makes estimate-first trades (tree, pressure washing, roofing) a great fit
 
 ### Blocked / Pending
-- **CSA attorney review** -- v3 sent to Anjali Sareen (Uncommon Counsel) 2026-06-01 with three questions (6-month term, Launchpad platform name, SMS consent text vs. A2P). Awaiting redline. Must be reviewed before first client signs. Unblocks A6.5 demo readiness test.
+- **CSA attorney review** -- CSA v5 + Founding Client Pricing Addendum sent to Anjali Sareen (Uncommon Counsel) 2026-06-02 as Word files. Anjali out week of June 9; redline expected week of June 15. Also asked about Schedule A amendment cost if pricing structure changes. Must be reviewed before first client signs. Unblocks A6.5 demo readiness test.
 - **Screenshot refresh** -- populate Launchpad Demo tenant with appointments, retake all notification + flow panel screenshots, update demo page images. Do while waiting for CSA review.
 
 ### Business Development
@@ -1070,7 +1070,7 @@ The campaign was approved with the following consent flow — **do not change an
 
 **Section 5.4 survival clause:** Sections 6, 7, 9, 10, 12, and 13 survive termination.
 
-**Status:** Attorney shortlisted; Ryan selecting and signing the engagement letter the week of June 1, 2026, then notifying the chosen attorney. Attorney review to follow. **The CSA must be attorney-reviewed before the first client signs.** Recommended attorneys: Uncommon Counsel (Altamonte Springs), Whitehouse & Cooper / Orlando Technology Law (Orlando), Kananack Law LLC (Melbourne/Brevard).
+**Status:** CSA v5 and Founding Client Pricing Addendum sent to Anjali Sareen (Uncommon Counsel) on 2026-06-02 as Word (.docx) files. Anjali is out the week of June 9; review expected back the week of June 15, 2026. Ryan also asked about the cost to review Schedule A if pricing structure changes (one tier vs. Starter/Pro). Awaiting engagement letter from her assistant. **The CSA must be attorney-reviewed before the first client signs.**
 
 ---
 
