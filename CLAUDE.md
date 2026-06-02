@@ -1057,9 +1057,13 @@ The campaign was approved with the following consent flow — **do not change an
 
 ## 26. Client Services Agreement
 
+**Files:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`) + `Test Project/SCS-Founding-Client-Pricing-Addendum.docx`
+
+**Founding Client Pricing Addendum:** A separate signed addendum for the 5 founding clients. Supersedes Schedule A pricing for the promotional period. Key terms: $497/$99 (Starter) or $997/$199 (Pro) for months 1-3, then auto-transition to standard rates ($249/$399/mo). 14-day written notice required before the transition date -- calendar this at onboarding (~2.5 months after go-live). Non-transferable, one-time use, capped at 5 clients. Both the CSA and this addendum must be signed for founding clients.
+
 **File:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`)
 
-**Version:** Updated May 2026. 14 sections:
+**Version:** v5 (current -- send this one). 14 sections:
 1. Services, 2. Fees & Payment, 3. Term, 4. Client Responsibilities, 5. Termination, 6. IP, 7. Confidentiality, 8. Support, 9. Limitation of Liability, 10. Indemnification, 11. Warranties, **12. AI Services** (NEW), 13. Governing Law, 14. General Provisions
 
 **Section 12 — AI Services** covers: AI-powered features, no guarantee of accuracy, automated nature (no human agent), client configuration responsibility, third-party AI providers (Anthropic), TCPA indemnification, 15-day notice for material AI changes.
