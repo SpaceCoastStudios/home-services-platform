@@ -2,7 +2,7 @@
 
 Multi-tenant AI-powered scheduling, dispatch, and notifications platform.
 
-**Platform brand:** Launchpad | **Company:** Space Coast Studios LLC | **Last updated:** 2026-06-01 | **Status:** Production-ready -- Launchpad rebrand applied, demo page polished, recurring UI complete, founding client outreach ready. Voicemail + AI response and Promotional SMS added to roadmap.
+**Platform brand:** Launchpad | **Company:** Space Coast Studios LLC | **Last updated:** 2026-06-02 | **Status:** Production-ready -- escalation alerts added, on-call banner fixed for weekly rolling rotation, week position UI improved, SMS conversation escalated-tab behavior documented.
 
 ---
 
@@ -153,6 +153,7 @@ See `docs/founder-client-onboarding.md`.
 | `otw_customer` | Tech replies YES to OTW prompt |
 | `review_request` | Tech replies YES to complete prompt |
 | `emergency_dispatch` | SMS agent detects emergency → alerts on-call tech + creates an `emergency`-status appointment |
+| `escalation_alert` | Fires when Scout escalates any conversation (emergency or human follow-up) → SMS + email to configured escalation contacts |
 
 **Manual triggers** (Developer Tools in Settings):
 - `POST /api/admin/trigger/reminders`
@@ -185,8 +186,9 @@ See `docs/founder-client-onboarding.md`.
 | Platform admin impersonation | Amber banner, localStorage stash/restore |
 | Forgot password / reset | 1-hour token, auto-login after reset |
 | Notification templates | 12 editable per-business |
-| **On-call rotation + override** | Tested end-to-end; business-local timezone. Day-of-week, override (beats rotation), and fallback all verified |
+| **On-call rotation + override** | Tested end-to-end; business-local timezone. Day-of-week, weekly rolling (auto-cycles via modulo), override (beats rotation), and fallback all verified |
 | **Emergency dispatch → appointment** | Tested. AI captures address in chat, alerts on-call tech, creates `emergency`-status appointment, no auto-notifications |
+| **Escalation alerts** | SMS + email + on-call tech notifications when Scout escalates a conversation. Configurable per-business in On-Call Settings. Falls back to fallback_phone or business.phone if no escalation contacts set. |
 | Calendar invite links | .ics + Google/Apple/Outlook/Yahoo |
 | Soft delete | Appointments, customers, contact submissions |
 | Twilio phone number in Settings | Platform admin sets per-business number from dashboard |
@@ -326,11 +328,20 @@ cd frontend/dashboard && npm install && npm run dev  # http://localhost:5173
 - **Migrations** — always `ALTER TABLE ADD COLUMN IF NOT EXISTS` in `run_migrations()`. Never Alembic.
 - **Slot timezone** — all slots stored in UTC, displayed in business local time. Naive datetimes from the agent are treated as business local time before UTC conversion.
 - **On-call timezone** — rotation day-of-week + after-hours window evaluate in business-local time, not UTC. If `/api/oncall/current` returns the wrong tech, check `business.timezone`.
+- **On-call banner shows "No tech assigned"** — the dashboard banner calls `GET /api/oncall/current` (server-computed). If it shows no tech but a weekly rolling rotation is configured, verify the `rolling_start_date` is set and there's a rotation entry for the correct position (0-indexed in DB; UI shows "Week 1/2/3").
+- **Escalated SMS conversations** — when Scout escalates a conversation (emergency or `escalate_to_human`), the conversation moves to status `"escalated"`. It will NOT appear in the default "Active" tab in SMS Conversations. Click the **Escalated** tab to find it.
 - **Customer-facing phone display** — use `app/utils/phone.format_phone_display()` for any phone shown to customers → `(321) 386-7604`. The tech emergency alert intentionally stays E.164 (`+1…`) since it's tap-to-dial only.
 
 ---
 
 ## Changelog
+
+### 2026-06-02 — Escalation Alerts, On-Call Banner Fix, Week Position UI
+
+- **Escalation alerts:** When Scout escalates any conversation (`escalate_to_human` or `emergency_dispatch`), the platform now sends configurable alerts. New fields on `oncall_configs`: `escalation_sms_phone`, `escalation_email`, `escalation_notify_oncall`. Configured in On-Call Settings → Escalation Alerts section. All channels fire simultaneously if configured; fallback chain: fallback_phone → business.phone. Emergency dispatch failure produces an urgent "DISPATCH FAILED" alert. `send_escalation_alert()` added to `services/notifications.py`.
+- **On-call banner bug fixed:** The "On-call now" banner was always showing "No on-call tech assigned" for weekly rolling rotations. Root cause: the frontend was computing `activeTech` client-side and returning `null` for the weekly_rolling branch. Fixed by calling `GET /api/oncall/current` at load time and using the server-computed result. Banner now correctly shows the tech, source (rotation / override / fallback), and override expiry.
+- **Week position UI improved:** The 0-indexed number input ("0 = Week 1") in the rotation schedule is replaced with a "Week in Rotation" dropdown showing "Week 1" through "Week 8". Display label changed from "Week position N" to "Week N". Weekly rolling positions auto-cycle via modulo — 4 techs means Week 5 = Week 1, forever.
+- **SMS escalated conversations:** Documented that escalated conversations appear in the **Escalated** tab (not Active) in the SMS Conversations dashboard.
 
 ### 2026-05-30 — Self-Scheduling Booking Widget (Phase 1, shipped + tested)
 - New public, slug-scoped endpoints in `routers/embed.py`: `booking-config`, `availability`, `book`, and the embeddable `booking` widget UI

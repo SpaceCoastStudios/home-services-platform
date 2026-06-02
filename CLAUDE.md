@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-06-02 (Cowork automated maintenance tasks created; daily health check with ntfy.sh alerts live; demo tenant business name fixed to "Launchpad Demo" in DB via API; no code bugs found.)
+> Last substantive update: 2026-06-02 (Escalation alerts built; on-call banner fixed for weekly rolling rotation; week position dropdown UI improved; escalated SMS conversation tab behavior documented.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -533,6 +533,7 @@ Webhook URL: `https://api.spacecoaststudios.com/api/billing/webhook`
 | `otw_tech_complete_prompt` | SMS to tech | After OTW customer notification |
 | `review_request` | SMS + Email | Tech replies YES to complete prompt |
 | `emergency_dispatch` | SMS | AI agent calls emergency tool |
+| `escalation_alert` | SMS + Email | Fires when Scout escalates any conversation — both `escalate_to_human` and `emergency_dispatch` (success or failure) |
 
 All templates are editable per-business in the dashboard. Default templates in `notification_template.py`. Uses `{{token}}` syntax for variables.
 
@@ -553,6 +554,24 @@ When the SMS agent's `emergency_dispatch` tool fires (after a successful alert t
 - **No automated notifications fire** — created directly (not via the API), and `emergency` status is excluded from the reminder, OTW-prompt, and morning-kickoff scheduler jobs. The tech was already told to contact the customer immediately.
 - Customer lookup skips soft-deleted records (won't reattach to a deleted customer)
 - Dashboard: bold red **emergency** badge; staff close it out manually via the status dropdown or the "Mark Complete" row action
+
+### Escalation Alerts
+When the SMS agent escalates a conversation — via `escalate_to_human` or `emergency_dispatch` (either success or failure) — `send_escalation_alert()` in `services/notifications.py` fires immediately. Recipients and channels are configured per-business on the `OnCallConfig` record:
+
+| Field | Type | Description |
+|---|---|---|
+| `escalation_sms_phone` | VARCHAR(20) | Dedicated SMS alert number (office manager, owner, any mobile) |
+| `escalation_email` | VARCHAR(255) | Email address for full alert email |
+| `escalation_notify_oncall` | BOOLEAN | Also SMS the current on-call tech |
+
+All configured channels fire simultaneously. Fallback chain if none are set: `fallback_phone` → `business.phone`. If neither exists, the alert is logged but not sent.
+
+**Message content by event:**
+- `escalate_to_human`: "Scout flagged a conversation for human follow-up. Customer: [name]. Reason: [reason]."
+- `emergency_dispatch` success: "EMERGENCY dispatched to [tech] for [customer]. Issue / Address."
+- `emergency_dispatch` failure: "EMERGENCY DISPATCH FAILED for [customer]. Immediate follow-up required."
+
+**SMS conversations tab note:** When either escalation type fires, `SmsConversation.status` is set to `"escalated"`. These conversations appear in the **Escalated** tab of the SMS Conversations page — NOT the default Active tab.
 
 ### Background Scheduler (APScheduler — runs in-process, no separate worker)
 | Job | Schedule | Description |
@@ -829,7 +848,7 @@ The API does not differentiate impersonation — it's a valid JWT for the busine
 ## 21. Platform Capability Status
 
 ### ✅ Fully Built
-Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone)**, **emergency SMS dispatch (tested end-to-end)** — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164), **recurring appointments dashboard UI (2026-05-31)**: expandable rows showing details/address/notes, Edit modal (frequency, day, time, technician, end date, address, notes), appointment history panel (upcoming + last 5 past per schedule), "Generate appointments now" button — all in the existing Recurring Series tab of the Appointments page, **self-scheduling booking widget (Phase 1 — shipped + tested 2026-05-30)**: public slug-scoped `/embed/{slug}/booking-config|availability|book` + embeddable `/embed/{slug}/booking` UI reusing the availability engine; books a confirmed appointment, assigns a tech, fires the confirmation, is capacity-aware, excludes the internal Emergency Service type, and is embedded live on the demo page
+Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone; weekly rolling auto-cycles via modulo)**, **on-call banner now uses GET /api/oncall/current (fixed weekly rolling display bug)**, **week position UI now shows "Week 1/2/3" dropdown instead of 0-indexed number input**, **emergency SMS dispatch (tested end-to-end)**, **escalation alerts (SMS + email + on-call tech) when Scout escalates any conversation — configurable per-business in On-Call Settings**, — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164), **recurring appointments dashboard UI (2026-05-31)**: expandable rows showing details/address/notes, Edit modal (frequency, day, time, technician, end date, address, notes), appointment history panel (upcoming + last 5 past per schedule), "Generate appointments now" button — all in the existing Recurring Series tab of the Appointments page, **self-scheduling booking widget (Phase 1 — shipped + tested 2026-05-30)**: public slug-scoped `/embed/{slug}/booking-config|availability|book` + embeddable `/embed/{slug}/booking` UI reusing the availability engine; books a confirmed appointment, assigns a tech, fires the confirmation, is capacity-aware, excludes the internal Emergency Service type, and is embedded live on the demo page
 
 ### ⚠️ Partially Built
 - **Online self-booking widget** — Phase 1 (internal-only) **shipped + tested 2026-05-30** (public endpoints + embeddable UI). Phase 2 (Google Calendar two-way sync) / Phase 3 (Outlook) not yet built.
@@ -1238,6 +1257,14 @@ $result.url  # open in browser — $2 total, refund immediately after
 - **New trades fact-checked** as plentiful in Brevard (web search): tree, pool, pressure washing, septic, house cleaning — all confirmed. Pool service + house cleaning flagged as best recurring-revenue fits (drove elevating the Recurring UI to top build priority).
 - All four files live in the Test Project root (outside the repo) — saved on Ryan's computer, not part of git pushes.
 
+
+**2026-06-02 (escalation alerts + on-call bug fixes):**
+- **Emergency dispatch failure root cause:** Investigated via code review — dispatch failed because the weekly rolling rotation had no entry for today (on-call config was in day_of_week mode with no Tuesday entry, and no fallback phone configured). The dispatch logic does NOT check appointment status (en_route/scheduled) — only the rotation config. User hypothesis was incorrect.
+- **Escalated SMS conversation:** Confirmed the conversation WAS recorded. It appeared in the Escalated tab (not default Active tab) because `convo.status = "escalated"` is always set when `emergency_dispatch` tool fires, regardless of dispatch success.
+- **On-call banner bug fixed** (`OnCallPage.jsx`): The "No on-call tech assigned" banner was always showing for weekly rolling rotations. Root cause: the `activeTech` local computation returned `null` for the `weekly_rolling` branch. Fixed by calling `getCurrentOnCall(businessId)` alongside `getOnCallConfig` at load time and using the server-computed result. Banner now handles rotation/override/fallback states correctly.
+- **Week position UI improved** (`OnCallPage.jsx`): Replaced the 0-indexed number input ("0 = Week 1") with a "Week in Rotation" dropdown showing "Week 1" through "Week 8". Display label changed from "Week position N" to "Week N". Weekly rolling cycles automatically via modulo (4 techs → Week 5 = Week 1).
+- **Escalation alerts built** (`models/oncall.py`, `main.py`, `routers/oncall.py`, `services/notifications.py`, `services/sms_agent.py`, `OnCallPage.jsx`): Three new fields on `oncall_configs` — `escalation_sms_phone`, `escalation_email`, `escalation_notify_oncall`. `send_escalation_alert()` added to `notifications.py` — fires all configured channels simultaneously, falls back to `fallback_phone` → `business.phone`. Wired into `sms_agent.py` for both `escalate_to_human` and `emergency_dispatch`. On-Call Settings page gains an "Escalation Alerts" section with SMS phone input, email input, and on-call tech toggle. Amber warning shows if no escalation contacts configured.
+- **Files changed:** `frontend/dashboard/src/pages/OnCallPage.jsx`, `backend/app/models/oncall.py`, `backend/app/main.py`, `backend/app/routers/oncall.py`, `backend/app/services/notifications.py`, `backend/app/services/sms_agent.py`.
 
 **2026-06-02 (daily health check + demo tenant name fix):**
 - **Daily health check scheduled task** (`scs-daily-health-check`) created — runs 7am daily; checks site availability + response times for all 3 URLs, API functionality (auth, booking widget config, contact widget, scheduler), config.py model string sanity, and sends ntfy.sh push alert for Critical/High findings. Silent on clean runs. ntfy.sh channel: `scs-health-q8m3x5k2` (install ntfy app, subscribe to that topic). Task includes setup instructions on first run.
