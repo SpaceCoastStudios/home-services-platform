@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-06-01 (Platform rebranded as **Launchpad**; CSA updated to v3 with Launchpad platform name and sent to Anjali Sareen (Uncommon Counsel) for review; Launchpad branding applied across marketing site, dashboard UI, email templates, CLAUDE.md, README; em dashes removed from marketing site; marketing copy updated; action plan updated with current status and screenshot pre-test checklist.)
+> Last substantive update: 2026-06-01 (Platform rebranded as **Launchpad**; CSA updated to v3 with Launchpad platform name and sent to Anjali Sareen (Uncommon Counsel) for review; Launchpad branding applied across marketing site, dashboard UI, email templates, CLAUDE.md, README; em dashes removed from marketing site; marketing copy updated; action plan updated with current status and screenshot pre-test checklist. Session 2: Voicemail + AI response and Promotional/re-engagement SMS added to roadmap; competitive positioning strategy documented; cold email reframe guidance added.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -841,6 +841,8 @@ Contact form + AI auto-responder, emergency SMS call routing, business hours con
 - Customer portal (magic link login, view/reschedule appointments)
 - Usage/analytics dashboard across all tenants
 - Route optimization (column placeholder in DB, feature deferred)
+- **Voicemail + AI response** (HIGH INTEREST) — Missed-call text-back via call forwarding + voicemail recording. Flow: client forwards their existing business number to Twilio; Twilio plays a greeting and records the voicemail; Whisper transcribes the audio; Claude generates an SMS response to the caller; logs voicemail/transcript/AI response in the dashboard alongside SMS conversations. Requires TwiML call handling (new capability layer, separate from SMS webhooks). Candidate for "Coming Soon" on the marketing site once fleshed out. Do NOT promise to prospects until built.
+- **Promotional/re-engagement SMS campaigns** — Seasonal SMS to past customer lists (e.g. "time for your spring HVAC tune-up" or holiday pool specials). Requires: (1) new A2P MIXED campaign registration (brand stays approved, new campaign submission ~2-4 weeks); (2) explicit marketing opt-in mechanism separate from the service communications consent; (3) opt-in UI on the contact form. Build toward; do not promise until opt-in flow is designed.
 
 ---
 
@@ -1007,6 +1009,8 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 - Usage/analytics dashboard across tenants
 - **Notification template text audit** — review and improve all SMS/email templates (confirmation, reminder, OTW, kickoff, day-complete, review request). User noted templates could be "spruced up." Covers contact form AI responder copy too.
 - **Custom URL shortener** — branded short domain per client (e.g. hvac.app) for review links and schedule URLs. Low priority for now; schedule token already shortened to 16 chars. Most relevant for Google Review SMS where URL is customer-facing.
+- **Voicemail + AI response** (HIGH INTEREST -- candidate for "Coming Soon" on marketing site) — Client keeps existing business number, forwards to Twilio. Twilio records voicemail, Whisper transcribes, Claude generates SMS reply to caller, dashboard logs the full call/transcript/response thread. Requires TwiML call handling as a new capability layer. Cost: ~$0.04/call with Whisper (vs ~$0.23 with Twilio native transcription -- Whisper strongly preferred for both cost and accuracy). See cost estimate from 2026-06-01 session.
+- **Promotional/re-engagement SMS campaigns** — Scheduled seasonal SMS to past customer lists (HVAC tune-up, pool holiday specials, etc.). Requires A2P MIXED campaign (new campaign registration; brand stays); marketing opt-in mechanism in platform; opt-in UI on contact form. Both marketing-opt-in UX and A2P re-registration needed before launch.
 
 ---
 
@@ -1178,6 +1182,14 @@ $result.url  # open in browser — $2 total, refund immediately after
 - **Fixed a broken working-tree file:** `frontend/dashboard/src/pages/AppointmentsPage.jsx` had a truncated/unclosed edit (missing closing `</div>)}`, would have failed the build); reverted via `git checkout --` after clearing a stale `.git/index.lock`. No intended changes lost.
 - Outreach is otherwise ready to send pending Ryan filling `{{Your_Phone}}` + `{{Mailing_Address}}` and the demo-page polish pass.
 
+
+**2026-06-01 (competitive positioning strategy + roadmap additions):**
+- **Competitive positioning reframe** -- Launchpad repositioned as the customer-facing communication layer, complementary to (not competing with) Jobber/Housecall Pro/other FSM tools. Those platforms are back-office (invoicing, job costing, quoting); Launchpad is the customer front door (AI contact response, SMS booking, OTW flow, review requests, emergency dispatch). Positioning angle: "Works alongside whatever tool you already use." Invoicing explicitly de-prioritized.
+- **Pricing strategy** -- One-tier simplification under consideration (Starter/Pro split adds friction for a complementary tool). Multiple locations = add-on discount, not a tier feature. No pricing changes before first prospect conversations (cold emails going out).
+- **Voicemail + AI response added to roadmap (HIGH INTEREST)** -- Client keeps existing number, forwards to Twilio. Twilio records voicemail; Whisper transcribes; Claude generates SMS reply; dashboard logs full thread. Whisper preferred (~$0.04/call vs ~$0.23 with Twilio transcription). "Coming Soon" candidate for marketing site once fleshed out. Do NOT promise to prospects until built.
+- **Promotional/re-engagement SMS added to roadmap** -- Seasonal SMS to past customer lists (HVAC tune-up, pool holiday specials). Requires A2P MIXED campaign (new campaign, brand stays) + marketing opt-in mechanism. A2P update: edit existing campaign to change use case type generally requires a new campaign submission; ~2-4 week approval. Hold off on demo campaign update until feature is near-built.
+- **Cold email reframe notes** -- Emails are already well-targeted on customer communication pain. Two suggested updates: (1) "booking & instant-response systems" in the core opener could be tightened to "automated customer communication system"; (2) demo call script (13-15 min mark) should add: "If you're already using Jobber or Housecall Pro for invoicing, this runs alongside it -- it's the customer communication layer those tools don't have."
+- **A2P re-engagement guidance** -- Changing use case from CUSTOMER_CARE to MIXED requires a new campaign submission (~2-4 weeks), not an edit. Brand registration stays. Hold off on updating demo Twilio campaign until re-engagement feature is near-ready.
 
 **2026-06-01 (Launchpad rebrand + CSA v2/v3 + attorney engagement):**
 - **Attorney selected:** Anjali Sareen, Uncommon Counsel (Altamonte Springs, FL). Licensed in FL/NY/CA, AIGP-certified, specializes in SaaS contracts and AI law. Flat fee $1,050 for initial review + redline. Ryan sending v3 CSA today.

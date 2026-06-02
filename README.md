@@ -2,7 +2,7 @@
 
 Multi-tenant AI-powered scheduling, dispatch, and notifications platform.
 
-**Platform brand:** Launchpad | **Company:** Space Coast Studios LLC | **Last updated:** 2026-06-01 | **Status:** Production-ready -- Launchpad rebrand applied, demo page polished, recurring UI complete, founding client outreach ready
+**Platform brand:** Launchpad | **Company:** Space Coast Studios LLC | **Last updated:** 2026-06-01 | **Status:** Production-ready -- Launchpad rebrand applied, demo page polished, recurring UI complete, founding client outreach ready. Voicemail + AI response and Promotional SMS added to roadmap.
 
 ---
 
@@ -227,6 +227,8 @@ See `docs/founder-client-onboarding.md`.
 | Emergency contact form routing | Contact form urgency → on-call dispatch |
 | Booking widget calendar sync (Phase 2/3) | Google Calendar then Outlook two-way sync |
 | Quote / estimate workflow | request → estimate → quote → approve → schedule (unlocks tree/pressure-washing) |
+| **Voicemail + AI response** (HIGH INTEREST) | Client forwards existing number to Twilio; Twilio records voicemail; Whisper transcribes; Claude generates SMS reply; logs in dashboard. ~$0.04/call (Whisper). Requires TwiML call handling. "Coming Soon" candidate for marketing site. |
+| **Promotional/re-engagement SMS** | Seasonal SMS to past customer lists. Requires A2P MIXED campaign (new registration, ~2-4 weeks) + marketing opt-in mechanism in platform. |
 
 ---
 
@@ -245,7 +247,7 @@ See `docs/founder-client-onboarding.md`.
 | Admin Dashboard | ✅ Built & tested | Matches description |
 | Recurring Appointment Scheduling | ⚠️ Backend only | Advertised as a live Pro feature; delivered manually as part of the managed service (owner decision, 2026-05-29). Dashboard UI still pending. |
 | Custom AI Persona & Branding | ✅ Built | AI agent name, system prompt, brand color, logo URL |
-| Up to 3 service types / 5 technicians (Starter) | ✅ Built | Enforced at plan level |
+| Up to 5 service types / 5 technicians (Starter) | ✅ Built | Enforced at plan level |
 
 **✅ SMS consent compliance — resolved (verified 2026-05-29):**
 The marketing site demo widget consent copy is now correct and matches the approved A2P campaign: the checkbox is clearly **optional** ("customers can submit the form and receive service without checking it"). The demo form's submit handler was also fixed so the message it records reflects the actual checkbox state (previously it always logged "SMS consent given" regardless).
@@ -379,10 +381,4 @@ cd frontend/dashboard && npm install && npm run dev  # http://localhost:5173
 
 ### 2026-05-27 — Auth, Billing, Impersonation
 - Forgot-password flow, platform admin impersonation, first-login setup wizard
-- Stripe billing fully configured and tested
-- Notification templates, on-call rotation + override
-
-### 2026-05-26 — Core Platform
-- Address fields, phone E.164, appointment confirmation SMS
-- Reminder scheduler, admin manual triggers, Developer Tools panel
-- Calendar invite links
+-
