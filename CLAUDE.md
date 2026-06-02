@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-06-01 (Platform rebranded as **Launchpad**; CSA updated to v3 with Launchpad platform name and sent to Anjali Sareen (Uncommon Counsel) for review; Launchpad branding applied across marketing site, dashboard UI, email templates, CLAUDE.md, README; em dashes removed from marketing site; marketing copy updated; action plan updated with current status and screenshot pre-test checklist. Session 2: Voicemail + AI response and Promotional/re-engagement SMS added to roadmap; competitive positioning strategy documented; cold email reframe guidance added.)
+> Last substantive update: 2026-06-02 (Cowork automated maintenance tasks created; daily health check with ntfy.sh alerts live; demo tenant business name fixed to "Launchpad Demo" in DB via API; no code bugs found.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -1238,6 +1238,10 @@ $result.url  # open in browser — $2 total, refund immediately after
 - **New trades fact-checked** as plentiful in Brevard (web search): tree, pool, pressure washing, septic, house cleaning — all confirmed. Pool service + house cleaning flagged as best recurring-revenue fits (drove elevating the Recurring UI to top build priority).
 - All four files live in the Test Project root (outside the repo) — saved on Ryan's computer, not part of git pushes.
 
+
+**2026-06-02 (daily health check + demo tenant name fix):**
+- **Daily health check scheduled task** (`scs-daily-health-check`) created — runs 7am daily; checks site availability + response times for all 3 URLs, API functionality (auth, booking widget config, contact widget, scheduler), config.py model string sanity, and sends ntfy.sh push alert for Critical/High findings. Silent on clean runs. ntfy.sh channel: `scs-health-q8m3x5k2` (install ntfy app, subscribe to that topic). Task includes setup instructions on first run.
+- **Demo tenant business name fixed** — `/embed/default/booking-config` was returning `"business_name":"Space Coast Studios Demo"` instead of `"Launchpad Demo"`. Root cause: the previous rename via the dashboard Businesses edit modal had a transient save failure (network/navigation issue); the code itself is correct. Fixed via direct API call (`PUT /api/businesses/1 {"name":"Launchpad Demo"}`). Verified: endpoint now returns correct name. No code changes needed.
 
 **2026-05-30 (Cowork automated maintenance tasks):**
 - Created 4 Cowork scheduled tasks covering all periodic maintenance items from Section 23:
