@@ -96,6 +96,50 @@ def send_email(to_email: str, subject: str, html_body: str, plain_body: str) -> 
         return False
 
 
+# ── Escalation alert ──────────────────────────────────────────────────────────
+
+def send_escalation_alert(db, business, alert_body: str) -> bool:
+    """
+    Send an SMS escalation alert to the business's on-call fallback contact.
+
+    Used when the SMS agent escalates a conversation to human review (either via
+    escalate_to_human or when emergency dispatch fires). The recipient is resolved
+    in priority order:
+      1. On-call config fallback_phone (already the designated emergency contact)
+      2. Business.phone (main line — last resort)
+
+    If neither is configured, logs a warning and returns False.
+    """
+    from app.models.oncall import OnCallConfig
+
+    config = db.query(OnCallConfig).filter(
+        OnCallConfig.business_id == business.id
+    ).first()
+
+    alert_phone = (config.fallback_phone if config and config.fallback_phone else None) or business.phone
+    if not alert_phone:
+        logger.warning(
+            "escalation_alert: no alert phone configured for business %s — alert not sent",
+            business.id,
+        )
+        return False
+
+    from_number = business.twilio_phone_number or settings.TWILIO_PHONE_NUMBER
+    if not from_number:
+        logger.warning(
+            "escalation_alert: no Twilio from-number for business %s — alert not sent",
+            business.id,
+        )
+        return False
+
+    sent = send_sms(alert_phone, alert_body, from_number)
+    if sent:
+        logger.info(
+            "escalation_alert: sent to %s for business %s", alert_phone, business.id
+        )
+    return sent
+
+
 # ── High-level reminder helpers ────────────────────────────────────────────────
 
 def _format_appointment_time(dt: datetime) -> str:

@@ -283,20 +283,69 @@ def _execute_tool(
         convo.status = "escalated"
         reason = tool_input.get("reason", "No reason given")
         logger.info("sms_agent: convo %s escalated — %s", convo.id, reason)
+
+        # Notify the fallback contact that a conversation needs human attention
+        try:
+            from app.services.notifications import send_escalation_alert
+            customer_label = convo.customer_name or convo.customer_phone
+            alert_body = (
+                "Launchpad alert: Scout flagged a conversation for human follow-up.\n"
+                "Customer: {}\nReason: {}\nReview it in the SMS dashboard.".format(
+                    customer_label, reason
+                )
+            )
+            send_escalation_alert(db, business, alert_body)
+        except Exception as exc:
+            logger.warning("sms_agent: escalation alert failed: %s", exc)
+
         return {"escalated": True, "reason": reason}
 
     elif tool_name == "emergency_dispatch":
         from app.services.oncall_notifier import dispatch_emergency
+        customer_name = tool_input.get("customer_name", convo.customer_name or "Unknown")
+        issue_summary = tool_input.get("issue_summary", "")
+        service_address = tool_input.get("service_address", "") or ""
+
         result = dispatch_emergency(
             db=db,
             business=business,
             customer_phone=convo.customer_phone,
-            customer_name=tool_input.get("customer_name", convo.customer_name or "Unknown"),
-            issue_summary=tool_input.get("issue_summary", ""),
-            service_address=tool_input.get("service_address", "") or "",
+            customer_name=customer_name,
+            issue_summary=issue_summary,
+            service_address=service_address,
         )
         convo.status = "escalated"
         logger.info("sms_agent: emergency dispatch for convo %s — %s", convo.id, result)
+
+        # Always alert the fallback contact — regardless of whether dispatch succeeded
+        try:
+            from app.services.notifications import send_escalation_alert
+            customer_label = customer_name or convo.customer_phone
+            if result.get("dispatched"):
+                tech_name = result.get("tech_name", "on-call tech")
+                alert_body = (
+                    "EMERGENCY dispatched to {} for {}.\n"
+                    "Issue: {}\nAddress: {}\n"
+                    "Review the SMS dashboard.".format(
+                        tech_name, customer_label,
+                        issue_summary or "Not specified",
+                        service_address or "Not provided",
+                    )
+                )
+            else:
+                alert_body = (
+                    "EMERGENCY DISPATCH FAILED for {}.\n"
+                    "Issue: {}\nNo on-call tech could be reached. "
+                    "Immediate follow-up required.\nPhone: {}".format(
+                        customer_label,
+                        issue_summary or "Not specified",
+                        convo.customer_phone,
+                    )
+                )
+            send_escalation_alert(db, business, alert_body)
+        except Exception as exc:
+            logger.warning("sms_agent: emergency escalation alert failed: %s", exc)
+
         return result
 
     return {"error": f"Unknown tool: {tool_name}"}

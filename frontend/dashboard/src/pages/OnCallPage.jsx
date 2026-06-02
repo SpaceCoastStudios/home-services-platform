@@ -8,7 +8,7 @@ import {
   getOnCallConfig, updateOnCallConfig,
   addRotationEntry, deleteRotationEntry,
   setOnCallOverride, clearOnCallOverride,
-  getTechnicians,
+  getTechnicians, getCurrentOnCall,
 } from '../services/api'
 
 const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -17,12 +17,13 @@ export default function OnCallPage() {
   const { activeBusiness } = useBusinessContext()
   const businessId = activeBusiness?.id
 
-  const [config, setConfig]       = useState(null)
-  const [techs, setTechs]         = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [saving, setSaving]       = useState(false)
-  const [toast, setToast]         = useState(null)
-  const [activeTab, setActiveTab] = useState('config') // 'config' | 'rotation' | 'override'
+  const [config, setConfig]           = useState(null)
+  const [currentOnCallData, setCurrentOnCallData] = useState(null)
+  const [techs, setTechs]             = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [saving, setSaving]           = useState(false)
+  const [toast, setToast]             = useState(null)
+  const [activeTab, setActiveTab]     = useState('config') // 'config' | 'rotation' | 'override'
 
   // Config form state
   const [form, setForm] = useState({
@@ -55,12 +56,14 @@ export default function OnCallPage() {
     if (!businessId) return
     setLoading(true)
     try {
-      const [cfg, techList] = await Promise.all([
+      const [cfg, techList, oncallNow] = await Promise.all([
         getOnCallConfig(businessId),
         getTechnicians(businessId, true),
+        getCurrentOnCall(businessId).catch(() => null),
       ])
       setConfig(cfg)
       setTechs(techList)
+      setCurrentOnCallData(oncallNow)
       setForm({
         is_enabled: cfg.is_enabled,
         after_hours_start: cfg.after_hours_start,
@@ -167,17 +170,10 @@ export default function OnCallPage() {
     )
   }
 
-  const activeTech = config?.active_override
-    ? config.active_override
-    : (() => {
-        if (!config?.rotations?.length) return null
-        const now = new Date()
-        if (form.rotation_type === 'day_of_week') {
-          const dow = (now.getDay() + 6) % 7 // convert Sun=0 → Mon=0
-          return config.rotations.find(r => r.day_of_week === dow) || null
-        }
-        return null
-      })()
+  // Use the server-computed on-call result — handles both day_of_week and weekly_rolling correctly.
+  const activeTech = currentOnCallData?.on_call ?? null
+  const isOverride = currentOnCallData?.source === 'override'
+  const isFallback = currentOnCallData?.source === 'fallback'
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -209,37 +205,38 @@ export default function OnCallPage() {
       {/* Current on-call card */}
       {config?.is_enabled && (
         <div className={`rounded-xl border p-4 mb-6 flex items-center gap-4
-          ${config.active_override ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'}`}>
-          <div className={`p-2 rounded-full ${config.active_override ? 'bg-amber-100' : 'bg-blue-100'}`}>
-            <UserCheck size={20} className={config.active_override ? 'text-amber-600' : 'text-blue-600'} />
+          ${isOverride ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'}`}>
+          <div className={`p-2 rounded-full ${isOverride ? 'bg-amber-100' : 'bg-blue-100'}`}>
+            <UserCheck size={20} className={isOverride ? 'text-amber-600' : 'text-blue-600'} />
           </div>
           <div className="flex-1">
             {activeTech ? (
               <>
                 <p className="text-sm font-semibold text-gray-900">
-                  On-call now: {activeTech.technician_name || activeTech.name}
-                  {config.active_override && (
+                  {isFallback ? 'Fallback contact' : 'On-call now'}: {activeTech.name}
+                  {isOverride && (
                     <span className="ml-2 text-xs font-normal text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
                       Manual override
                     </span>
                   )}
+                  {isFallback && (
+                    <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      No rotation match
+                    </span>
+                  )}
                 </p>
-                {config.active_override && (
+                {isOverride && config.active_override && (
                   <p className="text-xs text-gray-500 mt-0.5">
                     Expires {new Date(config.active_override.expires_at).toLocaleString()}
                     {config.active_override.note && ` · ${config.active_override.note}`}
                   </p>
                 )}
               </>
-            ) : config?.fallback_name || config?.fallback_phone ? (
-              <p className="text-sm font-semibold text-gray-900">
-                Fallback: {config.fallback_name || config.fallback_phone}
-              </p>
             ) : (
               <p className="text-sm text-gray-500">No on-call tech assigned for today</p>
             )}
           </div>
-          {config.active_override && (
+          {isOverride && (
             <button onClick={handleClearOverride}
               className="text-xs text-amber-700 hover:text-amber-900 underline">
               Clear override
@@ -449,7 +446,7 @@ export default function OnCallPage() {
                   <span className="ml-3 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                     {form.rotation_type === 'day_of_week'
                       ? DAY_NAMES[entry.day_of_week]
-                      : `Week position ${entry.position + 1}`}
+                      : `Week ${entry.position + 1}`}
                   </span>
                 </div>
                 <button onClick={() => handleDeleteRotation(entry.id)}
@@ -489,11 +486,14 @@ export default function OnCallPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Week Position</label>
-                  <input type="number" min="0" value={rotForm.position}
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Week in Rotation</label>
+                  <select value={rotForm.position}
                     onChange={e => setRotForm(f => ({ ...f, position: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                    placeholder="0 = Week 1" />
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                    {[1,2,3,4,5,6,7,8].map(n => (
+                      <option key={n} value={n - 1}>Week {n}</option>
+                    ))}
+                  </select>
                 </div>
               )}
 
