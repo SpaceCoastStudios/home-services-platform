@@ -56,6 +56,15 @@ class OnCallConfig(Base):
     fallback_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     fallback_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
+    # Escalation alert preferences — who gets notified when a conversation is escalated
+    # (either via escalate_to_human or emergency_dispatch)
+    escalation_sms_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Phone number to SMS on escalation (e.g. office manager, owner)
+    escalation_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Email address to notify on escalation
+    escalation_notify_oncall: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # If True, also send an SMS alert to the current on-call tech
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

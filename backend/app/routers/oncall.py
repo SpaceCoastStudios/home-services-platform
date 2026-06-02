@@ -51,6 +51,9 @@ class OnCallConfigUpdate(BaseModel):
     fallback_name: Optional[str] = None
     emergency_fee_enabled: Optional[bool] = None
     emergency_fee: Optional[float] = None
+    escalation_sms_phone: Optional[str] = None
+    escalation_email: Optional[str] = None
+    escalation_notify_oncall: Optional[bool] = None
 
 
 class RotationEntryCreate(BaseModel):
@@ -207,6 +210,9 @@ def get_config(
         "rolling_start_date": config.rolling_start_date.isoformat() if config.rolling_start_date else None,
         "fallback_phone": config.fallback_phone,
         "fallback_name": config.fallback_name,
+        "escalation_sms_phone": config.escalation_sms_phone,
+        "escalation_email": config.escalation_email,
+        "escalation_notify_oncall": config.escalation_notify_oncall,
         "rotations": rotations,
         "active_override": override_data,
     }

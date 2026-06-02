@@ -39,6 +39,9 @@ export default function OnCallPage() {
     fallback_name: '',
     emergency_fee_enabled: false,
     emergency_fee: '',
+    escalation_sms_phone: '',
+    escalation_email: '',
+    escalation_notify_oncall: false,
   })
 
   // Rotation form state
@@ -77,6 +80,9 @@ export default function OnCallPage() {
         fallback_name: cfg.fallback_name || '',
         emergency_fee_enabled: cfg.emergency_fee_enabled || false,
         emergency_fee: cfg.emergency_fee != null ? String(cfg.emergency_fee) : '',
+        escalation_sms_phone: cfg.escalation_sms_phone || '',
+        escalation_email: cfg.escalation_email || '',
+        escalation_notify_oncall: cfg.escalation_notify_oncall || false,
       })
     } catch (e) {
       showToast('Failed to load on-call settings', 'error')
@@ -387,6 +393,59 @@ export default function OnCallPage() {
                   The AI will say: "An emergency service fee of ${form.emergency_fee || '___'} applies. Reply YES to confirm."
                 </p>
               </div>
+            )}
+          </div>
+
+          {/* Escalation Alerts */}
+          <div className="pt-4 border-t border-gray-100">
+            <p className="font-medium text-gray-900 mb-1">Escalation Alerts</p>
+            <p className="text-sm text-gray-500 mb-4">
+              Who gets notified when Scout escalates a conversation — whether a customer
+              needs urgent help or the AI flags something for human follow-up.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Alert SMS number <span className="text-gray-400">(E.164, e.g. +13215550100)</span>
+                </label>
+                <input type="text" value={form.escalation_sms_phone}
+                  placeholder="+13215550100"
+                  onChange={e => setForm(f => ({ ...f, escalation_sms_phone: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <p className="text-xs text-gray-400 mt-1">Office manager, owner, or any mobile number</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Alert email</label>
+                <input type="email" value={form.escalation_email}
+                  placeholder="manager@yourbusiness.com"
+                  onChange={e => setForm(f => ({ ...f, escalation_email: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <p className="text-xs text-gray-400 mt-1">Receives a full email with conversation details</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Also notify the on-call tech</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Sends the alert to whoever is currently on-call in addition to the contacts above
+                </p>
+              </div>
+              <button
+                onClick={() => setForm(f => ({ ...f, escalation_notify_oncall: !f.escalation_notify_oncall }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0
+                  ${form.escalation_notify_oncall ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+                  ${form.escalation_notify_oncall ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {!form.escalation_sms_phone && !form.escalation_email && !form.escalation_notify_oncall && (
+              <p className="text-xs text-amber-600 mt-3 flex items-center gap-1.5">
+                <AlertCircle size={12} />
+                No escalation contacts set — alerts will fall back to the Fallback Contact phone above
+              </p>
             )}
           </div>
 

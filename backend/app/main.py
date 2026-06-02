@@ -274,6 +274,19 @@ def run_migrations(db):
             db.rollback()
     logger.info("Migration: oncall_configs emergency fee columns ready")
 
+    # Add escalation alert preference columns to oncall_configs
+    for col_sql in [
+        "ALTER TABLE oncall_configs ADD COLUMN IF NOT EXISTS escalation_sms_phone VARCHAR(20)",
+        "ALTER TABLE oncall_configs ADD COLUMN IF NOT EXISTS escalation_email VARCHAR(255)",
+        "ALTER TABLE oncall_configs ADD COLUMN IF NOT EXISTS escalation_notify_oncall BOOLEAN NOT NULL DEFAULT FALSE",
+    ]:
+        try:
+            db.execute(text(col_sql))
+            db.commit()
+        except Exception:
+            db.rollback()
+    logger.info("Migration: oncall_configs escalation alert columns ready")
+
     # Add ai_response_mode to businesses if it doesn't exist
     try:
         db.execute(text(

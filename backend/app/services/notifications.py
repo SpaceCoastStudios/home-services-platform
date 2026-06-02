@@ -100,15 +100,15 @@ def send_email(to_email: str, subject: str, html_body: str, plain_body: str) -> 
 
 def send_escalation_alert(db, business, alert_body: str) -> bool:
     """
-    Send an SMS escalation alert to the business's on-call fallback contact.
+    Send escalation alerts based on the business's on-call escalation preferences.
 
-    Used when the SMS agent escalates a conversation to human review (either via
-    escalate_to_human or when emergency dispatch fires). The recipient is resolved
-    in priority order:
-      1. On-call config fallback_phone (already the designated emergency contact)
-      2. Business.phone (main line — last resort)
+    Channels used (any combination, based on what's configured):
+      1. SMS to escalation_sms_phone  (dedicated escalation contact)
+      2. Email to escalation_email    (dedicated escalation email)
+      3. SMS to current on-call tech  (if escalation_notify_oncall is True)
+      4. Fallback: SMS to fallback_phone or business.phone if none of the above are set
 
-    If neither is configured, logs a warning and returns False.
+    Returns True if at least one alert was sent successfully.
     """
     from app.models.oncall import OnCallConfig
 
@@ -116,28 +116,59 @@ def send_escalation_alert(db, business, alert_body: str) -> bool:
         OnCallConfig.business_id == business.id
     ).first()
 
-    alert_phone = (config.fallback_phone if config and config.fallback_phone else None) or business.phone
-    if not alert_phone:
-        logger.warning(
-            "escalation_alert: no alert phone configured for business %s — alert not sent",
-            business.id,
-        )
-        return False
-
     from_number = business.twilio_phone_number or settings.TWILIO_PHONE_NUMBER
-    if not from_number:
-        logger.warning(
-            "escalation_alert: no Twilio from-number for business %s — alert not sent",
-            business.id,
-        )
-        return False
+    any_sent = False
 
-    sent = send_sms(alert_phone, alert_body, from_number)
-    if sent:
-        logger.info(
-            "escalation_alert: sent to %s for business %s", alert_phone, business.id
-        )
-    return sent
+    # 1. Dedicated escalation SMS phone
+    if config and config.escalation_sms_phone:
+        if from_number:
+            sent = send_sms(config.escalation_sms_phone, alert_body, from_number)
+            if sent:
+                logger.info("escalation_alert: SMS sent to escalation_sms_phone for business %s", business.id)
+                any_sent = True
+        else:
+            logger.warning("escalation_alert: no from-number for business %s, skipping SMS", business.id)
+
+    # 2. Dedicated escalation email
+    if config and config.escalation_email:
+        subject = "Launchpad Alert: Conversation Escalated — {}".format(business.name)
+        html_body = "<pre style='font-family:sans-serif'>{}</pre>".format(alert_body)
+        sent = send_email(config.escalation_email, subject, html_body, alert_body)
+        if sent:
+            logger.info("escalation_alert: email sent to escalation_email for business %s", business.id)
+            any_sent = True
+
+    # 3. Also notify the current on-call tech (if enabled)
+    if config and config.escalation_notify_oncall and from_number:
+        try:
+            from app.services.oncall_notifier import _current_oncall_tech
+            tech = _current_oncall_tech(business.id, db)
+            if tech and tech.phone:
+                sent = send_sms(tech.phone, alert_body, from_number)
+                if sent:
+                    logger.info(
+                        "escalation_alert: SMS sent to on-call tech %s for business %s",
+                        tech.name, business.id,
+                    )
+                    any_sent = True
+        except Exception as exc:
+            logger.warning("escalation_alert: could not notify on-call tech: %s", exc)
+
+    # 4. Fallback — nothing configured above, use fallback_phone or business.phone
+    if not any_sent:
+        fallback = (config.fallback_phone if config and config.fallback_phone else None) or business.phone
+        if fallback and from_number:
+            sent = send_sms(fallback, alert_body, from_number)
+            if sent:
+                logger.info("escalation_alert: sent to fallback %s for business %s", fallback, business.id)
+                any_sent = True
+        else:
+            logger.warning(
+                "escalation_alert: no escalation contacts configured for business %s — alert not sent",
+                business.id,
+            )
+
+    return any_sent
 
 
 # ── High-level reminder helpers ────────────────────────────────────────────────
