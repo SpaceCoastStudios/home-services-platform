@@ -9,12 +9,16 @@ does NOT create any appointments, so no notifications fire.
 Safe to re-run: exits if the slug already exists.
 
 Usage (from the backend/ directory):
-    python scripts/seed_pool_demo.py
+    python scripts/seed_pool_demo.py --username admin --password YOURPASSWORD
 
-You will be prompted for the platform admin username/password.
+Credentials can also be set via env vars SCS_ADMIN_USER / SCS_ADMIN_PASS.
+If neither is provided, the script prompts (note: the password prompt is
+hidden - the console may look frozen while it waits for you to type).
 """
 
+import argparse
 import json
+import os
 import sys
 import getpass
 import urllib.request
@@ -31,17 +35,31 @@ def call(method, path, body=None, token=None):
         req.add_header("Authorization", "Bearer " + token)
     data = json.dumps(body).encode() if body is not None else None
     try:
-        with urllib.request.urlopen(req, data) as r:
+        with urllib.request.urlopen(req, data, timeout=30) as r:
             return json.loads(r.read().decode())
     except urllib.error.HTTPError as e:
         print("HTTP {0} on {1}: {2}".format(e.code, path, e.read().decode()[:300]))
         sys.exit(1)
+    except Exception as e:
+        print("Request failed on {0}: {1}".format(path, e))
+        sys.exit(1)
 
 
 def main():
-    username = input("Platform admin username [admin]: ").strip() or "admin"
-    password = getpass.getpass("Password: ")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--username", default=os.environ.get("SCS_ADMIN_USER"))
+    ap.add_argument("--password", default=os.environ.get("SCS_ADMIN_PASS"))
+    args = ap.parse_args()
 
+    username = args.username
+    password = args.password
+    if not username:
+        username = input("Platform admin username [admin]: ").strip() or "admin"
+    if not password:
+        print("Enter password (input is HIDDEN - type it and press Enter):")
+        password = getpass.getpass("Password: ")
+
+    print("Logging in to {0} ...".format(API))
     tok = call("POST", "/api/auth/login", {"username": username, "password": password})["access_token"]
     print("Login OK")
 
