@@ -43,18 +43,18 @@ class Settings(BaseSettings):
 
     # Stripe Product ID (single-tier Launchpad plan, June 2026 restructure)
     # Old Starter/Professional products remain in Stripe but are no longer sold.
-    STRIPE_PRODUCT_LAUNCHPAD: str = ""
+    STRIPE_PRODUCT_LAUNCHPAD: str = "prod_Ug8lLmR2lobv8S"
 
     # Stripe Price IDs - Standard ($999 setup + $299/month)
     # Fill defaults after running scripts/create_launchpad_prices.py;
     # production values are set via DO env vars and override these.
-    STRIPE_PRICE_LAUNCHPAD_SETUP: str = ""
-    STRIPE_PRICE_LAUNCHPAD_MONTHLY: str = ""
+    STRIPE_PRICE_LAUNCHPAD_SETUP: str = "price_1TgmTt2MJMR8rAcZShLwtrpM"
+    STRIPE_PRICE_LAUNCHPAD_MONTHLY: str = "price_1TgmTt2MJMR8rAcZshH8T7uB"
 
     # Stripe Price IDs - Founding Client ($497 setup + $149/mo first 3 months)
     # Manual subscriptions only - never sold through the checkout API.
-    STRIPE_PRICE_LAUNCHPAD_SETUP_FOUNDING: str = ""
-    STRIPE_PRICE_LAUNCHPAD_MONTHLY_FOUNDING: str = ""
+    STRIPE_PRICE_LAUNCHPAD_SETUP_FOUNDING: str = "price_1TgmTt2MJMR8rAcZ6YZo6E1P"
+    STRIPE_PRICE_LAUNCHPAD_MONTHLY_FOUNDING: str = "price_1TgmTt2MJMR8rAcZkwbMP0rK"
 
     # Email (SendGrid)
     SENDGRID_API_KEY: Optional[str] = None

@@ -60,8 +60,8 @@ psql "postgresql://doadmin:PASSWORD@host.db.ondigitalocean.com:25060/defaultdb?s
 | `SMS_AGENT_MODEL` | — | Default: `claude-sonnet-4-6` — SMS booking agent (Sonnet required for multi-turn reasoning) |
 | `STRIPE_SECRET_KEY` | ✅ | `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | `whsec_...` |
-| `STRIPE_PRICE_LAUNCHPAD_SETUP` | ✅ | Run `scripts/create_launchpad_prices.py`, paste ID here + DO env var |
-| `STRIPE_PRICE_LAUNCHPAD_MONTHLY` | ✅ | Run `scripts/create_launchpad_prices.py`, paste ID here + DO env var |
+| `STRIPE_PRICE_LAUNCHPAD_SETUP` | ✅ | `price_1TgmTt2MJMR8rAcZShLwtrpM` |
+| `STRIPE_PRICE_LAUNCHPAD_MONTHLY` | ✅ | `price_1TgmTt2MJMR8rAcZshH8T7uB` |
 | `BASE_URL` | ✅ | `https://api.spacecoaststudios.com` |
 | `ALLOWED_ORIGINS` | ✅ | CORS origins (comma-separated) |
 
@@ -75,14 +75,14 @@ psql "postgresql://doadmin:PASSWORD@host.db.ondigitalocean.com:25060/defaultdb?s
 **Webhook:** `https://api.spacecoaststudios.com/api/billing/webhook`
 **Events:** `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
 
-**Single-tier pricing (June 2026 restructure).** One plan: Launchpad, $999 setup + $299/month. Founding offer: $497 setup + $149/month first 3 months, then $299. Run `backend/scripts/create_launchpad_prices.py` once to create the prices, then fill the IDs below and in DO env vars.
+**Single-tier pricing (June 2026 restructure).** One plan: Launchpad, $999 setup + $299/month. Founding offer: $497 setup + $149/month first 3 months, then $299. Prices created 2026-06-10 (product `prod_Ug8lLmR2lobv8S`); IDs below are live in config.py and the DO env vars. Old Starter/Professional products archived in Stripe.
 
 | Plan | Price ID | Amount |
 |---|---|---|
-| Launchpad Setup | _(fill after running script)_ | $999 one-time |
-| Launchpad Monthly | _(fill after running script)_ | $299/month |
-| Founding Setup | _(fill after running script)_ | $497 (manual subscriptions only) |
-| Founding Monthly | _(fill after running script)_ | $149/month first 3 mo (manual subscriptions only) |
+| Launchpad Setup | `price_1TgmTt2MJMR8rAcZShLwtrpM` | $999 one-time |
+| Launchpad Monthly | `price_1TgmTt2MJMR8rAcZshH8T7uB` | $299/month |
+| Founding Setup | `price_1TgmTt2MJMR8rAcZ6YZo6E1P` | $497 (manual subscriptions only) |
+| Founding Monthly | `price_1TgmTt2MJMR8rAcZkwbMP0rK` | $149/month first 3 mo (manual subscriptions only) |
 | Test Setup | `price_1TbkYi2MJMR8rAcZO4iP0oHP` | $1.00 |
 | Test Monthly | `price_1TbkkP2MJMR8rAcZAPo5kJx5` | $1.00/month |
 

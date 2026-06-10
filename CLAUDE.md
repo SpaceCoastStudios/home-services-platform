@@ -124,9 +124,9 @@ Future revenue expansion is via add-ons (additional locations; voicemail AI when
 
 **Single tier (restructured 2026-06-10):**
 
-| Plan | Setup | Monthly |
-|---|---|---|
-| Launchpad (everything included) | $999 | $299/mo |
+| Plan | Setup | Monthly | Stripe product |
+|---|---|---|---|
+| Launchpad (everything included) | $999 | $299/mo | `prod_Ug8lLmR2lobv8S` |
 
 ### Founding Client Offer (manual provisioning, limited time — 5 spots only)
 
@@ -481,19 +481,19 @@ See `docs/founder-client-onboarding.md` for step-by-step.
 
 ### Stripe Product & Price IDs
 
-**Single-tier restructure (2026-06-10):** run `backend/scripts/create_launchpad_prices.py` once with the live secret key, then paste the printed IDs into `config.py`, the DO env vars, and the tables below. **Until that is done, checkout returns 503 "Stripe prices not configured" — do not push to main before the prices exist and env vars are set.**
+**Single-tier restructure (2026-06-10):** DONE — prices created (product `prod_Ug8lLmR2lobv8S`), IDs in `config.py` + DO env vars, checkout verified live ($1,298 first payment, then $299/mo). Old Starter/Professional products archived in Stripe (not deleted).
 
 #### Standard Pricing (single tier)
 | Price | Stripe Price ID | Amount |
 |---|---|---|
-| Launchpad — Setup | _fill after running script_ | $999 one-time |
-| Launchpad — Monthly | _fill after running script_ | $299/month |
+| Launchpad — Setup | `price_1TgmTt2MJMR8rAcZShLwtrpM` | $999 one-time |
+| Launchpad — Monthly | `price_1TgmTt2MJMR8rAcZshH8T7uB` | $299/month |
 
 #### Founding Client Pricing (manual subscriptions only — not in checkout API)
 | Price | Stripe Price ID | Amount |
 |---|---|---|
-| Launchpad — Founding Setup | _fill after running script_ | $497 one-time |
-| Launchpad — Founding Monthly | _fill after running script_ | $149/month (first 3 months) |
+| Launchpad — Founding Setup | `price_1TgmTt2MJMR8rAcZ6YZo6E1P` | $497 one-time |
+| Launchpad — Founding Monthly | `price_1TgmTt2MJMR8rAcZkwbMP0rK` | $149/month (first 3 months) |
 
 #### Legacy Pricing (retired 2026-06-10 — products remain in Stripe, no longer sold)
 Starter $1,997/$249 and Professional $2,997/$399 (+ founding variants). Old price IDs preserved in `scripts/create_stripe_products.py` and git history. Legacy plan names ("starter"/"professional") sent to the checkout API map to `launchpad` via `LEGACY_PLAN_ALIASES` in `billing.py`.
@@ -1200,6 +1200,7 @@ $result.url  # open in browser — $2 total, refund immediately after
 - **DEPLOY SEQUENCING (critical):** (1) Ryan runs `create_launchpad_prices.py`; (2) paste IDs into `config.py` defaults + README/CLAUDE.md tables; (3) set `STRIPE_PRICE_LAUNCHPAD_SETUP`/`STRIPE_PRICE_LAUNCHPAD_MONTHLY` env vars on DO api component; (4) THEN push everything in one commit. Push is urgent once ready -- the live site checkout JS is currently broken (see truncation fix above).
 - **Still to do (vertical GTM):** pool demo tenant, `marketing-site/pool.html`, pool sales sheet, pool email variant update, pool screenshots; then HVAC vertical; sales sheets + cold email sequence + capability checklist/roadmap docx still show old pricing.
 - **Files changed:** `backend/app/config.py`, `backend/app/routers/billing.py`, `backend/scripts/create_launchpad_prices.py` (new), `marketing-site/index.html`, `frontend/dashboard/src/pages/BillingPage.jsx`, `frontend/dashboard/src/pages/OnboardingPage.jsx`, `README.md`, `CLAUDE.md`.
+- **DEPLOYED + VERIFIED same day:** pushed as `4633e80`; Ryan ran the price script (product `prod_Ug8lLmR2lobv8S`), set DO env vars, archived old Stripe products. Checkout verified end-to-end on the live site: $1,298 first payment then $299/mo. Live-site checkout JS confirmed fixed. Price IDs backfilled into config.py defaults + README/CLAUDE.md tables in a follow-up commit.
 
 **2026-05-31 (session 2 — recurring UI + demo page polish):**
 - **Recurring appointments dashboard UI** — enhanced `AppointmentsPage.jsx` Recurring Series tab: clickable expandable rows revealing address, notes, start/end dates; Edit modal for frequency, day/time, tech, end date, address, notes; appointment history panel showing upcoming (next 5) and past (last 5) per schedule loaded alongside schedules; "Generate appointments now" button triggering `POST /api/recurring/{id}/generate` with a toast. `generateRecurringSchedule` added to `api.js` imports. No backend changes needed.
