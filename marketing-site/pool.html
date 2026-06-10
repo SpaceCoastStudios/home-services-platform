@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- UNLISTED PAGE - do not link from nav, footer, or sitemap. For pool-service demo calls only. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Pool Service Demo - Launchpad by Space Coast Studios (Private)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:#0f172a; --navy2:#1e293b; --orange:#f97316; --orange2:#ea6c0a;
+      --pool:#0891b2; --pool2:#0e7490;
+      --slate:#64748b; --light:#f8fafc; --white:#fff; --border:#e2e8f0; --radius:14px;
+    }
+    body { font-family:'Inter',sans-serif; color:var(--navy); background:var(--light); line-height:1.6; -webkit-font-smoothing:antialiased; }
+    .wrap { max-width:1100px; margin:0 auto; padding:0 5%; }
+
+    .private-bar {
+      background:var(--navy); color:#fff; text-align:center;
+      font-size:0.8rem; font-weight:600; padding:8px 16px; letter-spacing:0.02em;
+    }
+    .private-bar span { color:var(--orange); }
+
+    header { background:linear-gradient(160deg,#0f172a 0%,#164e63 100%); color:#fff; padding:56px 0 64px; }
+    .badge {
+      display:inline-flex; align-items:center; gap:8px;
+      background:rgba(34,197,94,0.15); color:#86efac;
+      border:1px solid rgba(34,197,94,0.35);
+      padding:6px 14px; border-radius:100px;
+      font-size:0.78rem; font-weight:600; margin-bottom:18px;
+    }
+    .badge span { width:6px; height:6px; background:#22c55e; border-radius:50%; }
+    header h1 { font-size:clamp(2rem,4vw,2.8rem); font-weight:900; letter-spacing:-0.02em; line-height:1.12; margin-bottom:14px; }
+    header h1 em { font-style:normal; color:#22d3ee; }
+    header p { color:#94a3b8; font-size:1.05rem; max-width:640px; }
+
+    section { padding:56px 0; border-bottom:1px solid var(--border); }
+    .sec-head { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+    .sec-num {
+      width:34px; height:34px; border-radius:9px; background:var(--pool); color:#fff;
+      display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.95rem; flex-shrink:0;
+    }
+    .sec-head h2 { font-size:1.5rem; font-weight:800; letter-spacing:-0.01em; }
+    .pill { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:3px 10px; border-radius:100px; }
+    .pill-live { background:#dcfce7; color:#15803d; }
+    .sec-sub { color:var(--slate); font-size:0.95rem; margin:6px 0 24px; max-width:680px; }
+
+    /* Widget frames */
+    .widget-frame {
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      overflow:hidden; box-shadow:0 8px 30px rgba(15,23,42,0.08);
+    }
+    .widget-frame .bar { background:var(--navy); padding:10px 14px; display:flex; align-items:center; gap:7px; }
+    .widget-frame .bar .d { width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.25); }
+    .widget-frame .bar .u { margin-left:8px; color:rgba(255,255,255,0.55); font-size:0.72rem; }
+    .widget-frame iframe { width:100%; height:900px; border:0; display:block; background:#fff; }
+    .frame-note { font-size:0.8rem; color:var(--slate); margin-top:10px; }
+    .frame-note a { color:var(--pool); font-weight:600; text-decoration:none; }
+
+    /* Recurring schedule mockup */
+    .recur-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; align-items:start; }
+    .recur-label { font-size:0.72rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
+    .recur-card {
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:0 4px 16px rgba(15,23,42,0.05); padding:16px;
+    }
+    .recur-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 12px; border-radius:9px; margin-bottom:8px; background:var(--light);
+      border-left:3px solid var(--pool);
+    }
+    .recur-row:last-child { margin-bottom:0; }
+    .recur-row .nm { font-size:0.85rem; font-weight:600; }
+    .recur-row .dt { font-size:0.75rem; color:var(--slate); }
+    .recur-tag {
+      font-size:0.68rem; font-weight:700; background:#cffafe; color:var(--pool2);
+      padding:2px 8px; border-radius:100px; white-space:nowrap;
+    }
+
+    /* Notification overview cards - fixed 2 columns for symmetrical 2x2 */
+    .notif-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+    }
+    @media(max-width:600px){ .notif-grid { grid-template-columns:1fr; } }
+
+    .phone {
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:0 4px 16px rgba(15,23,42,0.05); overflow:hidden;
+    }
+    .phone .who {
+      font-size:0.9rem; font-weight:700; color:var(--navy);
+      padding:14px 16px 12px;
+      text-align:center;
+    }
+
+    /* Screenshot cards - centered, fixed height, full message visible */
+    .phone .shot {
+      display:block;
+      width:calc(100% - 32px);
+      margin:0 auto 16px;
+      height:220px;
+      object-fit:contain;
+      background:#111827;
+      border-radius:10px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.18);
+    }
+
+    /* Full-flow panels - 2x2 grid */
+    .flow-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+      margin-top:36px;
+    }
+    @media(max-width:700px){ .flow-grid { grid-template-columns:1fr; } }
+
+    .flow-panel { background:#fff; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:0 4px 20px rgba(15,23,42,0.07); }
+    .flow-panel .fp-head { padding:16px 18px 12px; border-bottom:1px solid var(--border); }
+    .flow-panel .fp-head h3 { font-size:0.9rem; font-weight:700; margin-bottom:2px; text-align:center; }
+    .flow-panel .fp-head p { font-size:0.8rem; color:var(--slate); text-align:center; }
+    .flow-panel .fp-body { padding:16px 18px; }
+
+    /* Flow screenshots - full natural height, all corners rounded */
+    .phone-shot { border-radius:10px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.18); }
+    .phone-shot img {
+      width:100%; display:block; height:auto;
+      border-radius:10px;
+    }
+
+    /* Tech schedule section */
+    .sched-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; }
+    .sched-label { font-size:0.72rem; font-weight:700; color:var(--slate); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
+
+    footer { padding:36px 0 56px; }
+    footer p { font-size:0.8rem; color:var(--slate); }
+    @media(max-width:640px){ .widget-frame iframe{ height:700px; } }
+  </style>
+</head>
+<body>
+
+<div class="private-bar">&#128274; Private demo page. <span>Not linked publicly.</span> For use on pool-service sales/demo calls only.</div>
+
+<header>
+  <div class="wrap">
+    <div class="badge"><span></span> Live Product Demo &middot; Pool Service Edition</div>
+    <h1>This is what your pool customers <em>actually experience.</em></h1>
+    <p>A working preview of the platform we build and manage for pool service companies, backed by a real demo account ("Brevard Pool Pros") with live, interactive widgets. The texts and notifications below are real - pulled from actual runs on the platform.</p>
+  </div>
+</header>
+
+<!-- 1. Contact Widget -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">1</div>
+      <h2>Contact Widget</h2>
+      <span class="pill pill-live">Live</span>
+    </div>
+    <p class="sec-sub">The embeddable lead-capture form that goes on your website. A homeowner asks about weekly service or a green pool, and the AI replies in seconds with real availability - day or night, even when you're elbow-deep in a filter clean. This is the real, live widget - go ahead and submit a test.</p>
+    <div class="widget-frame">
+      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live contact widget - Brevard Pool Pros demo account</span></div>
+      <iframe id="contactFrame" src="https://api.spacecoaststudios.com/embed/brevard-pool-pros/contact" title="Live contact widget demo" loading="lazy"></iframe>
+    </div>
+    <p class="frame-note">Widget not loading? Open directly: <a href="https://api.spacecoaststudios.com/embed/brevard-pool-pros/contact" target="_blank" rel="noopener">api.spacecoaststudios.com/embed/brevard-pool-pros/contact</a></p>
+  </div>
+</section>
+
+<!-- 2. Self-Scheduling Booking Widget -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">2</div>
+      <h2>Self-Scheduling Booking Widget</h2>
+      <span class="pill pill-live">Live</span>
+    </div>
+    <p class="sec-sub">Customers see your real calendar availability and book their own first visit, repair, or one-time clean without calling. Try it - pick a service and a slot.</p>
+    <div class="widget-frame">
+      <div class="bar"><div class="d"></div><div class="d"></div><div class="d"></div><span class="u">Live booking widget - Brevard Pool Pros demo account</span></div>
+      <iframe id="bookingFrame" src="https://api.spacecoaststudios.com/embed/brevard-pool-pros/booking" title="Live self-scheduling booking widget" loading="lazy" style="height:560px;"></iframe>
+    </div>
+    <p class="frame-note">Widget not loading? Open directly: <a href="https://api.spacecoaststudios.com/embed/brevard-pool-pros/booking" target="_blank" rel="noopener">api.spacecoaststudios.com/embed/brevard-pool-pros/booking</a></p>
+  </div>
+</section>
+
+<!-- 3. Recurring Weekly Service -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">3</div>
+      <h2>Recurring Weekly Service, On Autopilot</h2>
+      <span class="pill pill-live">Live</span>
+    </div>
+    <p class="sec-sub">Weekly service is the heart of a pool business, so the platform treats it as first-class. Set a customer's schedule once and every visit generates automatically: it lands on the tech's daily schedule, the customer gets reminded, the tech gets it in their morning kickoff, and the "on the way" text fires stop by stop. No whiteboard, no re-entering the same customer every week.</p>
+
+    <div class="recur-grid">
+      <div>
+        <div class="recur-label">A weekly schedule, set once</div>
+        <div class="recur-card">
+          <div class="recur-row">
+            <div><div class="nm">Johnson Residence</div><div class="dt">Weekly Pool Cleaning &middot; 123 Banana River Dr</div></div>
+            <span class="recur-tag">Every Tue &middot; 9:00 AM</span>
+          </div>
+          <div class="recur-row">
+            <div><div class="nm">Patel Residence</div><div class="dt">Weekly Pool Cleaning &middot; 88 Lagoon Ct</div></div>
+            <span class="recur-tag">Every Tue &middot; 10:00 AM</span>
+          </div>
+          <div class="recur-row">
+            <div><div class="nm">Seaside HOA Community Pool</div><div class="dt">Chemical Balancing &middot; 400 A1A</div></div>
+            <span class="recur-tag">Every Tue &middot; 11:30 AM</span>
+          </div>
+          <div class="recur-row">
+            <div><div class="nm">Garcia Residence</div><div class="dt">Weekly Pool Cleaning &middot; 12 Dolphin Ave</div></div>
+            <span class="recur-tag">Every Wed &middot; 9:00 AM</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="recur-label">What that means in practice</div>
+        <div class="recur-card" style="padding:20px;">
+          <p style="font-size:0.88rem; margin-bottom:12px;"><strong>Visits generate themselves.</strong> Each week's appointments are created automatically from the schedule and show up on the dashboard and the tech's daily list.</p>
+          <p style="font-size:0.88rem; margin-bottom:12px;"><strong>Customers stay in the loop.</strong> Reminders and on-the-way texts fire for recurring visits the same as one-time jobs, so "did the pool guy come today?" calls disappear.</p>
+          <p style="font-size:0.88rem; margin-bottom:12px;"><strong>Skips and changes are one click.</strong> Pause a vacation week, change the day, or swap the tech without touching the rest of the schedule.</p>
+          <p style="font-size:0.88rem;"><strong>Reviews compound.</strong> Completed visits can trigger Google review requests automatically, turning your steadiest customers into your loudest ones.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Automated Communications -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">4</div>
+      <h2>Automated Customer Communications</h2>
+      <span class="pill pill-live">Live</span>
+    </div>
+    <p class="sec-sub">Every message below fired automatically. No one typed them. Confirmations, reminders, on-the-way alerts, review requests, and urgent dispatch (think green-pool-before-the-party or a dead pump in July) all run without any staff involvement.</p>
+
+    <!-- 2x2 screenshot overview grid -->
+    <div class="notif-grid">
+      <div class="phone">
+        <div class="who">Booking Confirmation &middot; SMS</div>
+        <img class="shot" src="Customer%20Appointment%20Confirmation%20Text.png" alt="Booking confirmation SMS" />
+      </div>
+      <div class="phone">
+        <div class="who">24-Hour Reminder &middot; SMS</div>
+        <img class="shot" src="Reminder%20Text.png" alt="24-hour reminder SMS" />
+      </div>
+      <div class="phone">
+        <div class="who">On The Way &middot; SMS</div>
+        <img class="shot" src="Customer%20on%20the%20way%20text.png" alt="On the way SMS" />
+      </div>
+      <div class="phone">
+        <div class="who">Review Request &middot; SMS</div>
+        <img class="shot" src="Customer%20Review%20Request.png" alt="Review request SMS" />
+      </div>
+    </div>
+
+    <!-- 2x2 full-flow panels -->
+    <div style="margin-top:40px; margin-bottom:4px;">
+      <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">See the real flows</h3>
+      <p style="font-size:0.9rem;color:var(--slate);">These are actual screenshots - no staging, no edits.</p>
+    </div>
+
+    <div class="flow-grid">
+
+      <!-- Top-left: urgent customer thread -->
+      <div class="flow-panel">
+        <div class="fp-head">
+          <h3>Urgent AI Dispatch Flow</h3>
+          <p>Customer texts an urgent issue. AI triages with qualifying questions and dispatches the on-call tech.</p>
+        </div>
+        <div class="fp-body">
+          <div class="phone-shot">
+            <img src="Emergency%20Text%20Thread.jpg" alt="Urgent customer SMS conversation with AI" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Top-right: tech alert -->
+      <div class="flow-panel">
+        <div class="fp-head">
+          <h3>Urgent Dispatch - Tech Alert</h3>
+          <p>The on-call tech gets an immediate SMS with the customer's name, phone, address, and issue summary.</p>
+        </div>
+        <div class="fp-body">
+          <div class="phone-shot">
+            <img src="Emergency%20Text%20Tech%20Message.png" alt="Urgent tech dispatch SMS notification" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom-left: morning kickoff -->
+      <div class="flow-panel">
+        <div class="fp-head">
+          <h3>Morning Kickoff</h3>
+          <p>Tech gets their stop list for the day with the schedule link. The day starts with one YES.</p>
+        </div>
+        <div class="fp-body">
+          <div class="phone-shot">
+            <img src="Tech%20Daily%20Kickoff%20thread%201.png" alt="Tech morning kickoff SMS with jobs and first YES reply" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom-right: full OTW day cycle -->
+      <div class="flow-panel">
+        <div class="fp-head">
+          <h3>Full Day Cycle</h3>
+          <p>Stop-by-stop YES replies through the day, ending with an automated end-of-day wrap.</p>
+        </div>
+        <div class="fp-body">
+          <div class="phone-shot">
+            <img src="Tech%20Daily%20Kickoff%20thread%202.png" alt="Tech OTW replies and end-of-day wrap message" />
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 5. Tech Daily Schedule -->
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">5</div>
+      <h2>Technician Daily Schedule</h2>
+      <span class="pill pill-live">Live</span>
+    </div>
+    <p class="sec-sub">Each tech gets a private mobile link (no login) showing their stops for the day - times, customers, addresses with one-tap maps, and any reported problem. The link is included in the morning kickoff text automatically.</p>
+
+    <div class="sched-grid">
+
+      <div>
+        <div class="sched-label">What the tech receives each morning</div>
+        <div class="phone-shot" style="max-width:360px;">
+          <img src="Tech%20Kickoff%20Thread%20with%20schedule%20link.png" alt="Morning kickoff SMS showing jobs and schedule link" style="background:#1c1c1e;" />
+        </div>
+      </div>
+
+      <div>
+        <div class="sched-label">What they see when they tap the link</div>
+        <div class="phone" style="max-width:360px;padding:0;">
+          <div style="padding:14px 16px 16px;">
+            <div style="font-size:0.78rem;font-weight:700;color:var(--navy);margin-bottom:12px;">Marco's Schedule &middot; Today</div>
+
+            <div style="border-left:3px solid var(--pool);padding:10px 12px;background:#ecfeff;border-radius:0 8px 8px 0;margin-bottom:10px;">
+              <div style="font-size:0.72rem;font-weight:700;color:var(--pool2);margin-bottom:4px;">STOP 1 &middot; 9:00 AM</div>
+              <div style="font-size:0.88rem;font-weight:600;">Johnson Residence</div>
+              <div style="font-size:0.8rem;color:var(--slate);">Weekly Pool Cleaning</div>
+              <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 123 Banana River Dr &#8594;</div>
+            </div>
+
+            <div style="border-left:3px solid #94a3b8;padding:10px 12px;background:var(--light);border-radius:0 8px 8px 0;">
+              <div style="font-size:0.72rem;font-weight:700;color:var(--slate);margin-bottom:4px;">STOP 2 &middot; 10:30 AM</div>
+              <div style="font-size:0.88rem;font-weight:600;">Patel Residence</div>
+              <div style="font-size:0.8rem;color:var(--slate);">Pool Equipment Repair</div>
+              <div style="font-size:0.8rem;color:#2563eb;margin-top:4px;">&#128205; 88 Lagoon Ct &#8594;</div>
+              <div style="font-size:0.78rem;color:var(--slate);margin-top:3px;font-style:italic;">Pump making grinding noise, shuts off after 10 min</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <p class="frame-note" style="margin-top:16px;">Live on every technician account. Demo a real link on the call to show actual data.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Space Coast Studios LLC &middot; Private Launchpad pool-service demo page &middot; Not indexed, not linked publicly.</p>
+  </div>
+</footer>
+
+<script>
+  // Auto-size both live iframes so they never show a scroll bar.
+  window.addEventListener("message", function(e){
+    var d = e.data || {};
+    if(d.type === "scs_booking_resize" && typeof d.height === "number"){
+      var f = document.getElementById("bookingFrame");
+      if(f){ f.style.height = Math.max(360, d.height + 24) + "px"; }
+    }
+    if(d.type === "scs_contact_resize" && typeof d.height === "number"){
+      var f = document.getElementById("contactFrame");
+      if(f){ f.style.height = Math.max(400, d.height + 24) + "px"; }
+    }
+  });
+</script>
+</body>
+</html>
