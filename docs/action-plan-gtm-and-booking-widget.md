@@ -80,6 +80,17 @@ The high-value flow: **the prospect drives the customer experience on the demo p
 - **13–15 min:** pricing + **5-spot founding** offer; A2P timeline expectation ("platform live in days; SMS features 2–4 weeks after carrier registration, which we start Day 1"); close to CSA + provisioning.
 - **Demo prerequisite:** the demo page must be polished first (see Roadmap — realistic sample notifications + iframe sizing) before running live demos.
 
+### A6.4. Pool-vertical demo setup (added 2026-06-10)
+
+The pool vertical is live and pool prospects get a different demo link:
+- **Demo link for pool prospects:** `spacecoaststudios.com/pool.html` (unlisted, noindex) -- backed by the **Brevard Pool Pros** tenant (slug `brevard-pool-pros`, AI persona Marina, dedicated Twilio number **+13213984101** on the existing campaign). Marina's SMS agent is verified live.
+- **Pre-demo checklist (pool):**
+  - [ ] Ryan's cell is an active tech in AT MOST ONE tenant per demo context (the YES-reply handler is now scoped by inbound number, but keep this hygiene rule anyway).
+  - [ ] Set a real Google Review URL on the pool tenant before showing review requests.
+  - [ ] Booking widget shows open slots (hours: Mon-Fri 8-5, Sat 8-12).
+- **Live texting demo:** prospects can text (321) 398-4101 on the call and watch Marina respond -- this is now a legitimate part of the pool demo flow.
+- **Tenant #1 rule:** the default tenant stays as SCS's own lead intake (marketing-site #contact + booking-demo.html). Never rebrand it per-vertical. HVAC and later verticals get their own tenant + page + number, same recipe as pool.
+
 ### A6.5. End-to-end demo readiness test
 **Trigger: CSA attorney review complete + fresh screenshots taken.** This is the gate before sending the demo link to any real prospect or booking a live call.
 

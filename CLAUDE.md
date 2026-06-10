@@ -451,6 +451,8 @@ allow_same_day_booking
 
 ### Demo / Default Tenant
 - Slug: `default`, name: "Space Coast Studios Demo", AI agent: "Scout", `is_demo: True`
+- **Tenant #1 serves double duty:** it is also SCS's own lead intake -- the marketing-site `#contact` form submits to `business_id=1` and `booking-demo.html` (the A2P reviewer page) points at it. **Never rebrand it as a trade-specific demo company.** Vertical demos get their own tenants.
+- **Pool vertical demo tenant (added 2026-06-10):** slug `brevard-pool-pros`, name "Brevard Pool Pros", AI agent "Marina", brand color `#0891b2`, `is_demo: True`. Twilio number **+13213984101** (sender on SCS's existing approved CUSTOMER_CARE campaign; Messaging Service set to defer to sender's webhook; number-level inbound webhook -> `/webhook/sms/inbound`; fallback webhook intentionally empty). Used by `marketing-site/pool.html`. Provisioned by `backend/scripts/seed_pool_demo.py`. Marina SMS agent verified live 2026-06-10.
 - Demo seed script for a full HVAC client: `backend/seed_peak_hvac.py` — **available but not currently seeded.** As of 2026-05-29 the only live tenant on the platform is the Space Coast Studios Demo above (slug `default`). Other `peak-hvac` / `peakhvac.com` references in the codebase are illustrative examples and UI placeholders, not a live tenant.
 
 ### Default Credentials (dev/demo only — never use in production)
@@ -540,6 +542,7 @@ All templates are editable per-business in the dashboard. Default templates in `
    - More appointments today → next-stop prompt sent immediately
    - Last job → review request sent to customer + "Great work! That's a wrap!" to tech
 4. **Collision prevention:** Won't send new OTW prompt if tech already has an `en_route` appointment
+5. **Tenant scoping (fixed 2026-06-10):** the YES handler first resolves which business owns the inbound Twilio number and only matches active techs in that tenant (cross-tenant fallback only when no business owns the number). This lets the same cell phone exist as a tech in multiple demo tenants without YES replies binding to the wrong one. Hygiene rule still applies: keep Ryan's cell on only ONE active tech record per tenant context being demoed.
 
 ### Emergency Dispatch → Appointment
 When the SMS agent's `emergency_dispatch` tool fires (after a successful alert to the on-call tech), the system also creates an appointment so the business keeps a record:
@@ -1065,6 +1068,7 @@ The campaign was approved with the following consent flow — **do not change an
 - Help keywords: HELP, INFO
 - Embedded links: Yes | Embedded phone numbers: Yes | Age-gated: No
 - **Important:** Each CLIENT business needs their own Brand + Campaign registration. SCS's registration covers SCS itself only. Client registrations are submitted Day 1 of their onboarding.
+- **Additional SCS-owned demo numbers (verified 2026-06-10):** numbers for SCS's own demo tenants can be added to the existing approved CUSTOMER_CARE campaign with NO new TCR submission: buy number -> add to Messaging Service sender pool -> register number to campaign -> set number-level inbound webhook -> set `twilio_phone_number` on the tenant. Pool demo number +13213984101 was added this way and worked the same day.
 
 ### Per-Client A2P Setup Checklist
 1. Purchase local number in client's area code (Twilio Console)
@@ -1204,6 +1208,9 @@ $result.url  # open in browser — $2 total, refund immediately after
   - Test Project root docs updated (outside repo, no commit needed): `SCS_SalesSheet_Pool.docx`/`.pdf` (new, cloned from Landscaping design, pool copy, no em dashes), `SCS Cold Email Sequence.docx` (single founding offer $497/$149/$299 everywhere, Founding_Offer tier-choice removed, pool variant links to /pool.html, honesty notes updated to single plan), `SCS_Onboarding_Checklist.docx` (Professional-only stars and plan field removed).
 - **Still to do (vertical GTM):** run `seed_pool_demo.py` (Ryan); pool screenshots once tenant is live; demo-tenant Google Review URL still placeholder; then HVAC vertical (re-point a copy of pool.html structure at an HVAC tenant); Platform Capability Checklist + Roadmap docx have no pricing refs (verified) but should gain the single-tier note on next regeneration.
 - **Files changed:** `backend/app/config.py`, `backend/app/routers/billing.py`, `backend/scripts/create_launchpad_prices.py` (new), `marketing-site/index.html`, `frontend/dashboard/src/pages/BillingPage.jsx`, `frontend/dashboard/src/pages/OnboardingPage.jsx`, `README.md`, `CLAUDE.md`.
+- **Pool tenant + number LIVE (session 3):** Ryan ran `seed_pool_demo.py` (tenant provisioned, widgets verified in pool blue); bought Twilio number **+13213984101**, added to Messaging Service sender pool, registered to the existing CUSTOMER_CARE campaign (no new TCR submission needed -- confirmed), number-level inbound webhook set, Messaging Service defers to sender's webhook, fallback webhook left empty (correct -- fallback is for a separate emergency endpoint). Number set on the tenant; **Marina SMS agent verified live same day.**
+- **Tech OTW YES-reply scoping fix shipped** (`sms_webhook.py`): handler now resolves the business owning the inbound number and scopes the tech lookup to that tenant; cross-tenant fallback only when no owner. Fixes duplicate-tech-phone flakiness across demo tenants.
+- **Demo logistics decisions:** (1) tenant #1 stays as SCS lead intake + generic demo -- NOT converted to HVAC (the marketing-site #contact form and the A2P reviewer page point at it); (2) HVAC vertical = new dedicated tenant + hvac.html, same recipe as pool; (3) each vertical demo tenant gets its own cheap number on the same campaign; (4) demo.html retires from active outreach use once hvac.html exists.
 - **DEPLOYED + VERIFIED same day:** pushed as `4633e80`; Ryan ran the price script (product `prod_Ug8lLmR2lobv8S`), set DO env vars, archived old Stripe products. Checkout verified end-to-end on the live site: $1,298 first payment then $299/mo. Live-site checkout JS confirmed fixed. Price IDs backfilled into config.py defaults + README/CLAUDE.md tables in a follow-up commit.
 
 **2026-05-31 (session 2 — recurring UI + demo page polish):**
