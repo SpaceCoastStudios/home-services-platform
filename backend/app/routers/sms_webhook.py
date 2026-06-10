@@ -164,12 +164,29 @@ async def _handle_tech_otw_reply(db, tech_phone: str, to_phone: str) -> bool:
     e164        = f"+{digits_only}"                # "+13215551234"
     phone_variants = list({tech_phone, e164, digits_only, ten_digit})
 
-    # Find technician by phone number across all businesses
-    tech = (
-        db.query(Technician)
-        .filter(Technician.phone.in_(phone_variants), Technician.is_active == True)
+    # Scope the tech lookup to the business that owns the inbound Twilio
+    # number, so the same cell phone can exist as a tech in multiple tenants
+    # (e.g. demo tenants) without YES replies binding to the wrong one.
+    # Falls back to a cross-business search if no business owns the number.
+    to_digits   = to_phone.lstrip("+")
+    to_variants = list({to_phone, f"+{to_digits}", to_digits, to_digits[-10:]})
+    owning_business = (
+        db.query(Business)
+        .filter(Business.twilio_phone_number.in_(to_variants), Business.is_active == True)
         .first()
     )
+
+    tech_query = (
+        db.query(Technician)
+        .filter(Technician.phone.in_(phone_variants), Technician.is_active == True)
+    )
+    if owning_business:
+        tech_query = tech_query.filter(Technician.business_id == owning_business.id)
+    tech = tech_query.first()
+    if not tech and owning_business:
+        # Number is owned but no matching tech in that tenant; do NOT fall back
+        # to other tenants, the reply belongs to this business context.
+        return False
     if not tech:
         return False
 
