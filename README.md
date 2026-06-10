@@ -60,10 +60,8 @@ psql "postgresql://doadmin:PASSWORD@host.db.ondigitalocean.com:25060/defaultdb?s
 | `SMS_AGENT_MODEL` | — | Default: `claude-sonnet-4-6` — SMS booking agent (Sonnet required for multi-turn reasoning) |
 | `STRIPE_SECRET_KEY` | ✅ | `sk_live_...` |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | `whsec_...` |
-| `STRIPE_PRICE_STARTER_SETUP` | ✅ | `price_1TbXKM2MJMR8rAcZfEKeo13B` |
-| `STRIPE_PRICE_STARTER_MONTHLY` | ✅ | `price_1TbXKN2MJMR8rAcZ8ageyctL` |
-| `STRIPE_PRICE_PRO_SETUP` | ✅ | `price_1TbXKN2MJMR8rAcZIiW0KPMT` |
-| `STRIPE_PRICE_PRO_MONTHLY` | ✅ | `price_1TbXKO2MJMR8rAcZh0yQdVOv` |
+| `STRIPE_PRICE_LAUNCHPAD_SETUP` | ✅ | Run `scripts/create_launchpad_prices.py`, paste ID here + DO env var |
+| `STRIPE_PRICE_LAUNCHPAD_MONTHLY` | ✅ | Run `scripts/create_launchpad_prices.py`, paste ID here + DO env var |
 | `BASE_URL` | ✅ | `https://api.spacecoaststudios.com` |
 | `ALLOWED_ORIGINS` | ✅ | CORS origins (comma-separated) |
 
@@ -77,18 +75,18 @@ psql "postgresql://doadmin:PASSWORD@host.db.ondigitalocean.com:25060/defaultdb?s
 **Webhook:** `https://api.spacecoaststudios.com/api/billing/webhook`
 **Events:** `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`
 
+**Single-tier pricing (June 2026 restructure).** One plan: Launchpad, $999 setup + $299/month. Founding offer: $497 setup + $149/month first 3 months, then $299. Run `backend/scripts/create_launchpad_prices.py` once to create the prices, then fill the IDs below and in DO env vars.
+
 | Plan | Price ID | Amount |
 |---|---|---|
-| Starter Setup | `price_1TbXKM2MJMR8rAcZfEKeo13B` | $1,997 one-time |
-| Starter Monthly | `price_1TbXKN2MJMR8rAcZ8ageyctL` | $249/month |
-| Pro Setup | `price_1TbXKN2MJMR8rAcZIiW0KPMT` | $2,997 one-time |
-| Pro Monthly | `price_1TbXKO2MJMR8rAcZh0yQdVOv` | $399/month |
-| Founding Starter Setup | `price_1TbXKN2MJMR8rAcZvreEPLwo` | $497 |
-| Founding Starter Monthly | `price_1TbXKN2MJMR8rAcZF8PV52FQ` | $99/month (first 3 mo) |
-| Founding Pro Setup | `price_1TbXKO2MJMR8rAcZ9MRzpF2s` | $997 |
-| Founding Pro Monthly | `price_1TbXKO2MJMR8rAcZMiHThRka` | $199/month (first 3 mo) |
+| Launchpad Setup | _(fill after running script)_ | $999 one-time |
+| Launchpad Monthly | _(fill after running script)_ | $299/month |
+| Founding Setup | _(fill after running script)_ | $497 (manual subscriptions only) |
+| Founding Monthly | _(fill after running script)_ | $149/month first 3 mo (manual subscriptions only) |
 | Test Setup | `price_1TbkYi2MJMR8rAcZO4iP0oHP` | $1.00 |
 | Test Monthly | `price_1TbkkP2MJMR8rAcZAPo5kJx5` | $1.00/month |
+
+Legacy Starter/Professional products and prices remain in Stripe (not deleted, no longer sold). Legacy plan names sent to `POST /api/billing/checkout` map to `launchpad` via `LEGACY_PLAN_ALIASES`.
 
 ---
 
@@ -249,7 +247,7 @@ See `docs/founder-client-onboarding.md`.
 | Admin Dashboard | ✅ Built & tested | Matches description |
 | Recurring Appointment Scheduling | ⚠️ Backend only | Advertised as a live Pro feature; delivered manually as part of the managed service (owner decision, 2026-05-29). Dashboard UI still pending. |
 | Custom AI Persona & Branding | ✅ Built | AI agent name, system prompt, brand color, logo URL |
-| Up to 5 service types / 5 technicians (Starter) | ✅ Built | Enforced at plan level |
+| Unlimited service types / technicians | ✅ Built | Single-tier plan (June 2026); no caps |
 
 **✅ SMS consent compliance — resolved (verified 2026-05-29):**
 The marketing site demo widget consent copy is now correct and matches the approved A2P campaign: the checkbox is clearly **optional** ("customers can submit the form and receive service without checking it"). The demo form's submit handler was also fixed so the message it records reflects the actual checkbox state (previously it always logged "SMS consent given" regardless).

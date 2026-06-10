@@ -23,10 +23,8 @@ const INDUSTRIES = [
 ]
 
 const PLANS = [
-  { value: 'full', label: 'Professional', price: '$2,497 setup + $349/mo',
-    desc: 'Full-featured platform with unlimited technicians, SMS reminders, AI persona, and monthly check-in.' },
-  { value: 'mini', label: 'Starter', price: '$1,497 setup + $199/mo',
-    desc: 'Core platform — up to 5 technicians, 5 service types, email confirmations, admin dashboard.' },
+  { value: 'launchpad', label: 'Launchpad', price: '$999 setup + $299/mo',
+    desc: 'Everything included: AI responder, SMS booking agent, booking widget, OTW alerts, review requests, emergency dispatch, recurring scheduling, unlimited technicians and services.' },
 ]
 
 const SKILL_OPTIONS = ['plumbing', 'electrical', 'hvac', 'cleaning', 'landscaping', 'general']
@@ -376,7 +374,7 @@ function StepAI({ data, onChange, onNext, onBack }) {
 
 function StepServices({ services, onChange, onNext, onBack, plan }) {
   const [errors, setErrors] = useState([])
-  const maxServices = plan === 'mini' ? 3 : Infinity
+  const maxServices = Infinity
   const atLimit = services.length >= maxServices
 
   const addService = () => {
@@ -409,7 +407,6 @@ function StepServices({ services, onChange, onNext, onBack, plan }) {
         <h2 className="text-xl font-bold text-gray-900">Services offered</h2>
         <p className="text-gray-500 text-sm mt-1">
           Add the service types customers can book.
-          {plan === 'mini' && <span className="text-amber-600 ml-1">Starter plan: up to 5 services.</span>}
         </p>
       </div>
 
@@ -486,7 +483,7 @@ function StepServices({ services, onChange, onNext, onBack, plan }) {
         </button>
       )}
       {atLimit && (
-        <p className="text-xs text-amber-600">Service limit reached for Starter plan. Upgrade to Professional for unlimited services.</p>
+        <p className="text-xs text-amber-600">Service limit reached.</p>
       )}
 
       <div className="flex justify-between pt-2">
@@ -508,7 +505,7 @@ function StepServices({ services, onChange, onNext, onBack, plan }) {
 
 function StepTeam({ technicians, onChange, onNext, onBack, plan }) {
   const [errors, setErrors] = useState([])
-  const maxTechs = plan === 'mini' ? 5 : Infinity
+  const maxTechs = Infinity
   const atLimit = technicians.length >= maxTechs
 
   const addTech = () => {
@@ -549,7 +546,6 @@ function StepTeam({ technicians, onChange, onNext, onBack, plan }) {
         <h2 className="text-xl font-bold text-gray-900">Technician team</h2>
         <p className="text-gray-500 text-sm mt-1">
           Add the technicians who will be assigned to jobs.
-          {plan === 'mini' && <span className="text-amber-600 ml-1">Starter plan: up to 5 technicians.</span>}
         </p>
       </div>
 
@@ -770,7 +766,7 @@ function StepDone({ business, techniciansCount, servicesCount, onGoToDashboard, 
           <div className="text-xs text-gray-500 mt-0.5">Technician{techniciansCount !== 1 ? 's' : ''}</div>
         </div>
         <div className="bg-green-50 rounded-xl p-4">
-          <div className="text-2xl font-bold text-green-600">{business.plan === 'full' ? 'Pro' : 'Starter'}</div>
+          <div className="text-2xl font-bold text-green-600">{'Launchpad'}</div>
           <div className="text-xs text-gray-500 mt-0.5">Plan</div>
         </div>
       </div>
@@ -790,12 +786,10 @@ function StepDone({ business, techniciansCount, servicesCount, onGoToDashboard, 
             <span className="text-blue-500 mt-0.5">→</span>
             Configure on-call routing if they offer emergency service
           </li>
-          {business.plan === 'full' && (
-            <li className="flex items-start gap-2">
-              <span className="text-blue-500 mt-0.5">→</span>
-              Set up the monthly check-in call cadence
-            </li>
-          )}
+          <li className="flex items-start gap-2">
+            <span className="text-blue-500 mt-0.5">→</span>
+            Set up the monthly check-in call cadence
+          </li>
         </ul>
       </div>
 
@@ -829,7 +823,7 @@ export default function OnboardingPage() {
   const [createdBusiness, setCreatedBusiness] = useState(null)
 
   const [bizForm, setBizForm] = useState({
-    name: '', slug: '', industry: '', plan: 'full',
+    name: '', slug: '', industry: '', plan: 'launchpad',
     phone: '', email: '', address: '', website: '',
     brand_color: '#f97316', logo_url: '',
     ai_agent_name: '', ai_system_prompt: '', from_email: '', twilio_phone_number: '',
@@ -928,7 +922,7 @@ export default function OnboardingPage() {
     setCreatedBusiness(null)
     setSubmitError('')
     setBizForm({
-      name: '', slug: '', industry: '', plan: 'full',
+      name: '', slug: '', industry: '', plan: 'launchpad',
       phone: '', email: '', address: '', website: '',
       brand_color: '#f97316', logo_url: '',
       ai_agent_name: '', ai_system_prompt: '', from_email: '', twilio_phone_number: '',

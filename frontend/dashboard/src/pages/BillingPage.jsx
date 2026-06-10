@@ -4,8 +4,10 @@ import { getBillingSubscription, createBillingPortal, getBusinesses } from '../s
 import { useAuth } from '../hooks/useAuth'
 
 const TIER_LABELS = {
-  starter:      'Starter',
-  professional: 'Professional',
+  launchpad:    'Launchpad',
+  // Legacy tier values (pre-June-2026 two-tier pricing) kept for display
+  starter:      'Starter (legacy)',
+  professional: 'Professional (legacy)',
   test:         'Test',
 }
 

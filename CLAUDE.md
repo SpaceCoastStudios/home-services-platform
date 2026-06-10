@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-06-02 (Escalation alerts built; on-call banner fixed for weekly rolling rotation; week position dropdown UI improved; escalated SMS conversation tab behavior documented.)
+> Last substantive update: 2026-06-10 (Single-tier pricing restructure: one Launchpad plan at $999 setup + $299/mo, founding $497 + $149/mo x3; index.html truncation bug found and repaired; vertical GTM strategy adopted, pool service first.)
 
 > **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -96,26 +96,23 @@ It is critical to understand these are three separate things with different audi
 
 ## 3. What SCS Sells to Clients
 
-Each client gets a fully managed platform instance. Features depend on plan:
+Each client gets a fully managed platform instance. **Single-tier pricing as of 2026-06-10** — one plan ("Launchpad"), everything included:
 
-**Starter plan:**
 - Embeddable contact form widget (iframe on their website)
 - AI-powered auto-responder to contact form submissions
+- Self-scheduling booking widget (customer picks own slot from live calendar)
+- AI SMS booking agent (inbound texts → Claude handles booking)
 - Appointment management dashboard
 - SMS and email confirmations and 24h reminders
-- Up to 5 service types, 5 technicians
-
-**Professional plan (everything in Starter plus):**
-- Self-scheduling booking widget (customer picks own slot from live calendar) — **backend ready, widget UI not yet built**
-- AI SMS booking agent (inbound texts → Claude handles booking)
 - On The Way (OTW) technician & customer alerts
-- Automated review requests via SMS
-- Automated Google review requests
+- Automated Google review requests via SMS
 - Emergency dispatch with on-call rotation management
 - Recurring appointment scheduling
 - Custom AI persona and branding
 - Unlimited service types and technicians
-- Priority support + monthly check-in call
+- Priority support (next-business-day) + monthly check-in call
+
+Future revenue expansion is via add-ons (additional locations; voicemail AI when built; promotional SMS campaigns when built), not tiers. The old Starter/Professional split is retired — legacy plan names map to `launchpad` in the checkout API.
 
 **The widget chain:** Homeowner visits client's website → fills out booking widget → appointment created in dashboard → tech assigned → SMS confirmation sent → OTW flow on day of job → review request after completion.
 
@@ -125,10 +122,11 @@ Each client gets a fully managed platform instance. Features depend on plan:
 
 ### Standard Pricing (Stripe Checkout — automatic provisioning)
 
+**Single tier (restructured 2026-06-10):**
+
 | Plan | Setup | Monthly |
 |---|---|---|
-| Starter | $1,997 | $249/mo |
-| Professional | $2,997 | $399/mo |
+| Launchpad (everything included) | $999 | $299/mo |
 
 ### Founding Client Offer (manual provisioning, limited time — 5 spots only)
 
@@ -136,8 +134,7 @@ Capped at **5 founding clients** for exclusivity and to keep real-world testing 
 
 | Plan | Setup | First 3 months | Then |
 |---|---|---|---|
-| Starter | $497 | $99/mo | $249/mo |
-| Professional | $997 | $199/mo | $399/mo |
+| Launchpad | $497 | $149/mo | $299/mo |
 
 ### Test Plan (internal use only)
 `POST /api/billing/checkout` with `{"plan": "test"}` → $1 one-time + $1/mo. Use a real card; refund immediately after testing.
@@ -353,10 +350,8 @@ Set on the **api component** in DigitalOcean App Platform. Sensitive values must
 | `SMS_AGENT_MODEL` | — | Default: `claude-sonnet-4-6` — used by SMS booking agent (needs stronger reasoning for multi-turn context) |
 | `STRIPE_SECRET_KEY` | ✅ | Stripe live secret key (`sk_live_...`) |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe webhook signing secret (`whsec_...`) |
-| `STRIPE_PRICE_STARTER_SETUP` | ✅ | Stripe price ID — Starter setup ($1,997) |
-| `STRIPE_PRICE_STARTER_MONTHLY` | ✅ | Stripe price ID — Starter monthly ($249/mo) |
-| `STRIPE_PRICE_PRO_SETUP` | ✅ | Stripe price ID — Professional setup ($2,997) |
-| `STRIPE_PRICE_PRO_MONTHLY` | ✅ | Stripe price ID — Professional monthly ($399/mo) |
+| `STRIPE_PRICE_LAUNCHPAD_SETUP` | ✅ | Stripe price ID — Launchpad setup ($999). Created by `scripts/create_launchpad_prices.py` |
+| `STRIPE_PRICE_LAUNCHPAD_MONTHLY` | ✅ | Stripe price ID — Launchpad monthly ($299/mo). Created by same script |
 | `BASE_URL` | ✅ | `https://api.spacecoaststudios.com` — used in calendar links |
 | `ALLOWED_ORIGINS` | ✅ | CORS origins (comma-separated) |
 | `CONTACT_AUTO_RESPOND` | — | `true`/`false` — auto-fire AI responder on form submit |
@@ -469,7 +464,7 @@ allow_same_day_booking
 
 ### Automatic (standard pricing — via Stripe Checkout)
 1. Prospect clicks **Get Started** → marketing site calls `POST /api/billing/checkout`
-2. Backend creates Stripe Checkout session (collects email, address, phone, "Business / DBA Name")
+2. Backend creates Stripe Checkout session for the single Launchpad plan (collects email, address, phone, "Business / DBA Name")
 3. Visitor redirected to Stripe Checkout, completes payment
 4. Stripe sends `checkout.session.completed` webhook → `_provision_tenant()`:
    - Creates `Business` record with Stripe IDs and subscription info
@@ -486,21 +481,22 @@ See `docs/founder-client-onboarding.md` for step-by-step.
 
 ### Stripe Product & Price IDs
 
-#### Standard Pricing
+**Single-tier restructure (2026-06-10):** run `backend/scripts/create_launchpad_prices.py` once with the live secret key, then paste the printed IDs into `config.py`, the DO env vars, and the tables below. **Until that is done, checkout returns 503 "Stripe prices not configured" — do not push to main before the prices exist and env vars are set.**
+
+#### Standard Pricing (single tier)
 | Price | Stripe Price ID | Amount |
 |---|---|---|
-| Starter — Setup | `price_1TbXKM2MJMR8rAcZfEKeo13B` | $1,997 one-time |
-| Starter — Monthly | `price_1TbXKN2MJMR8rAcZ8ageyctL` | $249/month |
-| Professional — Setup | `price_1TbXKN2MJMR8rAcZIiW0KPMT` | $2,997 one-time |
-| Professional — Monthly | `price_1TbXKO2MJMR8rAcZh0yQdVOv` | $399/month |
+| Launchpad — Setup | _fill after running script_ | $999 one-time |
+| Launchpad — Monthly | _fill after running script_ | $299/month |
 
 #### Founding Client Pricing (manual subscriptions only — not in checkout API)
 | Price | Stripe Price ID | Amount |
 |---|---|---|
-| Starter — Founding Setup | `price_1TbXKN2MJMR8rAcZvreEPLwo` | $497 one-time |
-| Starter — Founding Monthly | `price_1TbXKN2MJMR8rAcZF8PV52FQ` | $99/month (first 3 months) |
-| Professional — Founding Setup | `price_1TbXKO2MJMR8rAcZ9MRzpF2s` | $997 one-time |
-| Professional — Founding Monthly | `price_1TbXKO2MJMR8rAcZMiHThRka` | $199/month (first 3 months) |
+| Launchpad — Founding Setup | _fill after running script_ | $497 one-time |
+| Launchpad — Founding Monthly | _fill after running script_ | $149/month (first 3 months) |
+
+#### Legacy Pricing (retired 2026-06-10 — products remain in Stripe, no longer sold)
+Starter $1,997/$249 and Professional $2,997/$399 (+ founding variants). Old price IDs preserved in `scripts/create_stripe_products.py` and git history. Legacy plan names ("starter"/"professional") sent to the checkout API map to `launchpad` via `LEGACY_PLAN_ALIASES` in `billing.py`.
 
 #### Test Pricing
 | Price | Stripe Price ID | Amount |
@@ -1004,7 +1000,7 @@ The following maintenance tasks are automated via Cowork scheduled tasks (stored
 - **Review requests** -- ✅ Confirmed working (2026-06-01). Tech replies YES to complete prompt, review request SMS fires and link works. NOTE: demo tenant Google Review URL is set to `https://www.spacecoaststudios.com` (placeholder). Must set a real Google Review URL on the demo tenant before any prospect demo, and on every new client tenant at onboarding. Set via dashboard Settings → Google Review URL.
 
 ### Roadmap (later)
-- **Plan enforcement (service type + technician caps)** -- Triggered by first paying client. The 5 service type / 5 technician Starter cap and Pro unlimited are marketing/CSA commitments but not currently enforced in backend code. Add server-side validation on service and technician create endpoints that checks the business plan and rejects if over limit.
+- ~~Plan enforcement (service type + technician caps)~~ -- OBSOLETE as of 2026-06-10: single-tier pricing has no caps; nothing to enforce.
 - **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
 - Visual calendar view (day/week/month) in dashboard
 - Customer portal (magic link login, view/reschedule)
@@ -1086,7 +1082,7 @@ The campaign was approved with the following consent flow — **do not change an
 
 **Files:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`) + `Test Project/SCS-Founding-Client-Pricing-Addendum.docx`
 
-**Founding Client Pricing Addendum:** A separate signed addendum for the 5 founding clients. Supersedes Schedule A pricing for the promotional period. Key terms: $497/$99 (Starter) or $997/$199 (Pro) for months 1-3, then auto-transition to standard rates ($249/$399/mo). 14-day written notice required before the transition date -- calendar this at onboarding (~2.5 months after go-live). Non-transferable, one-time use, capped at 5 clients. Both the CSA and this addendum must be signed for founding clients.
+**Founding Client Pricing Addendum:** A separate signed addendum for the 5 founding clients. Supersedes Schedule A pricing for the promotional period. Key terms (updated 2026-06-10 for single-tier pricing): $497 setup + $149/mo for months 1-3, then auto-transition to the standard rate ($299/mo). 14-day written notice required before the transition date -- calendar this at onboarding (~2.5 months after go-live). Non-transferable, one-time use, capped at 5 clients. Both the CSA and this addendum must be signed for founding clients. **Pending Anjali's review of the restructured Schedule A** (draft: `Test Project/SCS-Schedule-A-Single-Tier-DRAFT.docx`, sent with the signed engagement letter 2026-06-10).
 
 **File:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`)
 
@@ -1149,6 +1145,7 @@ See `docs/founder-client-onboarding.md`.
 - **`ADD COLUMN` spacing** — when editing migration SQL, verify there's a space after `IF NOT EXISTS` before the column name
 
 ### Git / Bash
+- **File-tool writes do not truncate on the Windows mount (CRITICAL, found 2026-06-10):** when the Edit/Write tools rewrite an existing repo file to a SHORTER length, the file keeps its old size and the tail is padded with NUL bytes -- or the tail is silently lost. This truncated `marketing-site/index.html` (broke the live checkout JS for ~9 days) and CLAUDE.md itself. **Rule: edit existing files via bash Python scripts (read / replace / write with `io.open(..., "w", encoding="utf-8")`). After any edit, verify: zero NUL bytes and the file ends with the expected content.** Write tool is fine for brand-new files only.
 - **Never run `git add`/`git commit` from bash** -- the Linux sandbox mounts a Windows filesystem. Git lock files created in bash cannot be removed from bash (`Operation not permitted`), breaking all subsequent commits in the session. Give Ryan the commands to run in his terminal instead.
 - **PowerShell does not support `&&` chaining** -- put each command on its own line so Ryan can copy-paste individually.
 
@@ -1190,6 +1187,19 @@ $result.url  # open in browser — $2 total, refund immediately after
 ## 30. Activity Log
 
 ### Features Built by Session
+
+**2026-06-10 (single-tier pricing restructure + vertical GTM decision + index.html corruption repair):**
+- **Strategy session:** Full platform/business analysis delivered. Decisions made: (1) adopt single-tier pricing -- one "Launchpad" plan at $999 setup + $299/mo, founding offer $497 + $149/mo x3 months then $299; (2) verticalize GTM marketing one trade at a time, Pool Service first then HVAC (platform unchanged -- marketing/demo assets become trade-specific); (3) voicemail AI kept on roadmap as future standalone/wedge product; (4) apartment/property-management pivot evaluated and rejected.
+- **CRITICAL FIX -- index.html truncation:** Discovered `marketing-site/index.html` at HEAD was truncated mid-JavaScript (last 41 bytes missing: closing braces + `</script></body></html>`). Introduced in commit `02ece40` and present in all commits since (~June 1) -- the page's entire bottom script block (Stripe checkout buttons + demo form handler) was likely failing to parse on the LIVE site. Repaired by grafting the intact tail from `e0ad5e6`. **CLAUDE.md itself had the same problem**: truncated mid-bullet since commit `3b3b0bb` (2026-05-30), ~2.8KB of the 2026-05-28 activity log missing; recovered from `6f3e42b`. (Note: the recovered final line documents the old pre-2026-05-29 git workflow; the header rule -- Ryan runs all git commands -- is current.) Root cause: file-tool writes on the Windows mount do not truncate -- a shorter rewrite leaves the file at its old length padded with NUL bytes (same family as the 2026-05-29 f-string corruption). **New rule: edit existing repo files via bash Python scripts (read/replace/write), not the Edit/Write tools. After any sizeable edit, verify: no NUL bytes, file ends with expected content.**
+- **Backend single-plan changes:** `config.py` -- STRIPE_PRICE_STARTER_*/PRO_* replaced with STRIPE_PRICE_LAUNCHPAD_SETUP/MONTHLY (+ founding, defaults empty until script run). `billing.py` -- PLAN_PRICES now launchpad+test; LEGACY_PLAN_ALIASES maps starter/professional to launchpad; checkout 503s if price IDs unconfigured; provision default plan "launchpad".
+- **New script:** `backend/scripts/create_launchpad_prices.py` -- creates the Launchpad product + 4 prices in Stripe, prints IDs for config.py + DO env vars. Ryan must run this BEFORE pushing.
+- **Marketing site:** pricing section rewritten to one centered card ($999 + $299/mo, full feature list, `data-checkout-plan="launchpad"`); promo banner updated to $497/$149 founding terms; "which plan fits" line replaced; Starter/Professional widget-choice copy in features section reworded; truncated JS tail restored.
+- **Dashboard:** `BillingPage.jsx` TIER_LABELS gains `launchpad`, legacy labels marked "(legacy)". `OnboardingPage.jsx` -- single Launchpad plan option ($999 + $299/mo), mini/full plan values removed, service/tech caps removed, monthly check-in shown for all.
+- **Schedule A draft:** `Test Project/SCS-Schedule-A-Single-Tier-DRAFT.docx` -- single-plan Schedule A + summary-of-changes section for Anjali, sent with the signed engagement letter. Founding addendum terms to update to $497/$149/$299.
+- **Docs:** README + CLAUDE.md Sections 1-header, 3, 4, 8, 12, 24, 26 updated for single-tier pricing.
+- **DEPLOY SEQUENCING (critical):** (1) Ryan runs `create_launchpad_prices.py`; (2) paste IDs into `config.py` defaults + README/CLAUDE.md tables; (3) set `STRIPE_PRICE_LAUNCHPAD_SETUP`/`STRIPE_PRICE_LAUNCHPAD_MONTHLY` env vars on DO api component; (4) THEN push everything in one commit. Push is urgent once ready -- the live site checkout JS is currently broken (see truncation fix above).
+- **Still to do (vertical GTM):** pool demo tenant, `marketing-site/pool.html`, pool sales sheet, pool email variant update, pool screenshots; then HVAC vertical; sales sheets + cold email sequence + capability checklist/roadmap docx still show old pricing.
+- **Files changed:** `backend/app/config.py`, `backend/app/routers/billing.py`, `backend/scripts/create_launchpad_prices.py` (new), `marketing-site/index.html`, `frontend/dashboard/src/pages/BillingPage.jsx`, `frontend/dashboard/src/pages/OnboardingPage.jsx`, `README.md`, `CLAUDE.md`.
 
 **2026-05-31 (session 2 — recurring UI + demo page polish):**
 - **Recurring appointments dashboard UI** — enhanced `AppointmentsPage.jsx` Recurring Series tab: clickable expandable rows revealing address, notes, start/end dates; Edit modal for frequency, day/time, tech, end date, address, notes; appointment history panel showing upcoming (next 5) and past (last 5) per schedule loaded alongside schedules; "Generate appointments now" button triggering `POST /api/recurring/{id}/generate` with a toast. `generateRecurringSchedule` added to `api.js` imports. No backend changes needed.
@@ -1383,4 +1393,23 @@ $result.url  # open in browser — $2 total, refund immediately after
 - `4ca79a0` — **Technician first/last name split in UI** (frontend-only). Form splits existing `name` on open, joins on save. Last name optional, first name required. Underlying model still stores a single `name` column.
 - `9cf3d06` — **Soft delete** (appointments, customers, contact submissions):
   - Added `is_deleted` boolean (default `False`) to `Appointment`, `Customer`, `ContactSubmission` models. Migrations in `run_migrations()`.
-  - All list endpoints + availability engine filter
+  - All list endpoints + availability engine filter `is_deleted = False`.
+  - Dashboard: delete buttons added to AppointmentsPage, CustomersPage, ContactsPage row menus.
+  - Embed contact form now resets to blank after successful submission.
+  - Contact responder session fix: resolved a DB session/context issue causing AI responder failures.
+- `6b75ba7` — Fix LLM model string in `config.py` default + startup health check added to `main.py` (validates model at boot, logs prominent WARNING if unreachable). See Section 22.
+- `2a7e9bf` — Added Section 23: Periodic Maintenance Schedule to CLAUDE.md.
+- `8743402` — **Contact responder channel awareness + SMS truncation fix**:
+  - AI reply now references only the customer's preferred contact channel. Pref "text" → "reply to this text"; "email" → "reply to this email"; "call" → mentions business phone, says we'll call. No more channel mismatches.
+  - SMS truncation overhaul: old code took first paragraph (~155 chars — usually just the greeting "Hi Name,"). New code skips greeting lines (short line ending with comma), joins remaining paragraphs, caps at 300 chars (~2 SMS segments). Leads with actual useful content.
+- **SMS consent compliance (A2P):**
+  - `sms_consent: bool` column added to `ContactSubmission` model + migration (default `False`).
+  - Schema (`ContactFormSubmit`, `ContactSubmissionResponse`) and contact router updated to save it.
+  - SMS only sent when `sms_consent = True` — never assumed.
+  - Embed form consent checkbox made **optional** (no `required` attribute) per approved A2P campaign. Exact approved consent language: `(Optional) I agree to receive SMS messages... SMS consent is not required to submit this form or receive service.`
+  - Inline form hint: when "text" selected but consent unchecked → `"To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead."` Hint disappears when both are selected.
+- **Single-channel send logic:** Contact responder now sends via exactly one channel — text+consent=SMS only, everything else=email only. Prevents duplicate messages and language mismatches.
+- **`pref` scope bug fix:** `pref` was computed inside `_call_llm` (local scope) but referenced in `_process` after the call returned → `NameError`. Fixed by computing `pref` and `sms_consented` at the top of `_process` and passing `pref` into `_call_llm` as a parameter.
+- **A2P section corrected in CLAUDE.md:** Campaign is APPROVED with optional checkbox. Section now shows exact Twilio-verified campaign details (use case, keywords, consent language).
+- **Periodic Maintenance Schedule added** (Section 23): monthly/quarterly/annual/event-triggered task tables + quick diagnostic reference.
+- **Git workflow note added to CLAUDE.md header:** Claude handles `git add` + `git commit` via Bash; Ryan only needs to run `git push`.

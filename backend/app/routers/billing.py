@@ -47,19 +47,18 @@ def _stripe_client():
 
 
 PLAN_PRICES = {
-    "starter": {
-        "setup":   settings.STRIPE_PRICE_STARTER_SETUP,
-        "monthly": settings.STRIPE_PRICE_STARTER_MONTHLY,
-    },
-    "professional": {
-        "setup":   settings.STRIPE_PRICE_PRO_SETUP,
-        "monthly": settings.STRIPE_PRICE_PRO_MONTHLY,
+    "launchpad": {
+        "setup":   settings.STRIPE_PRICE_LAUNCHPAD_SETUP,
+        "monthly": settings.STRIPE_PRICE_LAUNCHPAD_MONTHLY,
     },
     "test": {
         "setup":   "price_1TbkYi2MJMR8rAcZO4iP0oHP",
         "monthly": "price_1TbkkP2MJMR8rAcZAPo5kJx5",
     },
 }
+
+# Legacy plan names (cached marketing pages / old links) map to the single plan
+LEGACY_PLAN_ALIASES = {"starter": "launchpad", "professional": "launchpad"}
 
 
 def _slugify(name: str) -> str:
@@ -127,7 +126,7 @@ def _provision_tenant(db: Session, session: dict):
     """
     customer_id  = session.get("customer")
     subscription_id = session.get("subscription")
-    plan         = (session.get("metadata") or {}).get("plan", "starter")
+    plan         = (session.get("metadata") or {}).get("plan", "launchpad")
 
     # Pull custom fields
     custom_fields = {cf["key"]: cf.get("text", {}).get("value", "") for cf in (session.get("custom_fields") or [])}
@@ -211,15 +210,18 @@ def create_checkout_session(body: dict):
     Create a Stripe Checkout session.
     Called from the marketing site pricing buttons.
 
-    Body: { "plan": "starter" | "professional" }
+    Body: { "plan": "launchpad" }   (legacy "starter"/"professional" map to "launchpad")
     Returns: { "url": "https://checkout.stripe.com/..." }
     """
-    plan = (body.get("plan") or "starter").lower()
+    plan = (body.get("plan") or "launchpad").lower()
+    plan = LEGACY_PLAN_ALIASES.get(plan, plan)
     if plan not in PLAN_PRICES:
-        raise HTTPException(status_code=400, detail="Invalid plan. Choose 'starter' or 'professional'.")
+        raise HTTPException(status_code=400, detail="Invalid plan.")
 
     s = _stripe_client()
     prices = PLAN_PRICES[plan]
+    if not prices["setup"] or not prices["monthly"]:
+        raise HTTPException(status_code=503, detail="Stripe prices not configured for this plan")
 
     session = s.checkout.Session.create(
         mode="subscription",
