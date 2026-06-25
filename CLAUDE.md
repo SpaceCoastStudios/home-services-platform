@@ -4,13 +4,15 @@
 > This is the single source of truth for project context, architecture, features, patterns, and status.
 > Last substantive update: 2026-06-10 (Single-tier pricing restructure: one Launchpad plan at $999 setup + $299/mo, founding $497 + $149/mo x3; index.html truncation bug found and repaired; vertical GTM strategy adopted, pool service first.)
 
-> **Git workflow reminder:** Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- doing so creates Windows filesystem lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **All git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
+> **Git workflow reminder (Cowork sandbox):** In **Cowork** (this environment), Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- the Linux sandbox mounts the Windows filesystem and creates lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **In Cowork sessions: all git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
 > git add <file>
 > git commit -m "message"
 > git push
 > ```
 > Tell Ryan exactly which files to add and what commit message to use.
+>
+> **Claude Code sessions (native terminal):** This restriction does NOT apply. Claude Code runs natively on Ryan's machine with real filesystem access, so it CAN run git commands directly without lock file issues.
 >
 > **Push rule:** ALL file changes require a push to be saved to GitHub — including CLAUDE.md and README.md. Without a push, changes only exist locally and could be lost. There are no exceptions.
 >
@@ -1150,7 +1152,7 @@ See `docs/founder-client-onboarding.md`.
 
 ### Git / Bash
 - **File-tool writes do not truncate on the Windows mount (CRITICAL, found 2026-06-10):** when the Edit/Write tools rewrite an existing repo file to a SHORTER length, the file keeps its old size and the tail is padded with NUL bytes -- or the tail is silently lost. This truncated `marketing-site/index.html` (broke the live checkout JS for ~9 days) and CLAUDE.md itself. **Rule: edit existing files via bash Python scripts (read / replace / write with `io.open(..., "w", encoding="utf-8")`). After any edit, verify: zero NUL bytes and the file ends with the expected content.** Write tool is fine for brand-new files only.
-- **Never run `git add`/`git commit` from bash** -- the Linux sandbox mounts a Windows filesystem. Git lock files created in bash cannot be removed from bash (`Operation not permitted`), breaking all subsequent commits in the session. Give Ryan the commands to run in his terminal instead.
+- **Never run `git add`/`git commit` from bash (Cowork only)** -- the Cowork Linux sandbox mounts a Windows filesystem. Git lock files created in bash cannot be removed from bash (`Operation not permitted`), breaking all subsequent commits in the session. Give Ryan the commands to run in his terminal instead. **Exception: Claude Code** runs natively on Ryan's machine and CAN run git commands without this problem.
 - **PowerShell does not support `&&` chaining** -- put each command on its own line so Ryan can copy-paste individually.
 
 ### Marketing Site
