@@ -26,6 +26,8 @@
 >
 > **After every session:** append a dated summary to `docs/activity-log.md` (what was built, changed, or decided). Keep CLAUDE.md sections 1-29 updated for architecture changes; the activity log and companion docs absorb everything else.
 >
+> **When features ship, change, or are removed:** update `docs/status.md` (built/partial/not-built list) and `docs/roadmap.md` (priorities and completed items) in the same session -- do not wait for the next session. If a task involves adding, modifying, or removing a platform capability, these two files are part of the definition of done.
+>
 > **Confirm before acting:** When Ryan asks a question or asks for thoughts ("what do you think?", "should we?", "do we need to?"), provide information only -- do not make any changes until Ryan explicitly confirms. Questions = gather information to decide. "Yes, go ahead" = act.
 
 ---
