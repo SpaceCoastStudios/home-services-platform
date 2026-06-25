@@ -1,0 +1,25 @@
+# SCS Platform -- Capability Status
+
+> Reference doc split from CLAUDE.md Section 21.
+> Update this file whenever a feature ships, is tested, or changes status.
+> Keep in sync with `docs/roadmap.md`.
+
+## 21. Platform Capability Status
+
+### ✅ Fully Built
+Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone; weekly rolling auto-cycles via modulo)**, **on-call banner now uses GET /api/oncall/current (fixed weekly rolling display bug)**, **week position UI now shows "Week 1/2/3" dropdown instead of 0-indexed number input**, **emergency SMS dispatch (tested end-to-end)**, **escalation alerts (SMS + email + on-call tech) when Scout escalates any conversation — configurable per-business in On-Call Settings**, — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164), **recurring appointments dashboard UI (2026-05-31)**: expandable rows showing details/address/notes, Edit modal (frequency, day, time, technician, end date, address, notes), appointment history panel (upcoming + last 5 past per schedule), "Generate appointments now" button — all in the existing Recurring Series tab of the Appointments page, **self-scheduling booking widget (Phase 1 — shipped + tested 2026-05-30)**: public slug-scoped `/embed/{slug}/booking-config|availability|book` + embeddable `/embed/{slug}/booking` UI reusing the availability engine; books a confirmed appointment, assigns a tech, fires the confirmation, is capacity-aware, excludes the internal Emergency Service type, and is embedded live on the demo page
+
+### ⚠️ Partially Built
+- **Online self-booking widget** — Phase 1 (internal-only) **shipped + tested 2026-05-30** (public endpoints + embeddable UI). Phase 2 (Google Calendar two-way sync) / Phase 3 (Outlook) not yet built.
+- **Emergency contact form routing** — AI handles urgency in SMS; contact form doesn't route to on-call (SMS flow does)
+- **Lead deduplication** — customer lookup exists; auto-linking on contact form submission not fully wired
+
+### ❌ Not Yet Built
+- Visual calendar view (day/week/month) in dashboard — currently list-only
+- Customer portal (magic link login, view/reschedule appointments)
+- Usage/analytics dashboard across all tenants
+- Route optimization (column placeholder in DB, feature deferred)
+- **Voicemail + AI response** (HIGH INTEREST) — Missed-call text-back via call forwarding + voicemail recording. Flow: client forwards their existing business number to Twilio; Twilio plays a greeting and records the voicemail; Whisper transcribes the audio; Claude generates an SMS response to the caller; logs voicemail/transcript/AI response in the dashboard alongside SMS conversations. Requires TwiML call handling (new capability layer, separate from SMS webhooks). Candidate for "Coming Soon" on the marketing site once fleshed out. Do NOT promise to prospects until built.
+- **Promotional/re-engagement SMS campaigns** — Seasonal SMS to past customer lists (e.g. "time for your spring HVAC tune-up" or holiday pool specials). Requires: (1) new A2P MIXED campaign registration (brand stays approved, new campaign submission ~2-4 weeks); (2) explicit marketing opt-in mechanism separate from the service communications consent; (3) opt-in UI on the contact form. Build toward; do not promise until opt-in flow is designed.
+
+---

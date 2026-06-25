@@ -216,126 +216,16 @@ git push
 
 ## 7. Repository Structure
 
-```
-home-services-platform/
-├── backend/
-│   ├── app/
-│   │   ├── main.py                  # Entry point: FastAPI app, run_migrations(), seed_defaults(), lifespan
-│   │   ├── config.py                # Pydantic Settings — reads env vars + defaults
-│   │   ├── database.py              # SQLAlchemy engine, SessionLocal, Base, get_db()
-│   │   ├── models/
-│   │   │   ├── admin_user.py        # Platform admins (business_id=NULL) and business admins
-│   │   │   ├── business.py          # Business tenant — all billing, branding, AI config fields
-│   │   │   ├── appointment.py
-│   │   │   ├── customer.py
-│   │   │   ├── service_type.py
-│   │   │   ├── technician.py
-│   │   │   ├── business_hours.py
-│   │   │   ├── blocked_time.py
-│   │   │   ├── contact_submission.py
-│   │   │   ├── notification.py      # Notification log (prevents duplicate sends)
-│   │   │   ├── notification_template.py
-│   │   │   ├── oncall.py            # OnCallConfig + OnCallRotation + OnCallOverride
-│   │   │   ├── recurring_schedule.py
-│   │   │   ├── sms_conversation.py
-│   │   │   ├── system_settings.py
-│   │   │   └── inquiry.py
-│   │   ├── routers/
-│   │   │   ├── auth.py              # login, refresh, set-password, forgot-password
-│   │   │   ├── billing.py           # Stripe checkout, webhook, portal, subscription
-│   │   │   ├── businesses.py        # Business CRUD + /me + impersonate
-│   │   │   ├── admin.py             # Manual notification triggers, scheduler status
-│   │   │   ├── appointments.py
-│   │   │   ├── availability.py
-│   │   │   ├── business_hours.py
-│   │   │   ├── customers.py
-│   │   │   ├── contact.py           # Public contact form + AI responder
-│   │   │   ├── embed.py             # Public booking widget endpoints
-│   │   │   ├── calendar_links.py    # ICS file generation + calendar landing page
-│   │   │   ├── notification_templates.py
-│   │   │   ├── oncall.py
-│   │   │   ├── recurring.py
-│   │   │   ├── services.py
-│   │   │   ├── sms_webhook.py       # Twilio inbound SMS — OTW/complete reply flow
-│   │   │   └── technicians.py
-│   │   ├── services/
-│   │   │   ├── scheduler.py         # APScheduler background jobs
-│   │   │   ├── notifications.py     # SMS (Twilio) + email (SendGrid) send functions
-│   │   │   ├── sms_agent.py         # Claude AI SMS booking agent (tool_use, 4 tools)
-│   │   │   ├── contact_responder.py # AI auto-reply to contact form submissions
-│   │   │   ├── scheduling.py        # Availability engine
-│   │   │   ├── oncall_notifier.py   # Emergency dispatch
-│   │   │   └── template_renderer.py # Notification template variable rendering
-│   │   └── utils/
-│   │       ├── auth.py              # JWT helpers, password hashing, FastAPI dependencies
-│   │       └── ics.py               # ICS calendar file generator
-│   ├── scripts/
-│   │   ├── create_stripe_products.py  # One-time Stripe product/price setup
-│   │   └── backup_db.py               # DB backup to Backblaze B2
-│   ├── seed_peak_hvac.py              # Demo HVAC client seed script
-│   ├── requirements.txt
-│   └── .env.example
-├── frontend/dashboard/
-│   ├── src/
-│   │   ├── App.jsx                  # All routes — public + protected
-│   │   ├── pages/
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── ForgotPasswordPage.jsx    # /forgot-password
-│   │   │   ├── SetPasswordPage.jsx       # /set-password?token=&mode=reset
-│   │   │   ├── WelcomePage.jsx           # /welcome?session_id= (post-Stripe)
-│   │   │   ├── SetupPage.jsx             # /setup (first-login wizard)
-│   │   │   ├── DashboardPage.jsx
-│   │   │   ├── AppointmentsPage.jsx
-│   │   │   ├── CustomersPage.jsx
-│   │   │   ├── ServicesPage.jsx
-│   │   │   ├── TechniciansPage.jsx
-│   │   │   ├── ContactsPage.jsx          # Contact form submission inbox + AI responder
-│   │   │   ├── SMSConversationsPage.jsx
-│   │   │   ├── NotificationTemplatesPage.jsx
-│   │   │   ├── OnCallPage.jsx
-│   │   │   ├── SettingsPage.jsx          # AI persona, email config, booking prefs, dev tools
-│   │   │   ├── BillingPage.jsx
-│   │   │   ├── BusinessesPage.jsx        # Platform admin: all tenants + impersonation
-│   │   │   └── OnboardingPage.jsx        # Platform admin: manual tenant provisioning
-│   │   ├── components/
-│   │   │   ├── Layout.jsx               # Sidebar nav + amber impersonation banner
-│   │   │   └── RowMenu.jsx              # Reusable 3-dot dropdown (portal-rendered)
-│   │   ├── hooks/
-│   │   │   ├── useAuth.jsx              # Auth state, login/logout, impersonate/exit
-│   │   │   └── useBusinessContext.jsx   # Active business for platform admins
-│   │   └── services/
-│   │       └── api.js                   # All API calls with JWT auth
-│   ├── vite.config.js                   # Proxies /api → API root in dev
-│   ├── netlify.toml
-│   └── public/_redirects                # /* /index.html 200 (SPA fallback)
-├── marketing-site/
-│   ├── index.html                       # All-in-one marketing page
-│   ├── booking-demo.html
-│   ├── privacy.html
-│   └── terms.html
-├── docs/
-│   ├── founder-client-onboarding.md     # Manual provisioning guide for founding clients
-│   └── archive/
-│       └── HomeServices_Architecture_Plan.md  # Original pre-build spec (March 2026, historical)
-├── README.md                            # Ops quick-reference: Stripe IDs, A2P checklist, pitfalls
-├── CLAUDE.md                            # THIS FILE — master project memory
-└── .do/app.yaml                         # DigitalOcean App Platform config (API + DB only)
-```
+> Full annotated file tree is in `docs/repo-structure.md`. Load it when navigating unfamiliar parts of the codebase or when file locations matter. The actual filesystem is always authoritative.
 
-### Key files outside the repo (in `Test Project/` root)
-```
-Test Project/
-├── SCS-Client-Services-Agreement-Template.docx  # Signed CSA template
-├── SCS-Client-Services-Agreement-Template.pdf   # PDF version
-├── Platform Capability Checklist.docx           # Feature status tracker — KEEP CURRENT (see note below)
-├── SCS Platform Roadmap.docx                     # Roadmap: Completed / Near-Term / Later — KEEP CURRENT
-├── SCS_Onboarding_Checklist.docx                # Client onboarding + smoke test steps
-└── SpaceCoastStudios_SystemGuide.docx           # Full system SOPs
-```
+Key top-level layout:
+- `backend/` -- FastAPI app (`app/`), scripts, seed files, requirements.txt
+- `frontend/dashboard/` -- React 18 + Vite dashboard
+- `marketing-site/` -- Static HTML marketing site and demo pages
+- `docs/` -- Companion reference docs (activity log, roadmap, status, API ref, clients)
+- `.do/app.yaml` -- DigitalOcean App Platform config (API + DB only)
+- `CLAUDE.md` -- Master project memory (this file)
 
-> **Keep the status + onboarding trackers current.** Whenever a feature ships, is tested, or changes status, update `Platform Capability Checklist.docx` (capability status + notes + summary counts), `SCS Platform Roadmap.docx` (move items between Completed / Near-Term / Later), and `SCS_Onboarding_Checklist.docx` (onboarding + smoke-test steps as they change). These are the canonical *non-technical* status docs and are expected to stay in sync with this file and the README. **How to edit:** npm/docx-js is blocked in this environment, so regenerate them with **pandoc** from Markdown — `pandoc file.md -o "Test Project/<file>.docx"`. This is how both were rebuilt on 2026-05-29.
-
----
 
 ## 8. Environment Variables
 
@@ -688,77 +578,17 @@ Included in all confirmation and reminder emails and SMS messages.
 
 ## 16. Complete API Reference
 
-### Auth (`/api/auth/...`)
-| Method | Endpoint | Auth | Notes |
-|---|---|---|---|
-| `POST` | `/api/auth/login` | none | `{username, password}` → `{access_token, refresh_token}` |
-| `POST` | `/api/auth/refresh` | none | `{refresh_token}` → new token pair |
-| `POST` | `/api/auth/set-password` | none | `{token, password, confirm_password}` → `{access_token, refresh_token}`. Token nulled after use. New users → `/setup`, resets → `/`. |
-| `POST` | `/api/auth/forgot-password` | none | `{email}` → always 200 (prevents enumeration). Sends 1-hr reset link if email found and active. |
+> Full endpoint table is in `docs/api-reference.md`. Load it when adding endpoints, debugging routing issues, or auditing what's exposed. The router files in `backend/app/routers/` are always authoritative.
 
-### Businesses (`/api/businesses/...`)
-| Method | Endpoint | Auth | Notes |
-|---|---|---|---|
-| `GET` | `/api/businesses` | platform admin | Lists all with billing fields |
-| `POST` | `/api/businesses` | platform admin | Create business |
-| `GET` | `/api/businesses/me` | business admin | Get caller's own business |
-| `GET` | `/api/businesses/{id}` | platform admin | Get by ID |
-| `PUT` | `/api/businesses/{id}` | any JWT | Business admins can only update own; cannot change `plan`, `is_active`, `is_demo`, Stripe fields |
-| `POST` | `/api/businesses/{id}/impersonate` | platform admin | Returns 2-hr impersonation JWT for business's first active admin user |
+**Auth prefix:** `/api/auth/` -- login, refresh, set-password, forgot-password
+**Business prefix:** `/api/businesses/` -- CRUD, `/me`, impersonate
+**Billing prefix:** `/api/billing/` -- checkout, webhook, portal, subscription
+**Appointments:** `/api/appointments/` -- CRUD, cancel
+**Public (no auth):** `/contact/submit`, `/embed/{slug}/...`, `/cal/{token}/...`
+**Admin triggers:** `/api/admin/trigger/...`, `/api/admin/scheduler/status`
 
-### Billing (`/api/billing/...`)
-| Method | Endpoint | Auth | Notes |
-|---|---|---|---|
-| `POST` | `/api/billing/checkout` | none | `{plan}` → `{url}` (Stripe Checkout URL) |
-| `GET` | `/api/billing/checkout-session` | none | `?session_id=` → `{email}` (for welcome page) |
-| `POST` | `/api/billing/webhook` | Stripe sig | Handles Stripe events |
-| `GET` | `/api/billing/subscription` | JWT | Current plan/status for active business |
-| `POST` | `/api/billing/portal` | JWT | Create Stripe Customer Portal session → `{url}` |
+All other resource endpoints (customers, services, technicians, availability, oncall, sms, notifications, settings, recurring) follow standard REST patterns under `/api/`.
 
-### Appointments (`/api/appointments/...`)
-| Method | Endpoint | Notes |
-|---|---|---|
-| `GET` | `/api/appointments` | `?sort=upcoming\|newest\|oldest` (default: upcoming) |
-| `POST` | `/api/appointments` | Create; fires confirmation SMS + email immediately |
-| `GET` | `/api/appointments/{id}` | Get by ID |
-| `PUT` | `/api/appointments/{id}` | Update |
-| `POST` | `/api/appointments/{id}/cancel` | Cancel |
-
-### Other Endpoints (all JWT-protected unless noted)
-- `GET/PUT /api/business-hours` — business hours by day of week
-- `GET/POST/DELETE /api/blocked-times` — blocked time slots
-- `GET/PUT /api/settings/{key}` — per-business key-value settings
-- `GET/POST/PUT/DELETE /api/customers`
-- `GET/POST/PUT/DELETE /api/services`
-- `GET/POST/PUT /api/technicians`
-- `GET /api/availability`
-- `GET/POST/PUT/DELETE /api/recurring` + `POST /api/recurring/{id}/generate`
-- `GET/PUT /api/oncall/config`, `GET/POST/DELETE /api/oncall/rotation`, `GET/POST/DELETE /api/oncall/override`, `GET /api/oncall/current`
-- `GET /api/contact-submissions`, `PUT /api/contact-submissions/{id}`
-- `POST /api/contact-submissions/{id}/respond` — trigger AI response
-- `POST /api/contact-submissions/{id}/approve` — approve AI draft
-- `POST /api/contact-submissions/{id}/manual-response`
-- `GET/POST /api/sms-conversations`, `POST /api/sms-conversations/{id}/close`, `POST /api/sms-conversations/{id}/send`
-- `GET/PUT /api/notification-templates`, `POST /api/notification-templates/reset`
-
-### Public Endpoints (no auth)
-- `POST /contact/submit?business_id=` — contact form widget submission
-- `GET /embed/{slug}/contact` — contact widget iframe HTML
-- `GET /embed/{slug}/booking` — self-scheduling booking widget HTML
-- `GET /embed/{slug}/booking-config`, `GET /embed/{slug}/availability` — booking widget config + open slots
-- `POST /embed/{slug}/book` — create a booking (re-validates slot, assigns tech, fires confirmation; honeypot + Emergency type excluded)
-- `GET /cal/{token}`, `/cal/{token}/google`, `/cal/{token}/ical`, `/cal/{token}/outlook`, `/cal/{token}/yahoo`
-
-### Admin / Notification Triggers (JWT required)
-- `POST /api/admin/trigger/reminders`
-- `POST /api/admin/trigger/otw-prompts`
-- `POST /api/admin/trigger/morning-kickoffs`
-- `GET /api/admin/scheduler/status`
-- `POST /api/admin/appointments/{id}/resend-confirmation`
-- `POST /api/admin/appointments/{id}/send-reminder`
-- `POST /api/admin/appointments/{id}/send-review-request`
-
----
 
 ## 17. Frontend Routing (`App.jsx`)
 
@@ -861,23 +691,13 @@ The API does not differentiate impersonation — it's a valid JWT for the busine
 
 ## 21. Platform Capability Status
 
-### ✅ Fully Built
-Contact form + AI auto-responder, emergency SMS call routing, business hours config, blocked times, multi-technician dispatch, appointment status workflow, calendar invite (.ics + Google/Outlook/Yahoo), appointment reminders (next-business-day, noon local, 30-min check, idempotent), manual reply from dashboard, per-business email branding, full SMS OTW flow, booking confirmation SMS, login + JWT auth, forgot-password + reset flow, contact queue UI, appointments view (with expandable detail rows + Edit Details modal), customer records (inline edit), service types, technician management (first/last name split UI), settings page, multi-tenant architecture, business management, demo tenant seeding, add-to-calendar (customer-facing), phone number E.164 normalization, admin manual job triggers, Stripe billing (checkout → webhook → provisioning), first-login setup wizard, platform admin impersonation, notification templates (12 editable per-business), on-call rotation + override, **problem description capture** (contact form + appointment model + dashboard), **tech daily schedule page** (public mobile page per technician, no login), **morning kickoff overhaul** (2-hour trigger, full daily summary, no-appointments variant), **soft delete** (appointments, customers, contact submissions — `is_deleted` flag, filtered from all queries + availability engine), **contact responder channel awareness** (AI reply references only customer's preferred contact channel; SMS truncation improved to skip greeting, cap at 300 chars), **on-call rotation + override (tested end-to-end, business-local timezone; weekly rolling auto-cycles via modulo)**, **on-call banner now uses GET /api/oncall/current (fixed weekly rolling display bug)**, **week position UI now shows "Week 1/2/3" dropdown instead of 0-indexed number input**, **emergency SMS dispatch (tested end-to-end)**, **escalation alerts (SMS + email + on-call tech) when Scout escalates any conversation — configurable per-business in On-Call Settings**, — AI captures the service address in chat, alerts the on-call tech, and creates an `emergency`-status appointment, **customer-facing phone number formatting** `(321) 386-7604` across SMS agent, contact responder, and notification templates (tech alert intentionally stays E.164), **recurring appointments dashboard UI (2026-05-31)**: expandable rows showing details/address/notes, Edit modal (frequency, day, time, technician, end date, address, notes), appointment history panel (upcoming + last 5 past per schedule), "Generate appointments now" button — all in the existing Recurring Series tab of the Appointments page, **self-scheduling booking widget (Phase 1 — shipped + tested 2026-05-30)**: public slug-scoped `/embed/{slug}/booking-config|availability|book` + embeddable `/embed/{slug}/booking` UI reusing the availability engine; books a confirmed appointment, assigns a tech, fires the confirmation, is capacity-aware, excludes the internal Emergency Service type, and is embedded live on the demo page
+> Full capability list (built / partial / not built) is in `docs/status.md`. Load it when planning what to build, answering "is X done?", or updating the roadmap. Keep it in sync with `docs/roadmap.md`.
 
-### ⚠️ Partially Built
-- **Online self-booking widget** — Phase 1 (internal-only) **shipped + tested 2026-05-30** (public endpoints + embeddable UI). Phase 2 (Google Calendar two-way sync) / Phase 3 (Outlook) not yet built.
-- **Emergency contact form routing** — AI handles urgency in SMS; contact form doesn't route to on-call (SMS flow does)
-- **Lead deduplication** — customer lookup exists; auto-linking on contact form submission not fully wired
+**All core features are built and tested.** Key shipped items: contact form + AI responder, SMS booking agent, OTW flow, emergency dispatch, escalation alerts, recurring appointments, self-scheduling booking widget, Stripe billing + provisioning, setup wizard, platform admin impersonation, A2P-compliant consent flow.
 
-### ❌ Not Yet Built
-- Visual calendar view (day/week/month) in dashboard — currently list-only
-- Customer portal (magic link login, view/reschedule appointments)
-- Usage/analytics dashboard across all tenants
-- Route optimization (column placeholder in DB, feature deferred)
-- **Voicemail + AI response** (HIGH INTEREST) — Missed-call text-back via call forwarding + voicemail recording. Flow: client forwards their existing business number to Twilio; Twilio plays a greeting and records the voicemail; Whisper transcribes the audio; Claude generates an SMS response to the caller; logs voicemail/transcript/AI response in the dashboard alongside SMS conversations. Requires TwiML call handling (new capability layer, separate from SMS webhooks). Candidate for "Coming Soon" on the marketing site once fleshed out. Do NOT promise to prospects until built.
-- **Promotional/re-engagement SMS campaigns** — Seasonal SMS to past customer lists (e.g. "time for your spring HVAC tune-up" or holiday pool specials). Requires: (1) new A2P MIXED campaign registration (brand stays approved, new campaign submission ~2-4 weeks); (2) explicit marketing opt-in mechanism separate from the service communications consent; (3) opt-in UI on the contact form. Build toward; do not promise until opt-in flow is designed.
+**Partially built:** booking widget Phase 2 (Google Calendar sync), lead deduplication.
+**Not yet built:** visual calendar view, customer portal, voicemail AI (high interest), promotional SMS campaigns.
 
----
 
 ## 22. AI Model Maintenance
 
@@ -963,45 +783,13 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 
 ## 25. A2P 10DLC Compliance
 
-### Current Status (as of May 2026)
-**Campaign is APPROVED** (CUSTOMER_CARE use case). Do not change the consent flow without re-submitting to TCR — the live form must match the approved description exactly.
+> Full compliance details, rejection history, approved consent language, and per-client setup checklist are in `docs/a2p-compliance.md`. Load it for any Twilio or new-client onboarding work.
 
-### Rejection History (resolved)
-Rejected 5 times for "issues verifying the CTA." Ultimately approved with an **optional** checkbox and explicit "not required" language — this satisfies carriers that SMS consent is not a condition of service.
+**Campaign status:** APPROVED (CUSTOMER_CARE use case) as of May 2026.
+**Critical rule:** Do NOT change the consent checkbox language or CTA URL without re-submitting to TCR.
+**Per-client:** each new client needs their own Brand + Campaign registration -- SCS's covers SCS only.
+**Adding demo numbers:** new SCS-owned demo numbers can join the existing approved campaign with no new TCR submission (buy number → sender pool → register to campaign → set number-level inbound webhook).
 
-### Approved Consent Implementation
-The campaign was approved with the following consent flow — **do not change any of this without updating the TCR registration**:
-- Checkbox is **optional** — form submits whether or not it is checked
-- Exact consent label text on form: `(Optional) I agree to receive SMS messages from [Business Name], including appointment confirmations, reminders, and service-related notifications. Msg & data rates may apply. Reply STOP to opt out at any time. Reply HELP for help. SMS consent is not required to submit this form or receive service.`
-- CTA URL on file: `https://spacecoaststudios.com/#contact`
-- The embed form at `/embed/{slug}/contact` uses identical consent language — **both forms must stay in sync**
-- Backend behavior: `sms_consent` boolean stored on every `ContactSubmission`. SMS is only sent when `sms_consent = true`
-
-### What Would Require a TCR Re-submission
-- Changing the consent language (even minor wording changes)
-- Changing the CTA URL
-- Adding a new use case (e.g. marketing/promotional SMS — currently CUSTOMER_CARE only)
-
-### Approved Campaign Details (Twilio — verified May 2026)
-- Use case: `CUSTOMER_CARE`
-- Opt-in keywords: START, YES
-- Opt-out keywords: STOP, STOPALL, UNSUBSCRIBE, CANCEL, END, QUIT, REVOKE, OPTOUT
-- Help keywords: HELP, INFO
-- Embedded links: Yes | Embedded phone numbers: Yes | Age-gated: No
-- **Important:** Each CLIENT business needs their own Brand + Campaign registration. SCS's registration covers SCS itself only. Client registrations are submitted Day 1 of their onboarding.
-- **Additional SCS-owned demo numbers (verified 2026-06-10):** numbers for SCS's own demo tenants can be added to the existing approved CUSTOMER_CARE campaign with NO new TCR submission: buy number -> add to Messaging Service sender pool -> register number to campaign -> set number-level inbound webhook -> set `twilio_phone_number` on the tenant. Pool demo number +13213984101 was added this way and worked the same day.
-
-### Per-Client A2P Setup Checklist
-1. Purchase local number in client's area code (Twilio Console)
-2. Create Messaging Service, add number to sender pool
-3. Register Brand (EIN, business info) → wait for approval
-4. Create Campaign (Mixed or Notifications) linked to Messaging Service
-5. **Register phone number to Campaign** (separate from sender pool — this step is easy to skip)
-6. Configure inbound webhook on the **phone number itself** (not just the Messaging Service):
-   `https://api.spacecoaststudios.com/webhook/sms/inbound` (POST)
-7. Set `twilio_phone_number` on Business record (E.164 format)
-
----
 
 ## 26. Client Services Agreement
 
