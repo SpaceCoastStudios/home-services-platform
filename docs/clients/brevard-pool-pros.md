@@ -24,6 +24,16 @@ Track C parameterized onboarding seeder -- this tenant is the first instance of 
 - Fallback webhook: intentionally empty
 - Status: Live -- Marina SMS agent verified 2026-06-10
 
+## Twilio Numbers -- Pool Demo
+Two numbers purchased for SCS demo use, both on the approved CUSTOMER_CARE campaign (Messaging Service MG3632cd4bd3fab9bebf5460759c8234df):
+
+| Number | Role | Inbound Webhook |
+|---|---|---|
+| `+13213984101` | **Active -- Brevard Pool Pros tenant** | Set at number level (verified live 2026-06-10) |
+| `+13213862298` | **Reserved -- HVAC demo tenant (not yet provisioned)** | Not yet configured |
+
+**Recommendation:** Keep `+13213984101` on the pool tenant (proven working). Use `+13213862298` when the HVAC demo tenant is created. If the pool tenant DB record was updated to `+13213862298`, revert it to `+13213984101` and configure the inbound webhook on `+13213984101` instead -- Marina was verified on that number.
+
 ## Seeding
 Run `python backend/scripts/seed_pool_demo.py` locally (not from Cowork sandbox -- proxy blocks API writes).
 Script is re-run safe. Creates: business + Marina persona + hours + 5 pool services + 2 techs + 4 customers (fictional 555 numbers) + 3 weekly recurring schedules. Does NOT create appointments or fire notifications.

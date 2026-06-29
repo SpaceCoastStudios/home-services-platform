@@ -6,6 +6,7 @@
 | Business ID | 1 |
 | Name | Launchpad Demo |
 | AI Agent Name | Scout |
+| Twilio Number | `+13213862298` |
 | is_demo | true |
 | Provisioned | Platform seed (always exists) |
 
@@ -19,8 +20,11 @@
 - Google Review URL is set to `https://www.spacecoaststudios.com` (placeholder -- set a real URL before any live demo).
 
 ## A2P / Twilio Setup
-- Uses SCS's main approved CUSTOMER_CARE campaign
-- Twilio number set via dashboard Settings -> Twilio Phone Number (platform admin only)
+- Uses SCS's main approved CUSTOMER_CARE campaign (Messaging Service MG3632cd4bd3fab9bebf5460759c8234df)
+- Number in Messaging Service sender pool: yes
+- Number registered to campaign: yes
+- Number-level inbound webhook: `https://api.spacecoaststudios.com/webhook/sms/inbound` (POST)
+- Status: Assigned 2026-06-29 (previously shared +13213984101 with Pool tenant -- split to fix tenant routing)
 
 ## Default Credentials (dev/demo only -- never use in production)
 | Username | Password | Role |
