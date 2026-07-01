@@ -39,7 +39,7 @@ def refresh(body: RefreshRequest, db: Session = Depends(get_db)):
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
 
-    user = db.query(AdminUser).filter(AdminUser.id == payload.get("sub")).first()
+    user = db.query(AdminUser).filter(AdminUser.id == int(payload.get("sub"))).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 

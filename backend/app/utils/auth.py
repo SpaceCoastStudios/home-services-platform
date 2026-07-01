@@ -52,7 +52,7 @@ def decode_token(token: str) -> dict:
 def build_token_data(user: AdminUser) -> dict:
     """Build the JWT payload for a given admin user."""
     return {
-        "sub": user.id,
+        "sub": str(user.id),
         "username": user.username,
         "role": user.role,
         "business_id": user.business_id,        # None for platform admins
@@ -69,7 +69,7 @@ def get_current_user(
     if payload.get("type") != "access":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
 
-    user = db.query(AdminUser).filter(AdminUser.id == payload.get("sub")).first()
+    user = db.query(AdminUser).filter(AdminUser.id == int(payload.get("sub"))).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
