@@ -22,6 +22,23 @@ const STATUS_COLORS = {
   no_show: 'bg-red-100 text-red-700',
 }
 
+// Statuses still "in motion" vs. final/closed-out — powers the Active/History split
+const ACTIVE_STATUSES = ['emergency', 'pending', 'confirmed', 'in_progress', 'en_route']
+const HISTORY_STATUSES = ['completed', 'cancelled', 'no_show']
+const FILTER_OPTIONS_BY_VIEW = {
+  active: ['', ...ACTIVE_STATUSES],
+  history: ['', ...HISTORY_STATUSES],
+}
+
+// Value accessors for client-side column sorting
+const COLUMN_ACCESSORS = {
+  scheduled_start: (a) => new Date(a.scheduled_start).getTime(),
+  customer_name: (a) => (a.customer_name || '').toLowerCase(),
+  service_name: (a) => (a.service_name || '').toLowerCase(),
+  technician_name: (a) => (a.technician_name || 'Unassigned').toLowerCase(),
+  status: (a) => (a.status || '').toLowerCase(),
+}
+
 const FREQ_LABELS = { weekly: 'Weekly', biweekly: 'Every 2 Weeks', monthly: 'Monthly' }
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -37,6 +54,25 @@ function ordinal(n) {
   return n + (s[(v-20)%10] || s[v] || s[0])
 }
 
+function SortHeader({ label, colKey, colSort, onSort }) {
+  const active = colSort?.key === colKey
+  return (
+    <th className="px-6 py-3">
+      <button
+        onClick={() => onSort(colKey)}
+        className="flex items-center gap-1 uppercase tracking-wider hover:text-gray-700 transition-colors"
+      >
+        {label}
+        {active ? (
+          colSort.dir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+        ) : (
+          <ChevronDown size={12} className="opacity-30" />
+        )}
+      </button>
+    </th>
+  )
+}
+
 export default function AppointmentsPage() {
   const { activeBusinessId } = useBusinessContext()
   const [tab, setTab] = useState('appointments') // 'appointments' | 'recurring'
@@ -47,6 +83,8 @@ export default function AppointmentsPage() {
   const [showRecurringCreate, setShowRecurringCreate] = useState(false)
   const [filter, setFilter] = useState('')
   const [sort, setSort] = useState('upcoming')
+  const [apptView, setApptView] = useState('active') // 'active' | 'history'
+  const [colSort, setColSort] = useState(null) // { key, dir } | null — overrides base sort when set
   const [loading, setLoading] = useState(true)
 
   // Shared lookup data
@@ -209,6 +247,22 @@ export default function AppointmentsPage() {
   const handleStatusChange = async (id, newStatus) => {
     await updateAppointment(id, { status: newStatus }, activeBusinessId)
     loadAppointments()
+  }
+
+  const handleColSort = (key) => {
+    setColSort(prev => (prev && prev.key === key)
+      ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+      : { key, dir: 'asc' })
+  }
+
+  const handleBaseSort = (key) => {
+    setSort(key)
+    setColSort(null)
+  }
+
+  const handleViewChange = (view) => {
+    setApptView(view)
+    setFilter('')
   }
 
   // Edit details modal
@@ -403,6 +457,20 @@ export default function AppointmentsPage() {
     }
   }
 
+  // Scope appointments to the active view (final-status vs. still-in-motion), then
+  // apply column sort on top if one is active — otherwise keep the server's ordering.
+  const viewStatuses = apptView === 'history' ? HISTORY_STATUSES : ACTIVE_STATUSES
+  const viewFilteredAppointments = appointments.filter(a => viewStatuses.includes(a.status))
+  const visibleAppointments = colSort
+    ? [...viewFilteredAppointments].sort((a, b) => {
+        const va = COLUMN_ACCESSORS[colSort.key](a)
+        const vb = COLUMN_ACCESSORS[colSort.key](b)
+        if (va < vb) return colSort.dir === 'asc' ? -1 : 1
+        if (va > vb) return colSort.dir === 'asc' ? 1 : -1
+        return 0
+      })
+    : viewFilteredAppointments
+
   // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div>
@@ -449,9 +517,20 @@ export default function AppointmentsPage() {
       {/* ── Appointments Tab ─────────────────────────────────────────────── */}
       {tab === 'appointments' && (
         <>
+          <div className="flex gap-1 mb-4">
+            {[['active', 'Active'], ['history', 'History']].map(([key, label]) => (
+              <button key={key} onClick={() => handleViewChange(key)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  apptView === key ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex gap-2 flex-wrap">
-              {['', 'emergency', 'pending', 'confirmed', 'in_progress', 'en_route', 'completed', 'cancelled'].map((s) => (
+              {FILTER_OPTIONS_BY_VIEW[apptView].map((s) => (
                 <button key={s} onClick={() => setFilter(s)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
@@ -467,9 +546,9 @@ export default function AppointmentsPage() {
                 { key: 'newest',   label: '↓ Newest'   },
                 { key: 'oldest',   label: '↑ Oldest'   },
               ].map(({ key, label }) => (
-                <button key={key} onClick={() => setSort(key)}
+                <button key={key} onClick={() => handleBaseSort(key)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    sort === key ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    sort === key && !colSort ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
                   }`}>
                   {label}
                 </button>
@@ -480,22 +559,24 @@ export default function AppointmentsPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {loading ? (
               <div className="p-6 text-center text-gray-400">Loading...</div>
-            ) : appointments.length === 0 ? (
-              <div className="p-6 text-center text-gray-400">No appointments found</div>
+            ) : visibleAppointments.length === 0 ? (
+              <div className="p-6 text-center text-gray-400">
+                {apptView === 'history' ? 'No completed or cancelled appointments yet' : 'No appointments found'}
+              </div>
             ) : (
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <th className="px-6 py-3">Date/Time</th>
-                    <th className="px-6 py-3">Customer</th>
-                    <th className="px-6 py-3">Service</th>
-                    <th className="px-6 py-3">Technician</th>
-                    <th className="px-6 py-3">Status</th>
+                    <SortHeader label="Date/Time" colKey="scheduled_start" colSort={colSort} onSort={handleColSort} />
+                    <SortHeader label="Customer" colKey="customer_name" colSort={colSort} onSort={handleColSort} />
+                    <SortHeader label="Service" colKey="service_name" colSort={colSort} onSort={handleColSort} />
+                    <SortHeader label="Technician" colKey="technician_name" colSort={colSort} onSort={handleColSort} />
+                    <SortHeader label="Status" colKey="status" colSort={colSort} onSort={handleColSort} />
                     <th className="px-6 py-3">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {appointments.map((appt) => {
+                  {visibleAppointments.map((appt) => {
                     const isExpanded = expandedApptId === appt.id
                     const hasDetail = appt.address || appt.notes || appt.problem_description
                     return (
