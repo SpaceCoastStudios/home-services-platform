@@ -47,7 +47,8 @@ These items must be resolved before the first paying client goes live. None bloc
 - **Find an accountant** -- No accountant currently. Need a Florida CPA or bookkeeper familiar with SaaS/tech small business. Priority questions: (1) Is Launchpad subject to Florida sales tax? (2) Quarterly estimated tax setup. (3) General bookkeeping setup. Find before first client invoice is issued.
 - **Florida SaaS sales tax** -- Florida taxes some software/technology services; SaaS classification is nuanced. Do not collect or not collect from first client until an accountant confirms the obligation. Do not assume either way.
 - **Brevard County local business tax receipt** -- Florida has no statewide business license but Brevard County requires a local business tax receipt. Obtain before first client goes live. Typically straightforward and low cost.
-- **Update LLC industry in Tailor Brands** -- Currently set to "Graphic Design" from original setup. Should be updated to "SaaS." Cosmetic (Tailor Brands internal only, not a government filing) but worth correcting for accurate recommendations.
+- ~~**Update LLC industry in Tailor Brands**~~ -- OBSOLETE: Tailor Brands cancelled 2026-07-01; replaced with Northwest Registered Agent for registered agent services only.
+- **Platform Documentation / Client Guide** -- Required to support the performance warranty in the CSA (Section 11.1 warrants that the Platform will "materially conform to the Documentation"). A short client-facing guide covering: platform features, how widgets work, SMS/email notification flows, and basic dashboard navigation. Format: PDF or web page. Not required before first client signs, but should exist before multiple clients are live. Doubles as an onboarding resource.
 - **Screenshot refresh** -- populate Launchpad Demo tenant with appointments, retake all notification + flow panel screenshots, update demo page images. Do while waiting for CSA review.
 
 ### Business Development
