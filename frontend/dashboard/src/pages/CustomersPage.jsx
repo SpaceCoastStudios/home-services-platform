@@ -10,7 +10,7 @@ const EMPTY_FORM = { first_name: '', last_name: '', phone: '', email: '', addres
 function CustomerForm({ title, form, setForm, onSubmit, onClose, error, submitLabel }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-auto">
+      <div className="bg-surface rounded-xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">{title}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
@@ -165,7 +165,7 @@ export default function CustomersPage() {
         />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-surface rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {customers.length === 0 ? (
           <div className="p-6 text-center text-gray-400">No customers found</div>
         ) : (
@@ -226,7 +226,7 @@ export default function CustomersPage() {
 
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <Trash2 size={18} className="text-red-600" />

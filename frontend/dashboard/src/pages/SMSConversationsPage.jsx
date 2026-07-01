@@ -123,7 +123,7 @@ function ConversationThread({ convo, onClose, onSend, onMarkClosed, businessId }
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Thread header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-white">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-surface">
         <div>
           <p className="font-semibold text-gray-900 text-sm">
             {convo.customer_name || formatPhone(convo.customer_phone)}
@@ -173,7 +173,7 @@ function ConversationThread({ convo, onClose, onSend, onMarkClosed, businessId }
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     isUser
-                      ? 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm'
+                      ? 'bg-surface border border-gray-200 text-gray-800 rounded-tl-sm'
                       : isManual
                         ? 'bg-orange-500 text-white rounded-tr-sm'
                         : 'bg-blue-600 text-white rounded-tr-sm'
@@ -190,7 +190,7 @@ function ConversationThread({ convo, onClose, onSend, onMarkClosed, businessId }
 
       {/* Reply box */}
       {!isClosed && (
-        <div className="border-t border-gray-200 p-4 bg-white">
+        <div className="border-t border-gray-200 p-4 bg-surface">
           {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
           <div className="flex gap-2">
             <textarea
@@ -305,7 +305,7 @@ export default function SMSConversationsPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] -m-8">
       {/* Page header */}
-      <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-200 shrink-0">
+      <div className="flex items-center justify-between px-8 py-5 bg-surface border-b border-gray-200 shrink-0">
         <div>
           <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <MessageSquare size={20} className="text-blue-600" />
@@ -327,7 +327,7 @@ export default function SMSConversationsPage() {
       {/* Body */}
       <div className="flex flex-1 min-h-0">
         {/* Left: list */}
-        <div className="w-80 border-r border-gray-200 flex flex-col bg-white shrink-0">
+        <div className="w-80 border-r border-gray-200 flex flex-col bg-surface shrink-0">
           {/* Filter tabs */}
           <div className="flex border-b border-gray-200 px-2 pt-2 gap-1">
             {['active', 'booked', 'escalated', 'closed', ''].map((s) => (
@@ -398,7 +398,7 @@ export default function SMSConversationsPage() {
         </div>
 
         {/* Right: thread */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white">
+        <div className="flex-1 flex flex-col min-w-0 bg-surface">
           {detailLoading ? (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
               Loading conversation…

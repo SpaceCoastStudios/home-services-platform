@@ -54,7 +54,7 @@ export default function RowMenu({ items = [], align = 'right' }) {
     <div
       onMouseDown={(e) => e.stopPropagation()}
       style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 9999 }}
-      className="w-52 bg-white rounded-xl shadow-lg border border-gray-200 py-1"
+      className="w-52 bg-surface rounded-xl shadow-lg border border-gray-200 py-1"
     >
       {items.map((item, i) => {
         if (item.label === 'Divider') {

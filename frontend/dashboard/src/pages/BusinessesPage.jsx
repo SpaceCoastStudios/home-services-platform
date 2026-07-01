@@ -79,7 +79,7 @@ function BusinessModal({ business, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold">
             {isEdit ? `Edit: ${business.name}` : 'Add New Business'}
@@ -312,7 +312,7 @@ export default function BusinessesPage() {
           {businesses.map((b) => (
             <div
               key={b.id}
-              className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-shadow flex flex-col ${
+              className={`bg-surface rounded-2xl border shadow-sm hover:shadow-md transition-shadow flex flex-col ${
                 !b.is_active ? 'opacity-60' : ''
               }`}
             >

@@ -87,7 +87,7 @@ function Input({ ...props }) {
 function Select({ children, ...props }) {
   return (
     <select
-      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface"
       {...props}
     >
       {children}
@@ -586,7 +586,7 @@ function StepTeam({ technicians, onChange, onNext, onBack, plan }) {
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                       tech.skills.includes(skill)
                         ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                        : 'bg-surface text-gray-600 border-gray-300 hover:border-blue-400'
                     }`}
                   >
                     {skill.charAt(0).toUpperCase() + skill.slice(1)}

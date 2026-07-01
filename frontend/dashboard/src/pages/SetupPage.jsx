@@ -270,7 +270,7 @@ function StepDone({ businessName, onFinish }) {
             onClick={onFinish}
             className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
           >
-            <div className="w-9 h-9 bg-white rounded-lg border border-gray-200 flex items-center justify-center shrink-0 group-hover:border-blue-300">
+            <div className="w-9 h-9 bg-surface rounded-lg border border-gray-200 flex items-center justify-center shrink-0 group-hover:border-blue-300">
               <Icon size={16} className="text-gray-500 group-hover:text-blue-600" />
             </div>
             <div>
@@ -418,7 +418,7 @@ export default function SetupPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-xl p-8">
+      <div className="bg-surface rounded-2xl shadow-sm border border-gray-200 w-full max-w-xl p-8">
 
         {/* Header */}
         {!done && (

@@ -151,7 +151,7 @@ export default function SettingsPage() {
       {message && <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm">{message}</div>}
 
       {/* Business Hours */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Business Hours</h2>
         <div className="space-y-3">
           {hours.map((h, i) => (
@@ -176,7 +176,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Blocked Times */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Blocked Times</h2>
         {blocked.length > 0 && (
           <div className="space-y-2 mb-4">
@@ -217,7 +217,7 @@ export default function SettingsPage() {
 
       {/* AI Response Mode */}
       {activeBusiness && (
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">AI Auto-Responder</h2>
           <p className="text-sm text-gray-500 mb-4">
             Control how the AI handles contact form submissions.
@@ -263,7 +263,7 @@ export default function SettingsPage() {
 
       {/* Embed Code */}
       {activeBusiness?.slug && (
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-1">Contact Form Embed</h2>
           <p className="text-sm text-gray-500 mb-4">
             Paste this snippet into any page on the client's website to embed the contact form.
@@ -287,7 +287,7 @@ export default function SettingsPage() {
                 setTimeout(() => setCopied(false), 2000)
               }}
               className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium
-                         bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                         bg-surface border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             >
               {copied ? <><Check size={12} className="text-green-600" /> Copied</> : <><Copy size={12} /> Copy</>}
             </button>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
 
       {/* Review Request */}
       {activeBusiness && (
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-1">
             <Star size={18} className="text-yellow-500" />
             <h2 className="text-lg font-semibold text-gray-900">Review Requests</h2>
@@ -343,7 +343,7 @@ export default function SettingsPage() {
       )}
 
       {/* Scheduling Settings */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Scheduling Settings</h2>
         <div className="space-y-4">
           {settings.map((s) => (
@@ -362,7 +362,7 @@ export default function SettingsPage() {
 
       {/* Twilio Phone Number — platform admin only */}
       {user?.isPlatformAdmin && activeBusiness && (
-        <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-2 mb-1">
             <Phone size={18} className="text-blue-500" />
             <h2 className="text-lg font-semibold text-gray-900">Twilio Phone Number</h2>
@@ -400,7 +400,7 @@ export default function SettingsPage() {
       )}
 
       {/* Developer Tools */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-1">
           <FlaskConical size={18} className="text-purple-500" />
           <h2 className="text-lg font-semibold text-gray-900">Developer Tools</h2>

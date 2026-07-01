@@ -25,7 +25,7 @@ export default function WelcomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 w-full max-w-lg p-10 text-center">
+      <div className="bg-surface rounded-2xl shadow-lg border border-gray-100 w-full max-w-lg p-10 text-center">
 
         {/* Success icon */}
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">

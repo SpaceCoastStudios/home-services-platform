@@ -59,7 +59,7 @@ export default function SetPasswordPage() {
   if (done) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8 text-center">
+        <div className="bg-surface rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8 text-center">
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={28} className="text-green-600" />
           </div>
@@ -80,7 +80,7 @@ export default function SetPasswordPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
+      <div className="bg-surface rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
         {/* Logo / branding */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Launchpad</h1>

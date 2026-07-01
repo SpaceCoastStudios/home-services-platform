@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8 text-center">
+        <div className="bg-surface rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8 text-center">
           <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail size={28} className="text-blue-600" />
           </div>
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
+      <div className="bg-surface rounded-2xl shadow-sm border border-gray-200 w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Launchpad</h1>
           <p className="text-gray-500 text-sm mt-1">Reset your password</p>

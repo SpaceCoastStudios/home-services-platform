@@ -93,7 +93,7 @@ function PlatformBillingView() {
           { label: 'Past Due',       value: pastDue,           color: 'text-yellow-600' },
           { label: 'No Plan',        value: noSub,             color: 'text-gray-400' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div key={label} className="bg-surface rounded-xl border border-gray-200 shadow-sm p-5">
             <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{label}</p>
             <p className={`text-3xl font-bold ${color}`}>{value}</p>
           </div>
@@ -101,7 +101,7 @@ function PlatformBillingView() {
       </div>
 
       {/* Tenant table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
@@ -219,7 +219,7 @@ function BusinessBillingView() {
           <button
             onClick={openPortal}
             disabled={portalLoading}
-            className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+            className="flex items-center gap-2 bg-surface border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
           >
             {portalLoading
               ? <><RefreshCw size={15} className="animate-spin" /> Opening…</>
@@ -233,7 +233,7 @@ function BusinessBillingView() {
       )}
 
       {/* Plan card */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+      <div className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -280,7 +280,7 @@ function BusinessBillingView() {
 
       {/* Features included */}
       {features.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-surface rounded-xl border border-gray-200 shadow-sm p-6">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">
             What's included
           </h3>

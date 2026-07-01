@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
+      <div className="bg-surface p-8 rounded-xl shadow-lg w-full max-w-sm">
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Home Services</h1>
         <p className="text-gray-500 text-center text-sm mb-6">Sign in to the admin dashboard</p>
 

@@ -260,7 +260,7 @@ export default function OnCallPage() {
         ].map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setActiveTab(id)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors
-              ${activeTab === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              ${activeTab === id ? 'bg-surface text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
             <Icon size={14} /> {label}
           </button>
         ))}
@@ -268,7 +268,7 @@ export default function OnCallPage() {
 
       {/* ── Settings Tab ─────────────────────────────────────────────────── */}
       {activeTab === 'config' && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+        <div className="bg-surface rounded-xl border border-gray-200 p-6 space-y-6">
 
           {/* Enable toggle */}
           <div className="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -279,7 +279,7 @@ export default function OnCallPage() {
             <button onClick={() => setForm(f => ({ ...f, is_enabled: !f.is_enabled }))}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
                 ${form.is_enabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow transition-transform
                 ${form.is_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
@@ -316,7 +316,7 @@ export default function OnCallPage() {
               <button onClick={() => setForm(f => ({ ...f, emergency_window_enabled: !f.emergency_window_enabled }))}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
                   ${form.emergency_window_enabled ? 'bg-orange-500' : 'bg-gray-300'}`}>
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow transition-transform
                   ${form.emergency_window_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
@@ -370,7 +370,7 @@ export default function OnCallPage() {
               <button onClick={() => setForm(f => ({ ...f, emergency_fee_enabled: !f.emergency_fee_enabled }))}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
                   ${form.emergency_fee_enabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow transition-transform
                   ${form.emergency_fee_enabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
@@ -436,7 +436,7 @@ export default function OnCallPage() {
                 onClick={() => setForm(f => ({ ...f, escalation_notify_oncall: !f.escalation_notify_oncall }))}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0
                   ${form.escalation_notify_oncall ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-surface shadow transition-transform
                   ${form.escalation_notify_oncall ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
@@ -492,7 +492,7 @@ export default function OnCallPage() {
       {activeTab === 'rotation' && (
         <div className="space-y-4">
           {/* Existing entries */}
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+          <div className="bg-surface rounded-xl border border-gray-200 divide-y divide-gray-100">
             {config?.rotations?.length === 0 && (
               <div className="px-6 py-10 text-center text-gray-400 text-sm">
                 No rotation entries yet — add one below
@@ -517,7 +517,7 @@ export default function OnCallPage() {
           </div>
 
           {/* Add entry form */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-surface rounded-xl border border-gray-200 p-5">
             <p className="font-medium text-gray-900 mb-4 text-sm">Add Rotation Entry</p>
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -573,7 +573,7 @@ export default function OnCallPage() {
             <p className="text-xs text-gray-500 mb-2">
               Set this as the Voice webhook URL on your Twilio phone number:
             </p>
-            <code className="block bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-blue-700 break-all">
+            <code className="block bg-surface border border-gray-200 rounded-lg px-3 py-2 text-xs text-blue-700 break-all">
               {`https://your-api-domain.com/api/oncall/webhook/voice?business_id=${businessId}`}
             </code>
             <p className="text-xs text-gray-400 mt-2">
@@ -617,7 +617,7 @@ export default function OnCallPage() {
           )}
 
           {/* Set new override */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="bg-surface rounded-xl border border-gray-200 p-5">
             <p className="font-medium text-gray-900 mb-4 text-sm">Set Manual Override</p>
             <p className="text-xs text-gray-500 mb-4">
               Use this when a tech calls in sick or swaps shifts. The override

@@ -77,7 +77,7 @@ export default function TechniciansPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {technicians.map((t) => (
-          <div key={t.id} className={`bg-white rounded-xl shadow-sm border p-5 ${!t.is_active ? 'opacity-50' : ''}`}>
+          <div key={t.id} className={`bg-surface rounded-xl shadow-sm border p-5 ${!t.is_active ? 'opacity-50' : ''}`}>
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-gray-900">{t.name}</h3>
@@ -97,7 +97,7 @@ export default function TechniciansPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">{editing ? 'Edit Technician' : 'Add Technician'}</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>

@@ -146,7 +146,7 @@ export default function ContactsPage() {
         {['', 'new', 'pending_approval', 'ai_responded', 'human_review', 'appointment_booked', 'closed'].map((s) => (
           <button key={s} onClick={() => setFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+              filter === s ? 'bg-blue-600 text-white' : 'bg-surface text-gray-600 border border-gray-300 hover:bg-gray-50'
             }`}>
             {s ? STATUS_CONFIG[s]?.label || s : 'All'}
           </button>
@@ -156,7 +156,7 @@ export default function ContactsPage() {
       <div className="flex gap-6">
         {/* Submission list */}
         <div className="flex-1 min-w-0">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+          <div className="bg-surface rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-100">
             {submissions.length === 0 ? (
               <div className="p-8 text-center text-gray-400">
                 {loading ? 'Loading…' : 'No submissions found'}
@@ -201,7 +201,7 @@ export default function ContactsPage() {
         {/* Detail panel */}
         {selected && (
           <div className="w-[420px] shrink-0">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-8">
+            <div className="bg-surface rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-8">
               {/* Panel header */}
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
@@ -379,7 +379,7 @@ export default function ContactsPage() {
 
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <Trash2 size={18} className="text-red-600" />

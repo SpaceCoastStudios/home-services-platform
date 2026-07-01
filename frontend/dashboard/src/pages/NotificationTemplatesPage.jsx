@@ -81,7 +81,7 @@ function TemplateCard({ template, tokens, onChange, isSaving }) {
   }
 
   return (
-    <div className={`bg-white rounded-lg border ${isDirty ? 'border-amber-400 shadow-sm' : 'border-gray-200'} overflow-hidden`}>
+    <div className={`bg-surface rounded-lg border ${isDirty ? 'border-amber-400 shadow-sm' : 'border-gray-200'} overflow-hidden`}>
       {/* Card header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center gap-2">
@@ -374,7 +374,7 @@ export default function NotificationTemplatesPage() {
               ...(tokens.otw_day_complete || []),
             ].map(([tok, lbl]) => (
               <div key={tok} className="flex items-center gap-2 text-xs text-gray-600">
-                <span className="font-mono bg-white border border-gray-200 rounded px-1.5 py-0.5 text-blue-700 shrink-0">
+                <span className="font-mono bg-surface border border-gray-200 rounded px-1.5 py-0.5 text-blue-700 shrink-0">
                   {tok}
                 </span>
                 <span className="text-gray-500">{lbl}</span>
