@@ -153,6 +153,7 @@ def _provision_tenant(db: Session, session: dict):
         try:
             stripe.api_key = settings.STRIPE_SECRET_KEY
             sub = stripe.Subscription.retrieve(subscription_id)
+            sub = sub.to_dict()
             pe = sub.get("current_period_end")
             if pe:
                 period_end = datetime.fromtimestamp(pe, tz=timezone.utc)
@@ -261,6 +262,7 @@ def get_checkout_session(session_id: str):
     s = _stripe_client()
     try:
         session = s.checkout.Session.retrieve(session_id, expand=["customer_details"])
+        session = session.to_dict()
         email = (
             (session.get("customer_details") or {}).get("email")
             or session.get("customer_email")
@@ -301,7 +303,7 @@ async def stripe_webhook(
         logger.warning("STRIPE_WEBHOOK_SECRET not set — skipping signature verification")
 
     event_type = event["type"]
-    data = event["data"]["object"]
+    data = event["data"]["object"].to_dict()
 
     logger.info("Stripe webhook: %s", event_type)
 
