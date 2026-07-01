@@ -167,7 +167,7 @@ export default function ContactsPage() {
                 const Icon = cfg.icon
                 return (
                   <div key={sub.id} onClick={() => { setSelected(sub); setManualMode(false); setActionMsg('') }}
-                    className={`px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors ${selected?.id === sub.id ? 'bg-blue-50 border-l-2 border-blue-500' : ''}`}>
+                    className={`px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors ${selected?.id === sub.id ? 'bg-brand-tint border-l-2 border-brand' : ''}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900 truncate">{sub.name}</p>
@@ -286,7 +286,7 @@ export default function ContactsPage() {
                         </span>
                       )}
                     </div>
-                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-slate-700 whitespace-pre-wrap">
                       {selected.ai_response}
                     </div>
                   </div>

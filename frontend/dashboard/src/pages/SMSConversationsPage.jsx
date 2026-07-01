@@ -369,7 +369,7 @@ export default function SMSConversationsPage() {
                   key={c.id}
                   onClick={() => setSelectedId(c.id)}
                   className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors flex items-start gap-3 ${
-                    isSelected ? 'bg-blue-50 border-l-2 border-l-blue-500' : 'hover:bg-gray-50'
+                    isSelected ? 'bg-brand-tint border-l-2 border-l-brand' : 'hover:bg-gray-50'
                   }`}
                 >
                   {/* Avatar */}

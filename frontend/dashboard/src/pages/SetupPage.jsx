@@ -268,7 +268,7 @@ function StepDone({ businessName, onFinish }) {
             key={to}
             to={to}
             onClick={onFinish}
-            className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+            className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-brand-tint transition-colors group"
           >
             <div className="w-9 h-9 bg-surface rounded-lg border border-gray-200 flex items-center justify-center shrink-0 group-hover:border-blue-300">
               <Icon size={16} className="text-gray-500 group-hover:text-blue-600" />

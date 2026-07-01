@@ -218,7 +218,7 @@ export default function OnCallPage() {
           <div className="flex-1">
             {activeTech ? (
               <>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-slate-900">
                   {isFallback ? 'Fallback contact' : 'On-call now'}: {activeTech.name}
                   {isOverride && (
                     <span className="ml-2 text-xs font-normal text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
@@ -232,14 +232,14 @@ export default function OnCallPage() {
                   )}
                 </p>
                 {isOverride && config.active_override && (
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Expires {new Date(config.active_override.expires_at).toLocaleString()}
                     {config.active_override.note && ` · ${config.active_override.note}`}
                   </p>
                 )}
               </>
             ) : (
-              <p className="text-sm text-gray-500">No on-call tech assigned for today</p>
+              <p className="text-sm text-slate-500">No on-call tech assigned for today</p>
             )}
           </div>
           {isOverride && (
@@ -460,7 +460,7 @@ export default function OnCallPage() {
                 <button key={opt.value} onClick={() => setForm(f => ({ ...f, rotation_type: opt.value }))}
                   className={`text-left p-3 rounded-lg border-2 transition-colors
                     ${form.rotation_type === opt.value
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-brand bg-brand-tint'
                       : 'border-gray-200 hover:border-gray-300'}`}>
                   <p className="font-medium text-sm text-gray-900">{opt.label}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>

@@ -177,7 +177,7 @@ function StepBusinessInfo({ data, onChange, onNext }) {
               onClick={() => onChange((d) => ({ ...d, plan: p.value }))}
               className={`text-left p-4 border-2 rounded-xl transition-colors ${
                 data.plan === p.value
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-brand bg-brand-tint'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
