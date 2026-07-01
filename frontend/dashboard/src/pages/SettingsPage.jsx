@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Save, Plus, Trash2, Copy, Check, Star, FlaskConical, Phone } from 'lucide-react'
+import { Save, Plus, Trash2, Copy, Check, Star, FlaskConical, Phone, Sun, Moon } from 'lucide-react'
 import {
   getBusinessHours, updateBusinessHours,
   getBlockedTimes, createBlockedTime, deleteBlockedTime,
@@ -7,6 +7,7 @@ import {
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
 
 const API_BASE = 'https://api.spacecoaststudios.com'
 
@@ -15,6 +16,7 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 export default function SettingsPage() {
   const { activeBusinessId, activeBusiness, refreshBusinesses } = useBusinessContext()
   const { user } = useAuth()
+  const { theme, setTheme } = useTheme()
   const [copied, setCopied] = useState(false)
   const [hours, setHours] = useState([])
   const [blocked, setBlocked] = useState([])
@@ -149,6 +151,26 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
 
       {message && <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm">{message}</div>}
+
+      {/* Appearance */}
+      <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Appearance</h2>
+        <p className="text-sm text-gray-500 mb-4">Choose how the dashboard looks on this device. This is saved to your browser, not shared with other users.</p>
+        <div className="flex gap-2">
+          <button onClick={() => setTheme('light')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              theme === 'light' ? 'bg-brand text-white border-brand' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}>
+            <Sun size={16} /> Light
+          </button>
+          <button onClick={() => setTheme('dark')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              theme === 'dark' ? 'bg-brand text-white border-brand' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}>
+            <Moon size={16} /> Dark
+          </button>
+        </div>
+      </section>
 
       {/* Business Hours */}
       <section className="bg-surface rounded-xl shadow-sm border border-gray-200 p-6">

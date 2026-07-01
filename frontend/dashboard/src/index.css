@@ -76,3 +76,25 @@ body {
   background-color: var(--page);
   color: var(--ink);
 }
+
+/*
+ * Form fields have no explicit bg/text classes anywhere in the app (they rely
+ * on the browser's native white input styling), so in dark mode the inherited
+ * --ink text color went light while the input background stayed native white
+ * -- invisible text. Styling every input/select/textarea once here fixes this
+ * app-wide instead of touching each page's className strings individually.
+ * Checkboxes/radios are excluded so they keep their native control appearance.
+ */
+input:not([type='checkbox']):not([type='radio']),
+select,
+textarea {
+  background-color: var(--surface);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
