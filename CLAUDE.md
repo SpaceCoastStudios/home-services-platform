@@ -660,6 +660,28 @@ After exit:      localStorage.access_token   = platform_token (restored)
 logout():        clears all three keys
 ```
 
+### Theming & Brand Color (added 2026-07-01)
+
+The dashboard has a CSS-variable theming system supporting a global light/dark toggle plus per-business brand color. **Status: infrastructure is app-wide; brand color is only wired into `Layout.jsx`, `DashboardPage.jsx`, and `AppointmentsPage.jsx` so far** -- the other ~17 pages still use hardcoded blue for primary actions (see `docs/roadmap.md` for the rollout plan). Read this section before touching styling on ANY page.
+
+**Tokens** (`frontend/dashboard/src/index.css`, `:root` + `[data-theme='dark']`):
+- Neutral: `--page`, `--surface`, `--subtle`, `--ink`, `--ink-muted`, `--line`, `--line-strong`
+- Brand: `--brand`, `--brand-hover`, `--brand-tint`, `--brand-ink` -- set at runtime (not in CSS) by `Layout.jsx`'s `useEffect`, which calls `computeBrandTokens(business.brand_color, theme)` (`utils/color.js`) and publishes them via `document.documentElement.style.setProperty`. Falls back to `#2563eb` when no business brand is set (platform admin view, pre-auth pages).
+- Status: `--status-{emergency,pending,confirmed,inprogress,enroute,completed,cancelled,noshow}-{bg,fg}` -- dark-mode-safe replacements for Tailwind's stock pastel badge classes. Used as arbitrary-value classes, e.g. `bg-[var(--status-pending-bg)] text-[var(--status-pending-fg)]`.
+
+**Tailwind config** (`tailwind.config.js`) remaps Tailwind's own `gray` palette (all 10 shades) onto the neutral tokens above, plus adds `page`/`surface`/`subtle`/`line`/`brand` as new color names (`bg-brand`, `text-brand-ink`, `bg-brand-tint`, `hover:bg-brand-hover`, etc.). This means **existing `text-gray-900`, `border-gray-200`, `bg-gray-50` etc. classes already re-theme for light/dark on every page with zero edits** -- no need to touch those on pages you're not otherwise changing.
+
+**`white`/`black` and `blue` were deliberately left un-remapped** -- do not "fix" this without reading why:
+- `white`/`black`: used for `text-white` sitting on solid color badges/buttons (e.g. `text-white` on `bg-red-600`) and must stay literal in both themes. Only the `bg-white` *class name* (never `text-white`) should be swapped to `bg-surface`, per file, by hand.
+- `blue`: confirmed via grep audit to be overloaded across the app -- both primary-action chrome (buttons/links/focus rings, convert to `brand`) AND fixed status/semantic meaning in at least 8 pages (`in_progress` status, "New" contact badge, "active" SMS badge, business plan badge, service category tag, notification-template info banner, on-call icon, setup-wizard icon -- leave these as literal Tailwind blue). Any future page migration must distinguish these two uses per line, not blanket find-replace.
+
+**`useTheme` hook** (`frontend/dashboard/src/hooks/useTheme.jsx`, wrapped around the app in `main.jsx` alongside `AuthProvider`):
+```javascript
+const { theme, setTheme, toggleTheme } = useTheme()
+// theme: 'light' | 'dark' — persisted to localStorage ('scs_theme'), defaults to OS
+// prefers-color-scheme on first visit. Sets data-theme on <html>.
+```
+
 ---
 
 ## 19. First-Login Setup Wizard (`/setup`)
@@ -865,7 +887,7 @@ See `docs/founder-client-onboarding.md`.
 - **`ADD COLUMN` spacing** — when editing migration SQL, verify there's a space after `IF NOT EXISTS` before the column name
 
 ### Git / Bash
-- **File-tool writes do not truncate on the Windows mount (CRITICAL, found 2026-06-10):** when the Edit/Write tools rewrite an existing repo file to a SHORTER length, the file keeps its old size and the tail is padded with NUL bytes -- or the tail is silently lost. This truncated `marketing-site/index.html` (broke the live checkout JS for ~9 days) and CLAUDE.md itself. **Rule: edit existing files via bash Python scripts (read / replace / write with `io.open(..., "w", encoding="utf-8")`). After any edit, verify: zero NUL bytes and the file ends with the expected content.** Write tool is fine for brand-new files only.
+- **File-tool writes do not truncate on the Windows mount (CRITICAL, found 2026-06-10, recurred 2026-07-01):** when the Edit/Write tools rewrite an existing repo file, the tail is sometimes silently lost -- either padded with NUL bytes or just cut clean with no padding. This truncated `marketing-site/index.html` (broke the live checkout JS for ~9 days) and CLAUDE.md itself in June. **Recurrence 2026-07-01 disproved the "shrink-only" theory:** during the dashboard retheme session, three files were silently truncated -- `main.jsx` (an Edit that *grew* the file by one line), `Layout.jsx` and `DashboardPage.jsx` (both full-file Write rewrites), and `AppointmentsPage.jsx` (after a long chain of small Edits, cut off mid-JSX-attribute at the very end). Two sibling files written via Write in the same session (`tailwind.config.js`, `index.css`) were unaffected. So the bug is not reliably tied to shrinking, file size, or Edit vs. Write -- treat it as flaky/non-deterministic on this mount. **Rule: after EVERY Edit or Write to an existing repo file (regardless of size or direction of change), verify via bash: zero NUL bytes (`python3 -c "print(open(path,'rb').read().count(b'\\x00'))"`) and the file's actual tail matches what was intended (`tail -c 200 path`). Do not trust the tool's success message alone.** If truncated, repair via bash Python `io.open(path, "a"/"w", encoding="utf-8")` (append the missing tail, or rewrite in full), then re-verify. Write tool is fine for brand-new files only -- but even those should get the same post-write check now.
 - **Never run `git add`/`git commit` from bash (Cowork only)** -- the Cowork Linux sandbox mounts a Windows filesystem. Git lock files created in bash cannot be removed from bash (`Operation not permitted`), breaking all subsequent commits in the session. Give Ryan the commands to run in his terminal instead. **Exception: Claude Code** runs natively on Ryan's machine and CAN run git commands without this problem.
 - **PowerShell does not support `&&` chaining** -- put each command on its own line so Ryan can copy-paste individually.
 

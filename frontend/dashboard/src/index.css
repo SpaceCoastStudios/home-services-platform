@@ -1,3 +1,78 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Theme tokens — light is the default (:root), dark overrides under
+ * [data-theme="dark"] (set on <html> by useTheme.jsx). tailwind.config.js
+ * maps Tailwind's gray palette plus a few new color names (page, surface,
+ * subtle, line, brand) onto these variables, so most existing `bg-white`,
+ * `text-gray-900`, `border-gray-200` etc. classes adapt automatically.
+ *
+ * Brand tokens (--brand, --brand-hover, --brand-tint, --brand-ink) are set
+ * at runtime by Layout.jsx from the active business's brand_color — the
+ * defaults below only apply before that runs (e.g. on the login page).
+ */
+:root {
+  --page: #f7f7f5;
+  --surface: #ffffff;
+  --subtle: rgba(0, 0, 0, 0.04);
+  --ink: #1f2328;
+  --ink-muted: #6b7280;
+  --line: #e5e5e2;
+  --line-strong: #d4d4d0;
+
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --brand-tint: #dbeafe;
+  --brand-ink: #1e3a8a;
+
+  --status-emergency-bg: #dc2626;
+  --status-emergency-fg: #ffffff;
+  --status-pending-bg: #fef3c7;
+  --status-pending-fg: #92400e;
+  --status-confirmed-bg: #dcfce7;
+  --status-confirmed-fg: #166534;
+  --status-inprogress-bg: #dbeafe;
+  --status-inprogress-fg: #1e40af;
+  --status-enroute-bg: #ede9fe;
+  --status-enroute-fg: #5b21b6;
+  --status-completed-bg: #f3f4f6;
+  --status-completed-fg: #4b5563;
+  --status-cancelled-bg: #fee2e2;
+  --status-cancelled-fg: #991b1b;
+  --status-noshow-bg: #fee2e2;
+  --status-noshow-fg: #991b1b;
+}
+
+[data-theme='dark'] {
+  --page: #18191c;
+  --surface: #212227;
+  --subtle: rgba(255, 255, 255, 0.06);
+  --ink: #f2f2f0;
+  --ink-muted: #9a9aa2;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  --status-emergency-bg: #dc2626;
+  --status-emergency-fg: #ffffff;
+  --status-pending-bg: rgba(217, 119, 6, 0.18);
+  --status-pending-fg: #fbbf24;
+  --status-confirmed-bg: rgba(22, 163, 74, 0.18);
+  --status-confirmed-fg: #4ade80;
+  --status-inprogress-bg: rgba(37, 99, 235, 0.2);
+  --status-inprogress-fg: #93c5fd;
+  --status-enroute-bg: rgba(124, 58, 237, 0.22);
+  --status-enroute-fg: #c4b5fd;
+  --status-completed-bg: rgba(255, 255, 255, 0.06);
+  --status-completed-fg: #9ca3af;
+  --status-cancelled-bg: rgba(220, 38, 38, 0.18);
+  --status-cancelled-fg: #fca5a5;
+  --status-noshow-bg: rgba(220, 38, 38, 0.18);
+  --status-noshow-fg: #fca5a5;
+}
+
+body {
+  background-color: var(--page);
+  color: var(--ink);
+}

@@ -3,12 +3,23 @@ import { Calendar, Users, MessageSquare, CheckCircle, Clock } from 'lucide-react
 import { getAppointments, getCustomers, getContactSubmissions } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
 
-function StatCard({ icon: Icon, label, value, color }) {
+const STATUS_PILL = {
+  confirmed: 'bg-[var(--status-confirmed-bg)] text-[var(--status-confirmed-fg)]',
+  pending: 'bg-[var(--status-pending-bg)] text-[var(--status-pending-fg)]',
+  in_progress: 'bg-[var(--status-inprogress-bg)] text-[var(--status-inprogress-fg)]',
+  en_route: 'bg-[var(--status-enroute-bg)] text-[var(--status-enroute-fg)]',
+  completed: 'bg-[var(--status-completed-bg)] text-[var(--status-completed-fg)]',
+  cancelled: 'bg-[var(--status-cancelled-bg)] text-[var(--status-cancelled-fg)]',
+  no_show: 'bg-[var(--status-noshow-bg)] text-[var(--status-noshow-fg)]',
+  emergency: 'bg-[var(--status-emergency-bg)] text-[var(--status-emergency-fg)]',
+}
+
+function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-surface rounded-xl border border-line p-6">
       <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-lg ${color}`}>
-          <Icon size={22} className="text-white" />
+        <div className="p-3 rounded-lg bg-brand-tint">
+          <Icon size={22} className="text-brand-ink" />
         </div>
         <div>
           <p className="text-sm text-gray-500">{label}</p>
@@ -70,14 +81,14 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Calendar} label="Today's Appointments" value={stats.todayAppointments} color="bg-blue-600" />
-        <StatCard icon={Users} label="Total Customers" value={stats.totalCustomers} color="bg-emerald-600" />
-        <StatCard icon={MessageSquare} label="Pending Contacts" value={stats.pendingContacts} color="bg-amber-500" />
-        <StatCard icon={CheckCircle} label="Completed Today" value={stats.completedToday} color="bg-purple-600" />
+        <StatCard icon={Calendar} label="Today's Appointments" value={stats.todayAppointments} />
+        <StatCard icon={Users} label="Total Customers" value={stats.totalCustomers} />
+        <StatCard icon={MessageSquare} label="Pending Contacts" value={stats.pendingContacts} />
+        <StatCard icon={CheckCircle} label="Completed Today" value={stats.completedToday} />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-surface rounded-xl border border-line">
+        <div className="px-6 py-4 border-b border-line">
           <h2 className="font-semibold text-gray-900">Today's Schedule</h2>
         </div>
         {recentAppointments.length === 0 ? (
@@ -98,13 +109,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500">{appt.technician_name || 'Unassigned'}</span>
-                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                    appt.status === 'confirmed' ? 'bg-green-100 text-green-700'
-                    : appt.status === 'pending' ? 'bg-yellow-100 text-yellow-700'
-                    : appt.status === 'in_progress' ? 'bg-blue-100 text-blue-700'
-                    : appt.status === 'completed' ? 'bg-gray-100 text-gray-700'
-                    : 'bg-red-100 text-red-700'
-                  }`}>
+                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_PILL[appt.status] || STATUS_PILL.cancelled}`}>
                     {appt.status}
                   </span>
                 </div>

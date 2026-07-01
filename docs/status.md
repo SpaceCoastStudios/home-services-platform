@@ -13,6 +13,7 @@ Contact form + AI auto-responder, emergency SMS call routing, business hours con
 - **Online self-booking widget** — Phase 1 (internal-only) **shipped + tested 2026-05-30** (public endpoints + embeddable UI). Phase 2 (Google Calendar two-way sync) / Phase 3 (Outlook) not yet built.
 - **Emergency contact form routing** — AI handles urgency in SMS; contact form doesn't route to on-call (SMS flow does)
 - **Lead deduplication** — customer lookup exists; auto-linking on contact form submission not fully wired
+- **Dashboard light/dark theme + per-business brand color (2026-07-01)** — CSS-variable theming infrastructure is app-wide (neutral colors on every page already adapt to light/dark via a Tailwind config remap). Brand color (`bg-brand`/`brand-tint`/`brand-ink`, derived from `business.brand_color`) and the light/dark toggle are only wired into `Layout.jsx`, `DashboardPage.jsx`, and `AppointmentsPage.jsx` so far. The remaining ~17 dashboard pages still show hardcoded blue for primary actions/links — see CLAUDE.md Section 18 ("Theming & Brand Color") for the token system and `docs/roadmap.md` for the rollout plan. Not a mechanical rollout: blue is also used for fixed status/badge meaning on 8 of those pages and must be told apart from brand-chrome blue per file.
 
 ### ❌ Not Yet Built
 - Visual calendar view (day/week/month) in dashboard — currently list-only

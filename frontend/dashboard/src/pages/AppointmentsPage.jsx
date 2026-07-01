@@ -11,15 +11,19 @@ import {
 import { useBusinessContext } from '../hooks/useBusinessContext'
 import RowMenu from '../components/RowMenu'
 
+// Bound to dedicated CSS variable tokens (index.css) rather than Tailwind's
+// stock palette so status pills stay readable in both light and dark theme,
+// and so "in_progress" (a fixed informational blue) never gets swept up by
+// per-business brand coloring the way bg-blue-600 chrome elsewhere does.
 const STATUS_COLORS = {
-  emergency: 'bg-red-600 text-white',
-  pending: 'bg-yellow-100 text-yellow-700',
-  confirmed: 'bg-green-100 text-green-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  en_route: 'bg-purple-100 text-purple-700',
-  completed: 'bg-gray-100 text-gray-600',
-  cancelled: 'bg-red-100 text-red-700',
-  no_show: 'bg-red-100 text-red-700',
+  emergency: 'bg-[var(--status-emergency-bg)] text-[var(--status-emergency-fg)]',
+  pending: 'bg-[var(--status-pending-bg)] text-[var(--status-pending-fg)]',
+  confirmed: 'bg-[var(--status-confirmed-bg)] text-[var(--status-confirmed-fg)]',
+  in_progress: 'bg-[var(--status-inprogress-bg)] text-[var(--status-inprogress-fg)]',
+  en_route: 'bg-[var(--status-enroute-bg)] text-[var(--status-enroute-fg)]',
+  completed: 'bg-[var(--status-completed-bg)] text-[var(--status-completed-fg)]',
+  cancelled: 'bg-[var(--status-cancelled-bg)] text-[var(--status-cancelled-fg)]',
+  no_show: 'bg-[var(--status-noshow-bg)] text-[var(--status-noshow-fg)]',
 }
 
 // Statuses still "in motion" vs. final/closed-out — powers the Active/History split
@@ -492,11 +496,11 @@ export default function AppointmentsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
         <div className="flex gap-2">
           <button onClick={openRecurringCreate}
-            className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
+            className="flex items-center gap-2 bg-surface border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
             <Repeat size={16} /> New Recurring
           </button>
           <button onClick={openCreate}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+            className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-hover">
             <Plus size={16} /> New Appointment
           </button>
         </div>
@@ -507,7 +511,7 @@ export default function AppointmentsPage() {
         {[['appointments', 'Appointments'], ['recurring', 'Recurring Series']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              tab === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+              tab === key ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}>
             {label}
           </button>
@@ -521,7 +525,7 @@ export default function AppointmentsPage() {
             {[['active', 'Active'], ['history', 'History']].map(([key, label]) => (
               <button key={key} onClick={() => handleViewChange(key)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  apptView === key ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                  apptView === key ? 'bg-ink text-page' : 'bg-surface text-gray-600 border border-gray-300 hover:bg-gray-50'
                 }`}>
                 {label}
               </button>
@@ -533,7 +537,7 @@ export default function AppointmentsPage() {
               {FILTER_OPTIONS_BY_VIEW[apptView].map((s) => (
                 <button key={s} onClick={() => setFilter(s)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    filter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    filter === s ? 'bg-brand text-white' : 'bg-surface text-gray-600 border border-gray-300 hover:bg-gray-50'
                   }`}>
                   {s || 'All'}
                 </button>
@@ -548,7 +552,7 @@ export default function AppointmentsPage() {
               ].map(({ key, label }) => (
                 <button key={key} onClick={() => handleBaseSort(key)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    sort === key && !colSort ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    sort === key && !colSort ? 'bg-ink text-page' : 'bg-surface text-gray-600 border border-gray-300 hover:bg-gray-50'
                   }`}>
                   {label}
                 </button>
@@ -556,7 +560,7 @@ export default function AppointmentsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-surface rounded-xl border border-line overflow-hidden">
             {loading ? (
               <div className="p-6 text-center text-gray-400">Loading...</div>
             ) : visibleAppointments.length === 0 ? (
@@ -565,7 +569,7 @@ export default function AppointmentsPage() {
               </div>
             ) : (
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-page border-b border-line">
                   <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <SortHeader label="Date/Time" colKey="scheduled_start" colSort={colSort} onSort={handleColSort} />
                     <SortHeader label="Customer" colKey="customer_name" colSort={colSort} onSort={handleColSort} />
@@ -620,7 +624,7 @@ export default function AppointmentsPage() {
                           </td>
                         </tr>
                         {isExpanded && (
-                          <tr key={`${appt.id}-detail`} className="bg-blue-50/40">
+                          <tr key={`${appt.id}-detail`} className="bg-brand-tint">
                             <td colSpan={6} className="px-6 py-3">
                               <div className="flex flex-wrap gap-4 text-sm">
                                 {appt.address && (
@@ -631,7 +635,7 @@ export default function AppointmentsPage() {
                                       <a href={`https://maps.google.com/?q=${encodeURIComponent(appt.address)}`}
                                         target="_blank" rel="noopener noreferrer"
                                         onClick={e => e.stopPropagation()}
-                                        className="text-blue-600 hover:underline">{appt.address}</a>
+                                        className="text-brand hover:underline">{appt.address}</a>
                                     </div>
                                   </div>
                                 )}
@@ -669,19 +673,19 @@ export default function AppointmentsPage() {
 
       {/* ── Recurring Tab ────────────────────────────────────────────────── */}
       {tab === 'recurring' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-surface rounded-xl border border-line overflow-hidden">
           {recurringSchedules.length === 0 ? (
             <div className="p-12 text-center">
               <Repeat size={40} className="mx-auto text-gray-300 mb-3" />
               <p className="text-gray-500 font-medium">No recurring series yet</p>
               <p className="text-sm text-gray-400 mt-1">Set up a recurring schedule to automatically generate weekly, biweekly, or monthly appointments.</p>
-              <button onClick={openRecurringCreate} className="mt-4 inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+              <button onClick={openRecurringCreate} className="mt-4 inline-flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-hover">
                 <Plus size={15} /> Create Recurring Series
               </button>
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-page border-b border-line">
                 <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <th className="px-4 py-3 w-8"></th>
                   <th className="px-4 py-3">Customer</th>
@@ -743,7 +747,7 @@ export default function AppointmentsPage() {
                               <Pencil size={13} /> Edit
                             </button>
                             <button onClick={() => handlePauseResume(s)}
-                              className="text-blue-600 hover:text-blue-800">
+                              className="text-brand hover:opacity-80">
                               {s.is_active ? 'Pause' : 'Resume'}
                             </button>
                             {s.is_active && (
@@ -779,7 +783,7 @@ export default function AppointmentsPage() {
                                       <dd>
                                         <a href={`https://maps.google.com/?q=${encodeURIComponent(s.address)}`}
                                           target="_blank" rel="noopener noreferrer"
-                                          className="text-blue-600 hover:underline">{s.address}</a>
+                                          className="text-brand hover:underline">{s.address}</a>
                                       </dd>
                                     </div>
                                   )}
@@ -847,7 +851,7 @@ export default function AppointmentsPage() {
       {/* ── Edit Appointment Details Modal ────────────────────────────────── */}
       {editAppt && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">Edit Appointment Details</h2>
@@ -869,7 +873,7 @@ export default function AppointmentsPage() {
                   placeholder="What's the issue? Any details help the tech come prepared..."
                   value={editForm.problem_description}
                   onChange={e => setEditForm(f => ({ ...f, problem_description: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none resize-none"
                 />
                 <div className="text-xs text-gray-400 text-right mt-0.5">{editForm.problem_description.length} / 500</div>
               </div>
@@ -881,7 +885,7 @@ export default function AppointmentsPage() {
                   placeholder="123 Main St, Cocoa FL 32922"
                   value={editForm.address}
                   onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none"
                 />
               </div>
 
@@ -890,7 +894,7 @@ export default function AppointmentsPage() {
                 <select
                   value={editForm.technician_id}
                   onChange={e => setEditForm(f => ({ ...f, technician_id: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none"
                 >
                   <option value="">— Unassigned —</option>
                   {technicians.filter(t => t.is_active).map(t => (
@@ -906,7 +910,7 @@ export default function AppointmentsPage() {
                   placeholder="Gate code, parking instructions, special requests..."
                   value={editForm.notes}
                   onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none resize-none"
                 />
               </div>
             </div>
@@ -919,7 +923,7 @@ export default function AppointmentsPage() {
                 Cancel
               </button>
               <button onClick={handleEditSave} disabled={editSaving}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                className="flex-1 bg-brand text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-hover disabled:opacity-50">
                 {editSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
@@ -930,7 +934,7 @@ export default function AppointmentsPage() {
       {/* ── Edit Recurring Schedule Modal ─────────────────────────────────── */}
       {editRecurring && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-auto">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <div className="flex items-center gap-2">
@@ -950,7 +954,7 @@ export default function AppointmentsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
                   <select value={editRecForm.frequency}
                     onChange={e => setEditRecForm(f => ({ ...f, frequency: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                     <option value="weekly">Weekly</option>
                     <option value="biweekly">Every 2 Weeks</option>
                     <option value="monthly">Monthly</option>
@@ -961,7 +965,7 @@ export default function AppointmentsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week</label>
                     <select value={editRecForm.preferred_day_of_week}
                       onChange={e => setEditRecForm(f => ({ ...f, preferred_day_of_week: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                       {DOW_LABELS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                     </select>
                   </div>
@@ -971,7 +975,7 @@ export default function AppointmentsPage() {
                     <input type="number" min="1" max="28"
                       value={editRecForm.preferred_day_of_month}
                       onChange={e => setEditRecForm(f => ({ ...f, preferred_day_of_month: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
                   </div>
                 )}
               </div>
@@ -981,13 +985,13 @@ export default function AppointmentsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Time</label>
                   <input type="time" value={editRecForm.preferred_time}
                     onChange={e => setEditRecForm(f => ({ ...f, preferred_time: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Technician</label>
                   <select value={editRecForm.technician_id}
                     onChange={e => setEditRecForm(f => ({ ...f, technician_id: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                     <option value="">Auto-assign</option>
                     {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
@@ -998,7 +1002,7 @@ export default function AppointmentsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">End Date <span className="text-gray-400">(leave blank for ongoing)</span></label>
                 <input type="date" value={editRecForm.end_date}
                   onChange={e => setEditRecForm(f => ({ ...f, end_date: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
               </div>
 
               <div>
@@ -1006,7 +1010,7 @@ export default function AppointmentsPage() {
                 <input type="text" placeholder="123 Main St, City, FL"
                   value={editRecForm.address}
                   onChange={e => setEditRecForm(f => ({ ...f, address: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
               </div>
 
               <div>
@@ -1014,7 +1018,7 @@ export default function AppointmentsPage() {
                 <textarea rows={2} placeholder="Gate code, special instructions..."
                   value={editRecForm.notes}
                   onChange={e => setEditRecForm(f => ({ ...f, notes: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none resize-none" />
               </div>
             </div>
 
@@ -1035,7 +1039,7 @@ export default function AppointmentsPage() {
       {/* ── One-off Appointment Modal ──────────────────────────────────────── */}
       {showCreate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[85vh] overflow-auto">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[85vh] overflow-auto">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 {step > 1 && step < 4 && (
@@ -1052,7 +1056,7 @@ export default function AppointmentsPage() {
             </div>
             <div className="flex gap-1 mb-5">
               {[1,2,3,4].map(s => (
-                <div key={s} className={`h-1 flex-1 rounded-full ${s <= step ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                <div key={s} className={`h-1 flex-1 rounded-full ${s <= step ? 'bg-brand' : 'bg-gray-200'}`} />
               ))}
             </div>
             {error && <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm mb-3">{error}</div>}
@@ -1069,14 +1073,14 @@ export default function AppointmentsPage() {
                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text" placeholder="Search by name, phone, or email..."
                       value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} autoFocus
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand outline-none" />
                   </div>
                   <div className="space-y-2 max-h-80 overflow-auto">
                     {filtered.length === 0 ? (
                       <div className="text-center text-gray-400 py-6 text-sm">{q ? 'No customers match' : 'No customers found'}</div>
                     ) : filtered.map(c => (
                       <button key={c.id} onClick={() => { setSelectedCustomer(c); setStep(2) }}
-                        className={`w-full text-left px-4 py-3 rounded-lg border transition-colors hover:border-blue-400 hover:bg-blue-50 ${selectedCustomer?.id === c.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+                        className={`w-full text-left px-4 py-3 rounded-lg border transition-colors hover:border-brand hover:bg-brand-tint ${selectedCustomer?.id === c.id ? 'border-brand bg-brand-tint' : 'border-gray-200'}`}>
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600">
                             {c.first_name[0]}{c.last_name[0]}
@@ -1097,7 +1101,7 @@ export default function AppointmentsPage() {
               <div className="space-y-2">
                 {services.map(s => (
                   <button key={s.id} onClick={() => pickService(s)}
-                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50">
+                    className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-brand hover:bg-brand-tint">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-sm">{s.name}</p>
@@ -1126,7 +1130,7 @@ export default function AppointmentsPage() {
                   <div className="text-center text-gray-400 py-8">
                     <Calendar size={32} className="mx-auto mb-2 opacity-50" />
                     <p>No available slots this week</p>
-                    <button onClick={() => changeWeek(1)} className="text-blue-600 text-sm mt-2 hover:underline">Check next week</button>
+                    <button onClick={() => changeWeek(1)} className="text-brand text-sm mt-2 hover:underline">Check next week</button>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1137,7 +1141,7 @@ export default function AppointmentsPage() {
                           {day.slots.map((slot, i) => (
                             <button key={i} onClick={() => { setSelectedSlot(slot); setStep(4) }}
                               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                selectedSlot?.start === slot.start ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700'
+                                selectedSlot?.start === slot.start ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-brand-tint hover:text-brand-ink'
                               }`}>
                               {formatTime(slot.start)}
                             </button>
@@ -1180,7 +1184,7 @@ export default function AppointmentsPage() {
                 </div>
                 <div className="flex gap-3 mt-5">
                   <button onClick={() => setStep(3)} className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-200">Change Time</button>
-                  <button onClick={handleCreate} className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700">Confirm Booking</button>
+                  <button onClick={handleCreate} className="flex-1 bg-brand text-white py-2.5 rounded-lg font-medium hover:bg-brand-hover">Confirm Booking</button>
                 </div>
               </div>
             )}
@@ -1191,7 +1195,7 @@ export default function AppointmentsPage() {
       {/* ── Recurring Create Modal ─────────────────────────────────────────── */}
       {showRecurringCreate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-auto">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Repeat size={20} className="text-purple-600" />
@@ -1206,7 +1210,7 @@ export default function AppointmentsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Customer *</label>
                 <select value={recForm.customer_id} onChange={e => setRecForm(f => ({ ...f, customer_id: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                   <option value="">Select a customer...</option>
                   {customers.map(c => <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.phone}</option>)}
                 </select>
@@ -1215,7 +1219,7 @@ export default function AppointmentsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Service *</label>
                 <select value={recForm.service_type_id} onChange={e => setRecForm(f => ({ ...f, service_type_id: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                   <option value="">Select a service...</option>
                   {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration_minutes} min)</option>)}
                 </select>
@@ -1224,7 +1228,7 @@ export default function AppointmentsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Technician</label>
                 <select value={recForm.technician_id} onChange={e => setRecForm(f => ({ ...f, technician_id: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                   <option value="">Auto-assign</option>
                   {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
@@ -1234,7 +1238,7 @@ export default function AppointmentsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Frequency *</label>
                   <select value={recForm.frequency} onChange={e => setRecForm(f => ({ ...f, frequency: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                     <option value="weekly">Weekly</option>
                     <option value="biweekly">Every 2 Weeks</option>
                     <option value="monthly">Monthly</option>
@@ -1245,7 +1249,7 @@ export default function AppointmentsPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Day of Week *</label>
                     <select value={recForm.preferred_day_of_week} onChange={e => setRecForm(f => ({ ...f, preferred_day_of_week: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none">
                       {DOW_LABELS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                     </select>
                   </div>
@@ -1254,7 +1258,7 @@ export default function AppointmentsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Day of Month *</label>
                     <input type="number" min="1" max="28" value={recForm.preferred_day_of_month}
                       onChange={e => setRecForm(f => ({ ...f, preferred_day_of_month: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
                   </div>
                 )}
               </div>
@@ -1263,33 +1267,33 @@ export default function AppointmentsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Time *</label>
                   <input type="time" value={recForm.preferred_time} onChange={e => setRecForm(f => ({ ...f, preferred_time: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
                   <input type="date" value={recForm.start_date} onChange={e => setRecForm(f => ({ ...f, start_date: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">End Date <span className="text-gray-400">(optional — leave blank for ongoing)</span></label>
                 <input type="date" value={recForm.end_date} onChange={e => setRecForm(f => ({ ...f, end_date: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Service Address</label>
                 <input type="text" placeholder="123 Main St, City, FL" value={recForm.address}
                   onChange={e => setRecForm(f => ({ ...f, address: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none" />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                 <textarea rows={2} placeholder="Gate code, special instructions..." value={recForm.notes}
                   onChange={e => setRecForm(f => ({ ...f, notes: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand outline-none resize-none" />
               </div>
             </div>
 
@@ -1309,7 +1313,7 @@ export default function AppointmentsPage() {
 
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <Trash2 size={18} className="text-red-600" />
