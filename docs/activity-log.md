@@ -9,6 +9,12 @@
 
 ### Features Built by Session
 
+**2026-07-01 (Dashboard theming: bump dark-mode muted-text contrast):**
+- Ryan noted some dark-mode text (captions, timestamps, helper text) felt a little hard to read, and asked whether to switch to full white. Recommended against pure white -- it reads harsh/glowy against a dark background, which is why most dark-mode UIs (and our `--ink` token) land on an off-white rather than `#ffffff` -- and suggested lightening just the muted tier instead.
+- Changed `--ink-muted` in the dark theme (`frontend/dashboard/src/index.css`) from `#9a9aa2` to `#b0b0b8` -- one visible shade lighter. Light mode's `--ink-muted` is untouched. This affects every secondary/muted text element app-wide (timestamps, helper captions, placeholder-adjacent labels) with a single token change.
+- Ryan is going to look at it live and give feedback before any further contrast tuning.
+- **Files changed:** `frontend/dashboard/src/index.css`.
+
 **2026-07-01 (Dashboard theming: fix invisible text on selected rows / info boxes across 5 pages):**
 - **Bug reported (with screenshots):** clicking a conversation in SMS Conversations, or selecting a Rotation Style option in On-Call, highlighted the row/card white -- but the text inside became invisible against it in dark mode.
 - **Root cause:** these "selected" states use a literal `bg-blue-50` background. `blue` was deliberately left un-remapped for dark mode (see prior session's note on overloaded status-blue usage), but the text sitting on top of it (`text-gray-900`, `text-gray-700`, etc.) *is* remapped by the `gray` -> CSS-variable Tailwind config change, so it turns light-colored in dark mode -- light text on a background that never got darker. Grepped the whole app for `bg-blue-50` and found 12 occurrences across 8 files; on inspection, 4 were genuine status-meaning blue (Billing's "Trial" badge, Businesses' stat badge, a notification-template token pill, Setup's tip box) using literal `text-blue-*` labels that were never at risk and were left untouched; the other 8 (across ContactsPage, OnboardingPage, OnCallPage, SMSConversationsPage, SetupPage) paired literal blue backgrounds with remapped gray text and were genuinely broken.
