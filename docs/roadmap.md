@@ -39,7 +39,7 @@
 - Quote / estimate workflow (request → estimate → quote → approve → schedule) — makes estimate-first trades (tree, pressure washing, roofing) a great fit
 
 ### Blocked / Pending
-- **CSA attorney review** -- CSA v5 + Founding Client Pricing Addendum sent to Anjali Sareen (Uncommon Counsel) 2026-06-02 as Word files. Anjali out week of June 9; redline expected week of June 15. Also asked about Schedule A amendment cost if pricing structure changes. Must be reviewed before first client signs. Unblocks A6.5 demo readiness test.
+- **CSA finalization** -- Anjali's redline received and all terms accepted 2026-07-01. **Remaining action: update Schedule A to single Launchpad tier ($999 setup + $299/mo) and produce v6 final.** Ready to send to clients once done. This unblocks the A6.5 demo readiness test.
 
 ### Pre-Client Business Operations Checklist
 These items must be resolved before the first paying client goes live. None block cold outreach or demos.

@@ -797,18 +797,23 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 
 **Files:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`) + `Test Project/SCS-Founding-Client-Pricing-Addendum.docx`
 
-**Founding Client Pricing Addendum:** A separate signed addendum for the 5 founding clients. Supersedes Schedule A pricing for the promotional period. Key terms (updated 2026-06-10 for single-tier pricing): $497 setup + $149/mo for months 1-3, then auto-transition to the standard rate ($299/mo). 14-day written notice required before the transition date -- calendar this at onboarding (~2.5 months after go-live). Non-transferable, one-time use, capped at 5 clients. Both the CSA and this addendum must be signed for founding clients. **Pending Anjali's review of the restructured Schedule A** (draft: `Test Project/SCS-Schedule-A-Single-Tier-DRAFT.docx`, sent with the signed engagement letter 2026-06-10).
+**Founding Client Pricing Addendum:** A separate signed addendum for the 5 founding clients. Supersedes Schedule A pricing for the promotional period. Key terms (updated 2026-06-10 for single-tier pricing): $497 setup + $149/mo for months 1-3, then auto-transition to the standard rate ($299/mo). 14-day written notice required before the transition date -- calendar this at onboarding (~2.5 months after go-live). Non-transferable, one-time use, capped at 5 clients. Both the CSA and this addendum must be signed for founding clients.
 
 **File:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`)
 
-**Version:** v5 (current -- send this one). 14 sections:
-1. Services, 2. Fees & Payment, 3. Term, 4. Client Responsibilities, 5. Termination, 6. IP, 7. Confidentiality, 8. Support, 9. Limitation of Liability, 10. Indemnification, 11. Warranties, **12. AI Services** (NEW), 13. Governing Law, 14. General Provisions
+**Version:** v6 (redline from Anjali Sareen received and accepted 2026-07-01). 14 sections:
+1. Services, 2. Fees & Payment, 3. Term, 4. Client Responsibilities, 5. Termination, 6. IP, 7. Confidentiality, 8. Support, 9. Limitation of Liability, 10. Indemnification, 11. Warranties, **12. AI Services**, 13. Governing Law & Disputes, 14. General Provisions
 
-**Section 12 — AI Services** covers: AI-powered features, no guarantee of accuracy, automated nature (no human agent), client configuration responsibility, third-party AI providers (Anthropic), TCPA indemnification, 15-day notice for material AI changes.
+**Key terms settled in Anjali's redline (2026-07-01):**
+- Liability cap: 12 months of fees paid (accepted -- courts view 3 months as too one-sided; 12 months = ~$3,588 worst case)
+- Performance warranty: Platform will "materially conform to the Documentation" -- satisfied by platform user guides/feature docs (see roadmap: Platform Documentation item)
+- Schedule A: Fully modifiable as needed. Pricing lives in Schedule A, not the agreement body. **60 days written notice required before changing the monthly fee.**
+- AI update notice: 7 days for material changes (reduced from 15); no notice required for legal/regulatory/security changes
+- Testimonial clause: SCS has perpetual license to use any provided testimonial; written consent recommended before soliciting
 
-**Section 5.4 survival clause:** Sections 6, 7, 9, 10, 12, and 13 survive termination.
+**Section 5.4 survival clause:** Sections 5.3, 6, 7, 9, 10, 11, 12, 13, and 14.10 survive termination.
 
-**Status:** CSA v5 and Founding Client Pricing Addendum sent to Anjali Sareen (Uncommon Counsel) on 2026-06-02 as Word (.docx) files. Anjali is out the week of June 9; review expected back the week of June 15, 2026. Ryan also asked about the cost to review Schedule A if pricing structure changes (one tier vs. Starter/Pro). Awaiting engagement letter from her assistant. **The CSA must be attorney-reviewed before the first client signs.**
+**Next action:** Update Schedule A to single Launchpad tier ($999 setup + $299/mo) and accept Anjali's redline to produce v6 final. **Ready to send to clients once Schedule A is updated.**
 
 ---
 
