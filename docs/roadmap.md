@@ -28,6 +28,7 @@
 
 ### Roadmap (later)
 - ~~Plan enforcement (service type + technician caps)~~ -- OBSOLETE as of 2026-06-10: single-tier pricing has no caps; nothing to enforce.
+- **Delete business (platform admin)** — `/businesses` page currently only supports deactivating tenants. Add a hard-delete option (with confirmation modal) for platform admins to fully remove test/junk tenants from the DB. Useful for cleaning up after smoke tests.
 - **Platform-admin activity log (cross-tenant)** — platform-admin-only view of activity across all businesses (lead submissions, bookings, SMS sent/received, notification fires, errors) with tenant/date filters. Backend already logs notifications (`NotificationLog`) + SMS conversations; this surfaces them in one searchable screen.
 - Visual calendar view (day/week/month) in dashboard
 - Customer portal (magic link login, view/reschedule)
