@@ -5,7 +5,7 @@ import {
   getAppointments, createAppointment, cancelAppointment, updateAppointment, deleteAppointment,
   getCustomers, getServices, getTechnicians, getAvailability,
   getRecurringSchedules, createRecurringSchedule, updateRecurringSchedule,
-  deactivateRecurringSchedule, generateRecurringSchedule,
+  deactivateRecurringSchedule, generateRecurringAppointments,
   adminResendConfirmation, adminSendReminder, adminSendReviewRequest,
 } from '../services/api'
 import { useBusinessContext } from '../hooks/useBusinessContext'
@@ -449,7 +449,7 @@ export default function AppointmentsPage() {
 
   const handleGenerateNow = async (id) => {
     try {
-      const res = await generateRecurringSchedule(id, activeBusinessId)
+      const res = await generateRecurringAppointments(id, activeBusinessId)
       const n = res.generated
       setGenerateMsg(`Generated ${n} new appointment${n !== 1 ? 's' : ''}`)
       setTimeout(() => setGenerateMsg(''), 3000)
