@@ -8,6 +8,23 @@
 ## 30. Activity Log
 
 ### Features Built by Session
+**2026-07-02 (CSA finalized, Twilio numbers confirmed, registered agent changed, docs updated):**
+- **Backblaze confirmed in use:** GitHub Actions workflow (`/.github/workflows/backup_db.yml`) runs daily at 2am ET, dumps PostgreSQL DB, uploads to Backblaze B2, alerts via Twilio SMS on failure. Do not cancel Backblaze.
+- **Twilio number assignments confirmed and tested:**
+  - `+13213862298` → Launchpad Demo (Scout) -- set on tenant, inbound webhook configured, Scout response verified
+  - `+13213984101` → Brevard Pool Pros (Marina) -- existing, Marina response verified
+  - Both numbers on Messaging Service MG3632cd4bd3fab9bebf5460759c8234df, same approved CUSTOMER_CARE campaign. Previously both were set to `+13213984101` on both tenants (bug); split resolved same session.
+  - `+13213862298` was originally considered for HVAC demo tenant; reassigned to Launchpad Demo. HVAC tenant will need a new number when built.
+- **Registered agent changed:** Tailor Brands Essential LLC plan cancelled. Northwest Registered Agent engaged as new registered agent. Northwest handling sunbiz.org update. Sunbiz currently shows Registered Agent Solutions, Inc. (Plantation, FL) -- will update once Northwest files the change. Operating agreement on file is an unsigned generic Tailor Brands template; not an executed document.
+- **CSA v6 finalized:**
+  - Anjali Sareen (Uncommon Counsel) redline received and all terms accepted
+  - Key settled terms: 12-month liability cap (~$3,588 worst case; courts require reasonable recourse), Documentation warranty satisfied by platform guides/user docs, Schedule A fully modifiable (60-day notice required before monthly fee changes), AI update notice 7 days (down from 15)
+  - Ryan accepted tracked changes in Word → `SCS-Client-Services-Agreement-v6-Final.docx`
+  - Schedule A updated in same session: single Launchpad tier ($999 setup / $299/mo), all features Included, unlimited service types and technicians, Section 8.1 support table collapsed to single column (1 business day priority, M-F 9-5 ET, monthly check-in included)
+  - **CSA is now client-ready.** Fill bracketed fields per client and send.
+- **Docs updated this session:** `CLAUDE.md` Section 26 (CSA v6 terms), `docs/roadmap.md` (CSA unblocked, Platform Documentation added to pre-client checklist, Tailor Brands obsolete), `docs/clients/scs-launchpad-demo.md` (Twilio number added), `docs/clients/brevard-pool-pros.md` (both numbers documented), `docs/clients/hvac-demo.md` (new file, HVAC tenant placeholder with updated number guidance).
+- **Files changed (git):** `docs/activity-log.md`, `CLAUDE.md`, `docs/roadmap.md`, `docs/clients/scs-launchpad-demo.md`, `docs/clients/brevard-pool-pros.md`, `docs/clients/hvac-demo.md`
+
 
 **2026-07-01 (Dashboard theming: bump dark-mode muted-text contrast):**
 - Ryan noted some dark-mode text (captions, timestamps, helper text) felt a little hard to read, and asked whether to switch to full white. Recommended against pure white -- it reads harsh/glowy against a dark background, which is why most dark-mode UIs (and our `--ink` token) land on an off-white rather than `#ffffff` -- and suggested lightening just the muted tier instead.
@@ -265,49 +282,4 @@
 - Phone normalized to E.164 at contact form submission time so inbound Twilio webhook lookup matches
 - SMS agent `_tool_create_booking` signature fixed (was missing `contact_submission` param — caused TypeError/hiccup on every booking attempt)
 - Live DB lookup: inbound webhook now looks up most recent contact submission by phone on every reply and passes to agent — replaces unreliable conversation seeding approach
-- Customer enrichment: after booking, customer record populated with email, address, city, state, zip from contact submission
-- Timezone fix: slots displayed in business local timezone (was UTC); naive datetimes in create_booking treated as business local time, not UTC
-- Duplicate confirmation SMS removed (agent reply handles confirmation naturally)
-- SMS bookings set to `confirmed` status (was `pending`) so kickoff/OTW flows include them
-- Mandatory check_availability on every agent turn (prevents booking stale slots)
-- Initial slot offer reduced to exactly 2 (was 3) to reduce stale-slot risk
-- `SMS_AGENT_MODEL` added to config (defaults to `claude-sonnet-4-6`); `LLM_MODEL` now only used by contact form responder
-- Twilio Phone Number field added to Settings page (platform admin only) with save + confirmation
-- `twilio_phone_number` added to `BusinessResponse` schema so field persists on page load
-- Git workflow corrected: all git commands run by Ryan in his terminal, one per line
-
-**2026-05-29 (contact responder SMS fixes + Twilio Settings UI):**
-- Contact responder SMS cap increased 300 -> 480 chars (~3 segments); AI now instructed to keep SMS replies under 400 chars and include full dates in slot suggestions (e.g. "Friday, May 30 at 6:30 PM").
-- File corruption issue resolved: Edit tool corrupts files containing multi-byte Unicode chars (bullets, em-dashes) in f-strings on the Windows filesystem mount. Workaround: use `.format()` string methods and write files via bash Python script, not the Edit/Write tools.
-- `SettingsPage.jsx`: added Twilio Phone Number section (platform admin only). Shows Phone icon, E.164 input, Save button, green confirmation line. Required so platform admins can assign a Twilio number to a business without touching the DB directly.
-- Git workflow corrected: Claude must NOT run git commands from bash. All `git add`/`git commit`/`git push` go to Ryan's terminal, one command per line.
-
-**2026-05-28 (Pass 2 — technician UI, soft delete, contact responder fixes):**
-- `85321e1` — **Edit Details modal** in AppointmentsPage: "Edit Details" option in 3-dot row menu opens a modal to set `problem_description`, address, technician, and notes directly from the dashboard. Added `problem_description` to `AppointmentUpdate` schema so PUT endpoint accepts it.
-- `fab4375` — `schedule_token` added to `TechnicianResponse` schema (was missing; API wasn't returning it so frontend couldn't build schedule page URLs).
-- `030ef7e` — **Schedule token shortened**: `token_urlsafe(12)` → 16-char token. Tech schedule URL drops from ~115 chars to ~66 chars (much cleaner in SMS). `run_migrations()` auto-regenerates any existing long tokens on deploy.
-- `80bdb60` — Fix `customer.name` → `customer.full_name` in tech schedule page and morning kickoff SMS. `Customer` model has `first_name`/`last_name` columns with a `full_name` property — there is no `.name` field. Was causing 500 on the tech schedule page.
-- `50744c3` — Tech SMS day-complete message now uses first name only (`tech.name.split()[0]`). "That's a wrap, Tyler!" not "That's a wrap, Tyler Durden!" Matches the casual tone of employee messages.
-- `4ca79a0` — **Technician first/last name split in UI** (frontend-only). Form splits existing `name` on open, joins on save. Last name optional, first name required. Underlying model still stores a single `name` column.
-- `9cf3d06` — **Soft delete** (appointments, customers, contact submissions):
-  - Added `is_deleted` boolean (default `False`) to `Appointment`, `Customer`, `ContactSubmission` models. Migrations in `run_migrations()`.
-  - All list endpoints + availability engine filter `is_deleted = False`.
-  - Dashboard: delete buttons added to AppointmentsPage, CustomersPage, ContactsPage row menus.
-  - Embed contact form now resets to blank after successful submission.
-  - Contact responder session fix: resolved a DB session/context issue causing AI responder failures.
-- `6b75ba7` — Fix LLM model string in `config.py` default + startup health check added to `main.py` (validates model at boot, logs prominent WARNING if unreachable). See Section 22.
-- `2a7e9bf` — Added Section 23: Periodic Maintenance Schedule to CLAUDE.md.
-- `8743402` — **Contact responder channel awareness + SMS truncation fix**:
-  - AI reply now references only the customer's preferred contact channel. Pref "text" → "reply to this text"; "email" → "reply to this email"; "call" → mentions business phone, says we'll call. No more channel mismatches.
-  - SMS truncation overhaul: old code took first paragraph (~155 chars — usually just the greeting "Hi Name,"). New code skips greeting lines (short line ending with comma), joins remaining paragraphs, caps at 300 chars (~2 SMS segments). Leads with actual useful content.
-- **SMS consent compliance (A2P):**
-  - `sms_consent: bool` column added to `ContactSubmission` model + migration (default `False`).
-  - Schema (`ContactFormSubmit`, `ContactSubmissionResponse`) and contact router updated to save it.
-  - SMS only sent when `sms_consent = True` — never assumed.
-  - Embed form consent checkbox made **optional** (no `required` attribute) per approved A2P campaign. Exact approved consent language: `(Optional) I agree to receive SMS messages... SMS consent is not required to submit this form or receive service.`
-  - Inline form hint: when "text" selected but consent unchecked → `"To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead."` Hint disappears when both are selected.
-- **Single-channel send logic:** Contact responder now sends via exactly one channel — text+consent=SMS only, everything else=email only. Prevents duplicate messages and language mismatches.
-- **`pref` scope bug fix:** `pref` was computed inside `_call_llm` (local scope) but referenced in `_process` after the call returned → `NameError`. Fixed by computing `pref` and `sms_consented` at the top of `_process` and passing `pref` into `_call_llm` as a parameter.
-- **A2P section corrected in CLAUDE.md:** Campaign is APPROVED with optional checkbox. Section now shows exact Twilio-verified campaign details (use case, keywords, consent language).
-- **Periodic Maintenance Schedule added** (Section 23): monthly/quarterly/annual/event-triggered task tables + quick diagnostic reference.
-- **Git workflow note added to CLAUDE.md header:** Claude handles `git add` + `git commit` via Bash; Ryan only needs to run `git push`.
+- Customer enrichment: after booking, customer record populated with e

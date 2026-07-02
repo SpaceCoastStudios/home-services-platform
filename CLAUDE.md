@@ -813,7 +813,7 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 **Pre-client business ops checklist** (must resolve before first paying client -- does not block demos or outreach):
 - Find a Florida CPA (SaaS sales tax confirmation, quarterly estimated taxes, bookkeeping)
 - Brevard County local business tax receipt
-- Update LLC industry in Tailor Brands (currently "Graphic Design" -- should be "SaaS")
+- ~~Update LLC industry in Tailor Brands~~ -- OBSOLETE: Tailor Brands cancelled 2026-07-02; Northwest Registered Agent now handles registered agent services
 
 
 ## 25. A2P 10DLC Compliance
@@ -943,7 +943,7 @@ $result.url  # open in browser — $2 total, refund immediately after
 > **After every session:** append a dated entry there -- what was built, changed, or decided.
 > Do NOT add session history here.
 
-**Most recent update:** 2026-07-01 (Dashboard screenshot-readiness pass: Appointments column sorting + Active/History split; full light/dark theme + per-business brand color infrastructure; dark-mode legibility fixes across all pages, form fields, selected-row states, and muted-text contrast. Full details in `docs/activity-log.md`; patterns and pitfalls in Section 18.)
+**Most recent update:** 2026-07-02 (CSA v6 finalized and Schedule A updated to single Launchpad tier; Twilio number assignments confirmed; Tailor Brands cancelled/Northwest Registered Agent engaged. See `docs/activity-log.md` for full details.)
 
 **Key recent history:**
 - 2026-07-01: Dashboard theming (see above) -- see `docs/activity-log.md` for the full multi-entry breakdown of this session
