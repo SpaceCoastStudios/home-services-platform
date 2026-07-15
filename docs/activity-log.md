@@ -8,6 +8,37 @@
 ## 30. Activity Log
 
 ### Features Built by Session
+**2026-07-15 (documentation consolidation + platform audit: Sonnet 5 upgrade, dead deps removed, activity log truncation repaired):**
+- **CRITICAL REPAIR: this activity log was itself truncated.** Commit `7ba76c9` (2026-07-02) cut the file mid-sentence, losing ~4 historical entries (rest of the 2026-05-29 SMS agent entry, 2026-05-29 contact responder SMS fixes, full 2026-05-28 Pass 2 entry, closing notes). Recovered intact tail from commit `5ef201e` and re-appended via bash Python; verified 0 NUL bytes. Another data point for the flaky-mount truncation bug (CLAUDE.md Section 28).
+- **README slimmed 392 -> ~65 lines:** was near-full duplicate of CLAUDE.md + docs/ (env vars, Stripe tables, feature audit, API ref, pitfalls, changelog). Now a quickstart + documentation map pointing at CLAUDE.md and docs/. Unique changelog detail merged into this log first (see "2026-05-29 testing plan completion, merged from README changelog" entry below).
+- **docs/action-plan-gtm-and-booking-widget.md archived** to `docs/archive/` with an archive header (both tracks complete; retired Starter/Pro pricing). A6.5 checklist retained inside the archived file; roadmap.md pointers updated to the new path.
+- **docs/founder-client-onboarding.md updated to single-tier pricing:** $497 setup + $149/mo x3 then $299/mo; correct founding Stripe price IDs; plan value `launchpad` in the SQL insert; CSA v6 + Founding Addendum both-signatures note; 14-day transition notice reminder; A2P pointer now goes to docs/a2p-compliance.md (README checklist removed in the slim-down).
+- **CLAUDE.md drift fixed:** stripe==11.1.0 -> 15.3.0 (Sections 6 + 28); contact responder SMS cap 300 -> 480 chars (Section 14); JWT refresh default 30 -> 7 days aligned to config.py (Section 8, DO env var can override); CSA file references now point at v6-Final (Section 26).
+- **SMS agent model upgraded: `claude-sonnet-4-6` -> `claude-sonnet-5`** (`config.py` + CLAUDE.md + docs/maintenance.md). Verified against Anthropic model-deprecations page 2026-07-15: Sonnet 5 is the official drop-in replacement, intro pricing $2/$10 per Mtok through 2026-08-31 then $3/$15 (same as 4.6). Code sets no sampling parameters, so Sonnet 5's non-default-sampling 400s do not apply; adaptive thinking on by default. Sonnet 4.6 stays active until at least 2027-02-17 so rollback is trivial. `claude-haiku-4-5-20251001` verified still active (retirement floor 2026-10-15; recheck at Oct 1 quarterly task). **ACTION FOR RYAN: set/update `SMS_AGENT_MODEL=claude-sonnet-5` in the DO env vars (or remove the var to use the new config.py default), then text the Brevard Pool Pros number after deploy to smoke-test Marina.**
+- **Startup validation now checks both models** (`main.py`): previously only `LLM_MODEL` was pinged at boot; a bad `SMS_AGENT_MODEL` would surface only when a customer texted in. Both now validated, each logging `LLM model validated OK: <model> (<env var>)` or a WARNING.
+- **Dead dependencies removed:** `alembic` and `openai` dropped from requirements.txt (never imported anywhere); `LLM_PROVIDER` + `OPENAI_API_KEY` removed from config.py and .env.example.
+- **Config hygiene:** `DEBUG` default True -> False (only controls SQLAlchemy echo); `APP_NAME` -> "Launchpad by Space Coast Studios"; `FROM_EMAIL`/`FROM_NAME` defaults rebranded from homeservices.com placeholders (production values come from env vars, unchanged).
+- **.env.example fixed:** `LLM_MODEL` example was a wrong/stale string (`claude-sonnet-4-5`); now correct Haiku default plus `SMS_AGENT_MODEL` and commented Stripe price ID entries.
+- **Test Project folder cleanup (outside repo):** created `Test Project/archive/` and moved CSA drafts v1-v5 + OLD template + Template.pdf and the superseded `SCS Prospect Tracker.xlsx` into it, with an explanatory `archive/README.txt`. Authoritative docs remain in the root: `SCS-Client-Services-Agreement-v6-Final.docx`, Founding Addendum, `SCS Prospect Tracker Updated.xlsx`. Deleted two temp files (`lu43cntdj.tmp`, Word lock file).
+- **Verification:** every touched repo file checked for 0 NUL bytes + intact tail; `py_compile` clean on config.py and main.py; grep confirmed no code references removed settings; remaining `claude-sonnet-4-6` mentions are intentional historical notes.
+- **Files changed (git):** `README.md`, `CLAUDE.md`, `docs/activity-log.md`, `docs/roadmap.md`, `docs/maintenance.md`, `docs/founder-client-onboarding.md`, `docs/repo-structure.md`, `docs/archive/action-plan-gtm-and-booking-widget.md` (moved), `backend/app/config.py`, `backend/app/main.py`, `backend/requirements.txt`, `backend/.env.example`. Deleted: `docs/action-plan-gtm-and-booking-widget.md` (moved to archive).
+
+**2026-07-02 (Marketing site redesign: Sunrise launch palette, 4-page restructure -- STAGED, not yet live):**
+- Full marketing site redesign built and staged for Ryan's review. **Live site untouched** -- new homepage is `marketing-site/index-new.html`; swap to `index.html` only after Ryan approves.
+- **Design system ("Sunrise launch" palette, chosen by Ryan from 3 presented directions):** deep navy `#12263A`, warm sand `#F8F4EC`, sunrise orange `#F26B1D` CTAs, sea-glass teal `#17836B` accents. Space Grotesk headings + Inter body. All emoji icons replaced with inline Lucide-style SVGs. Wave dividers, dot-grid textures, scroll-reveal animations (IntersectionObserver), working mobile hamburger menu (old site had none).
+- **Restructured from single page to 4 pages (Ryan's call after pros/cons):**
+  - `index-new.html` -- hero, pain, animated SMS demo, features card rail, how it works, CTA
+  - `features.html` -- all 9 features expanded into detail rows (content verified against platform docs; no invented claims)
+  - `pricing.html` -- pricing card + Stripe checkout JS, founding offer, ROI strip, 3-way comparison (categories only, no competitor names), 6-item FAQ
+  - `contact.html` -- demo form (ONLY copy of the A2P consent block; byte-identical to old live site), TCPA explainer, Calendly
+  - Shared `styles.css` + `site.js` (nav, burger, smooth scroll, reveal)
+- **New elements:** animated self-typing SMS conversation in a phone mockup (Scout books an AC repair; ends with realistic in-thread confirmation SMS per Ryan's feedback), features carousel as a scroll-snap card rail with arrows (Ryan requested carousel; auto-rotate advised against and declined), ROI strip ("one saved job pays for the month"), FAQ (A2P 2-4 week timeline, 60-day fee notice per CSA -- no unverified contract-term claims), OG/Twitter meta, favicon, JSON-LD on home.
+- **Per Ryan's review:** removed fake "Trusted by" avatars (no customers yet), removed "Who it's for" industries section (FAQ covers trades), nav/favicon now use real logo (`logo-icon.png`, cropped + resized to 192px from 5000px source in `Test Project/logo-icon.png`).
+- **Truncation bug recurred** on the FIRST Edit-tool append to index-new.html (file cut clean at exactly the pre-edit byte length -- new data point: truncated at old size). Caught by the mandatory post-write check, repaired via bash python. **All subsequent writes to marketing-site files were done via bash python append/replace only, verified after every write** (zero NULs, tail check, node --check on all JS, HTML parser balance, consent-language diff).
+- **Ryan's dashboard note:** he likes the hero dashboard mockup style (stat tiles + activity feed) and wants the real dashboard to move toward it -- add to roadmap at swap time.
+- **Pending next session:** Ryan reviewing all 4 pages, will bring detailed notes -> revise -> swap index-new.html -> index.html -> update CLAUDE.md Section 2.1, roadmap (dashboard-look item, features/vertical landing pages), status.md if applicable.
+- **Files created/changed (git):** `marketing-site/index-new.html`, `marketing-site/features.html`, `marketing-site/pricing.html`, `marketing-site/contact.html`, `marketing-site/styles.css`, `marketing-site/site.js`, `marketing-site/logo-icon.png`, `docs/activity-log.md`
+
 **2026-07-02 (CSA finalized, Twilio numbers confirmed, registered agent changed, docs updated):**
 - **Backblaze confirmed in use:** GitHub Actions workflow (`/.github/workflows/backup_db.yml`) runs daily at 2am ET, dumps PostgreSQL DB, uploads to Backblaze B2, alerts via Twilio SMS on failure. Do not cancel Backblaze.
 - **Twilio number assignments confirmed and tested:**
@@ -282,4 +313,56 @@
 - Phone normalized to E.164 at contact form submission time so inbound Twilio webhook lookup matches
 - SMS agent `_tool_create_booking` signature fixed (was missing `contact_submission` param — caused TypeError/hiccup on every booking attempt)
 - Live DB lookup: inbound webhook now looks up most recent contact submission by phone on every reply and passes to agent — replaces unreliable conversation seeding approach
-- Customer enrichment: after booking, customer record populated with e
+- Customer enrichment: after booking, customer record populated with email, address, city, state, zip from contact submission
+- Timezone fix: slots displayed in business local timezone (was UTC); naive datetimes in create_booking treated as business local time, not UTC
+- Duplicate confirmation SMS removed (agent reply handles confirmation naturally)
+- SMS bookings set to `confirmed` status (was `pending`) so kickoff/OTW flows include them
+- Mandatory check_availability on every agent turn (prevents booking stale slots)
+- Initial slot offer reduced to exactly 2 (was 3) to reduce stale-slot risk
+- `SMS_AGENT_MODEL` added to config (defaults to `claude-sonnet-4-6`); `LLM_MODEL` now only used by contact form responder
+- Twilio Phone Number field added to Settings page (platform admin only) with save + confirmation
+- `twilio_phone_number` added to `BusinessResponse` schema so field persists on page load
+- Git workflow corrected: all git commands run by Ryan in his terminal, one per line
+
+**2026-05-29 (testing plan completion + bug fixes -- merged from README changelog on 2026-07-15):**
+- Tech schedule page: completed appointments filtered out; city added to address display
+- SMS bookings now populate `problem_description` from the contact form submission
+- Contact submission phone lookup: fixed timezone-aware vs naive datetime comparison
+- Edit Details modal: async technician loading + int/string type coercion fix
+- Testing plan status at the time: Steps 1-5 and 7-8 passed; Step 6 (no-appointments kickoff) pending overnight run
+
+**2026-05-29 (contact responder SMS fixes + Twilio Settings UI):**
+- Contact responder SMS cap increased 300 -> 480 chars (~3 segments); AI now instructed to keep SMS replies under 400 chars and include full dates in slot suggestions (e.g. "Friday, May 30 at 6:30 PM").
+- File corruption issue resolved: Edit tool corrupts files containing multi-byte Unicode chars (bullets, em-dashes) in f-strings on the Windows filesystem mount. Workaround: use `.format()` string methods and write files via bash Python script, not the Edit/Write tools.
+- `SettingsPage.jsx`: added Twilio Phone Number section (platform admin only). Shows Phone icon, E.164 input, Save button, green confirmation line. Required so platform admins can assign a Twilio number to a business without touching the DB directly.
+- Git workflow corrected: Claude must NOT run git commands from bash. All `git add`/`git commit`/`git push` go to Ryan's terminal, one command per line.
+
+**2026-05-28 (Pass 2 — technician UI, soft delete, contact responder fixes):**
+- `85321e1` — **Edit Details modal** in AppointmentsPage: "Edit Details" option in 3-dot row menu opens a modal to set `problem_description`, address, technician, and notes directly from the dashboard. Added `problem_description` to `AppointmentUpdate` schema so PUT endpoint accepts it.
+- `fab4375` — `schedule_token` added to `TechnicianResponse` schema (was missing; API wasn't returning it so frontend couldn't build schedule page URLs).
+- `030ef7e` — **Schedule token shortened**: `token_urlsafe(12)` → 16-char token. Tech schedule URL drops from ~115 chars to ~66 chars (much cleaner in SMS). `run_migrations()` auto-regenerates any existing long tokens on deploy.
+- `80bdb60` — Fix `customer.name` → `customer.full_name` in tech schedule page and morning kickoff SMS. `Customer` model has `first_name`/`last_name` columns with a `full_name` property — there is no `.name` field. Was causing 500 on the tech schedule page.
+- `50744c3` — Tech SMS day-complete message now uses first name only (`tech.name.split()[0]`). "That's a wrap, Tyler!" not "That's a wrap, Tyler Durden!" Matches the casual tone of employee messages.
+- `4ca79a0` — **Technician first/last name split in UI** (frontend-only). Form splits existing `name` on open, joins on save. Last name optional, first name required. Underlying model still stores a single `name` column.
+- `9cf3d06` — **Soft delete** (appointments, customers, contact submissions):
+  - Added `is_deleted` boolean (default `False`) to `Appointment`, `Customer`, `ContactSubmission` models. Migrations in `run_migrations()`.
+  - All list endpoints + availability engine filter `is_deleted = False`.
+  - Dashboard: delete buttons added to AppointmentsPage, CustomersPage, ContactsPage row menus.
+  - Embed contact form now resets to blank after successful submission.
+  - Contact responder session fix: resolved a DB session/context issue causing AI responder failures.
+- `6b75ba7` — Fix LLM model string in `config.py` default + startup health check added to `main.py` (validates model at boot, logs prominent WARNING if unreachable). See Section 22.
+- `2a7e9bf` — Added Section 23: Periodic Maintenance Schedule to CLAUDE.md.
+- `8743402` — **Contact responder channel awareness + SMS truncation fix**:
+  - AI reply now references only the customer's preferred contact channel. Pref "text" → "reply to this text"; "email" → "reply to this email"; "call" → mentions business phone, says we'll call. No more channel mismatches.
+  - SMS truncation overhaul: old code took first paragraph (~155 chars — usually just the greeting "Hi Name,"). New code skips greeting lines (short line ending with comma), joins remaining paragraphs, caps at 300 chars (~2 SMS segments). Leads with actual useful content.
+- **SMS consent compliance (A2P):**
+  - `sms_consent: bool` column added to `ContactSubmission` model + migration (default `False`).
+  - Schema (`ContactFormSubmit`, `ContactSubmissionResponse`) and contact router updated to save it.
+  - SMS only sent when `sms_consent = True` — never assumed.
+  - Embed form consent checkbox made **optional** (no `required` attribute) per approved A2P campaign. Exact approved consent language: `(Optional) I agree to receive SMS messages... SMS consent is not required to submit this form or receive service.`
+  - Inline form hint: when "text" selected but consent unchecked → `"To receive your reply by text, check the SMS consent box below. Without consent, we'll send your response by email instead."` Hint disappears when both are selected.
+- **Single-channel send logic:** Contact responder now sends via exactly one channel — text+consent=SMS only, everything else=email only. Prevents duplicate messages and language mismatches.
+- **`pref` scope bug fix:** `pref` was computed inside `_call_llm` (local scope) but referenced in `_process` after the call returned → `NameError`. Fixed by computing `pref` and `sms_consented` at the top of `_process` and passing `pref` into `_call_llm` as a parameter.
+- **A2P section corrected in CLAUDE.md:** Campaign is APPROVED with optional checkbox. Section now shows exact Twilio-verified campaign details (use case, keywords, consent language).
+- **Periodic Maintenance Schedule added** (Section 23): monthly/quarterly/annual/event-triggered task tables + quick diagnostic reference.
+- **Git workflow note added to CLAUDE.md header:** Claude handles `git add` + `git commit` via Bash; Ryan only needs to run `git push`.

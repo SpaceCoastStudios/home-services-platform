@@ -115,8 +115,7 @@ home-services-platform/
 ### Key files outside the repo (in `Test Project/` root)
 ```
 Test Project/
-├── SCS-Client-Services-Agreement-Template.docx  # Signed CSA template
-├── SCS-Client-Services-Agreement-Template.pdf   # PDF version
+├── SCS-Client-Services-Agreement-v6-Final.docx  # Authoritative CSA (v6, client-ready); drafts v1-v5 in archive/
 ├── Platform Capability Checklist.docx           # Feature status tracker — KEEP CURRENT (see note below)
 ├── SCS Platform Roadmap.docx                     # Roadmap: Completed / Near-Term / Later — KEEP CURRENT
 ├── SCS_Onboarding_Checklist.docx                # Client onboarding + smoke test steps

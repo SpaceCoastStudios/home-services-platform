@@ -6,9 +6,9 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Application
-    APP_NAME: str = "Home Services Platform"
-    APP_VERSION: str = "1.0.0-mvp"
-    DEBUG: bool = True
+    APP_NAME: str = "Launchpad by Space Coast Studios"
+    APP_VERSION: str = "1.0.0"
+    DEBUG: bool = False
     SECRET_KEY: str = "change-me-in-production"
     API_PREFIX: str = "/api"
 
@@ -29,12 +29,10 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: Optional[str] = None
     TWILIO_PHONE_NUMBER: Optional[str] = None
 
-    # LLM (AI Agent)
-    LLM_PROVIDER: str = "anthropic"  # "anthropic" or "openai"
+    # LLM (AI Agent) — Anthropic only (unused OpenAI config removed 2026-07-15)
     ANTHROPIC_API_KEY: Optional[str] = None
-    OPENAI_API_KEY: Optional[str] = None
     LLM_MODEL: str = "claude-haiku-4-5-20251001"  # Contact form responder
-    SMS_AGENT_MODEL: str = "claude-sonnet-4-6"     # SMS booking agent (needs stronger reasoning)
+    SMS_AGENT_MODEL: str = "claude-sonnet-5"       # SMS booking agent (upgraded from claude-sonnet-4-6, 2026-07-15)
 
     # Stripe
     STRIPE_SECRET_KEY: Optional[str] = None
@@ -59,9 +57,9 @@ class Settings(BaseSettings):
     # Email (SendGrid)
     SENDGRID_API_KEY: Optional[str] = None
     # Accept either FROM_EMAIL or SENDGRID_FROM_EMAIL in .env (both map to the same thing)
-    FROM_EMAIL: str = "noreply@homeservices.com"
+    FROM_EMAIL: str = "noreply@spacecoaststudios.com"
     SENDGRID_FROM_EMAIL: Optional[str] = None   # alias — if set, overrides FROM_EMAIL
-    FROM_NAME: str = "Home Services"
+    FROM_NAME: str = "Space Coast Studios"
     SENDGRID_FROM_NAME: Optional[str] = None    # alias — if set, overrides FROM_NAME
 
     # Scheduling Defaults (overridable via system_settings table)

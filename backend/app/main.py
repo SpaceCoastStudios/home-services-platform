@@ -529,23 +529,28 @@ def _validate_llm_model():
     if not settings.ANTHROPIC_API_KEY:
         logger.warning("ANTHROPIC_API_KEY not set — AI contact responder and SMS agent are disabled")
         return
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-        client.messages.create(
-            model=settings.LLM_MODEL,
-            max_tokens=1,
-            messages=[{"role": "user", "content": "hi"}],
-        )
-        logger.info("LLM model validated OK: %s", settings.LLM_MODEL)
-    except Exception as exc:
-        logger.warning(
-            "⚠️  LLM MODEL VALIDATION FAILED — model '%s' returned: %s. "
-            "Contact form auto-responder and SMS agent will error until this is fixed. "
-            "Update LLM_MODEL env var to a valid model string from "
-            "https://docs.anthropic.com/en/docs/about-claude/models",
-            settings.LLM_MODEL, exc,
-        )
+    import anthropic
+    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    checks = [
+        ("LLM_MODEL", settings.LLM_MODEL, "Contact form auto-responder"),
+        ("SMS_AGENT_MODEL", settings.SMS_AGENT_MODEL, "SMS booking agent"),
+    ]
+    for env_name, model, feature in checks:
+        try:
+            client.messages.create(
+                model=model,
+                max_tokens=1,
+                messages=[{"role": "user", "content": "hi"}],
+            )
+            logger.info("LLM model validated OK: %s (%s)", model, env_name)
+        except Exception as exc:
+            logger.warning(
+                "⚠️  LLM MODEL VALIDATION FAILED — %s '%s' returned: %s. "
+                "%s will error until this is fixed. "
+                "Update the %s env var to a valid model string from "
+                "https://docs.anthropic.com/en/docs/about-claude/models",
+                env_name, model, exc, feature, env_name,
+            )
 
 
 @asynccontextmanager

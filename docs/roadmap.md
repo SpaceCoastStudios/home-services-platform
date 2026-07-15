@@ -9,7 +9,7 @@
 ### Completed This Session (2026-05-31 session 2)
 1. ✅ **Recurring appointments UI** — enhanced the existing Recurring Series tab: expandable rows, edit modal, appointment history, Generate Now button. Full CRUD + history in `AppointmentsPage.jsx`.
 2. ✅ **Demo page polish** — `marketing-site/demo.html` fully polished: contact widget iframe auto-resize (ResizeObserver added to `embed.py`), all-screenshot 2x2 notification cards, 2x2 real-flow panels (emergency + kickoff), unified card titles, green badge, no em dashes. Ready for first demo calls pending A6.5 readiness test.
-3. ✅ **Action plan A6.5** — end-to-end demo readiness test checklist added to `docs/action-plan-gtm-and-booking-widget.md`, triggered by CSA finalization.
+3. ✅ **Action plan A6.5** — end-to-end demo readiness test checklist added to `docs/archive/action-plan-gtm-and-booking-widget.md`, triggered by CSA finalization.
 4. ✅ **AI model selection guide** — added to Section 22 + per-item tags in Platform Capability Checklist.docx and SCS Platform Roadmap.docx.
 
 ### Next Session Priorities
@@ -55,7 +55,7 @@ These items must be resolved before the first paying client goes live. None bloc
 ### Business Development
 - Founding client outreach — templates ready, advised to start now (don't wait for A2P)
 - Each new client needs their own A2P Brand + Campaign registration — submit Day 1 of onboarding
-- **Action plan:** `docs/action-plan-gtm-and-booking-widget.md` — two parallel tracks: (1) cold-local + online/inbound outreach to land a founding **Starter** client (no warm network), (2) build the **self-scheduling booking widget**, v1 scope = **Phase 1 internal-only** (public slug-scoped endpoints + embeddable UI reusing the existing availability engine; Google/Outlook sync deferred to Phase 2/3). Awaiting Ryan's notes on the plan before starting the widget build.
+- **Action plan:** `docs/archive/action-plan-gtm-and-booking-widget.md` — two parallel tracks: (1) cold-local + online/inbound outreach to land a founding **Starter** client (no warm network), (2) build the **self-scheduling booking widget**, v1 scope = **Phase 1 internal-only** (public slug-scoped endpoints + embeddable UI reusing the existing availability engine; Google/Outlook sync deferred to Phase 2/3). Awaiting Ryan's notes on the plan before starting the widget build.
 
 ### Nice to Have (later)
 - Customer portal

@@ -2,13 +2,15 @@
 
 Manual provisioning steps for founding clients at introductory pricing.
 
-**Last updated:** 2026-05-29
+**Last updated:** 2026-07-15 (single-tier Launchpad pricing; was Starter/Professional)
 
 ---
 
 ## When to Use This Guide
 
-Use this guide for founding clients who receive the introductory pricing offer ($497/$997 setup, $99/$199/month for first 3 months). These clients are provisioned manually rather than through the automated Stripe Checkout flow.
+Use this guide for founding clients who receive the introductory pricing offer: **$497 setup + $149/month for the first 3 months, then $299/month standard rate** (single-tier Launchpad plan, restructured 2026-06-10). These clients are provisioned manually rather than through the automated Stripe Checkout flow.
+
+**Paperwork:** founding clients must sign BOTH the CSA (v6 final) AND the Founding Client Pricing Addendum (`Test Project/SCS-Founding-Client-Pricing-Addendum.docx`). The addendum requires 14-day written notice before the month-4 price transition; calendar this at onboarding (~2.5 months after go-live).
 
 Maximum **5 founding clients** — kept intentionally small for exclusivity and manageable real-world testing.
 
@@ -25,8 +27,8 @@ Maximum **5 founding clients** — kept intentionally small for exclusivity and 
 4. Go to **Subscriptions → + Create subscription**
    - Attach to the customer you just created
    - Add line items:
-     - Founding setup price (one-time): `price_1TbXKN2MJMR8rAcZvreEPLwo` (Starter) or `price_1TbXKO2MJMR8rAcZ9MRzpF2s` (Pro)
-     - Founding monthly price: `price_1TbXKN2MJMR8rAcZF8PV52FQ` (Starter $99) or `price_1TbXKO2MJMR8rAcZMiHThRka` (Pro $199)
+     - Founding setup price (one-time, $497): `price_1TgmTt2MJMR8rAcZ6YZo6E1P`
+     - Founding monthly price ($149/mo): `price_1TgmTt2MJMR8rAcZkwbMP0rK`
    - Note the Stripe Customer ID (`cus_...`) and Subscription ID (`sub_...`)
 
 ---
@@ -47,12 +49,12 @@ INSERT INTO businesses (
 ) VALUES (
   'Client Business Name',
   'client-slug',          -- URL-safe, lowercase, hyphens (e.g. 'peak-hvac')
-  'professional',         -- 'starter' or 'professional'
+  'launchpad',            -- single-tier plan (legacy 'starter'/'professional' retired 2026-06-10)
   true,
   'cus_XXXX',             -- Stripe Customer ID from Step 1
   'sub_XXXX',             -- Stripe Subscription ID from Step 1
   'active',
-  'professional',
+  'launchpad',
   'Scout',                -- AI agent name (customize per client)
   'America/New_York',
   false
@@ -88,7 +90,7 @@ Send the client a welcome email with:
 
 Template:
 ```
-Subject: Your Space Coast Studios Platform is Ready
+Subject: Your Launchpad Platform is Ready
 
 Hi [Name],
 
@@ -112,7 +114,7 @@ Space Coast Studios
 
 Submit immediately — approval takes 2–4 weeks. Platform goes live on everything except SMS while you wait.
 
-See the **A2P 10DLC Checklist** in the README for the full step-by-step.
+See `docs/a2p-compliance.md` for full campaign details and the per-client setup checklist.
 
 Key steps:
 1. Purchase a local Twilio number in the client's area code
@@ -167,8 +169,8 @@ Run through the full smoke test checklist in `SCS_Onboarding_Checklist.docx`. Ke
 
 ## Step 7 — Transition Pricing (Month 4)
 
-After 3 months at the founding rate, Stripe automatically bills at the standard rate ($249/month Starter or $399/month Professional) because the founding monthly prices do not have trial period limits — you must manually update the subscription in Stripe at the 3-month mark.
+After 3 months at the founding rate ($149/mo), the client transitions to the standard rate of **$299/month** (`price_1TgmTt2MJMR8rAcZshH8T7uB`). The founding monthly price does not auto-transition -- you must manually update the subscription in Stripe at the 3-month mark.
 
-**Calendar reminder:** Set a reminder for Month 3 to either:
-- Update the Stripe subscription to the standard monthly price, OR
-- Communicate the price change to the client before it takes effect
+**Calendar reminders (set both at onboarding):**
+- ~2.5 months after go-live: send the client 14-day written notice of the transition (required by the Founding Client Pricing Addendum)
+- Month 3: update the Stripe subscription to the standard monthly price

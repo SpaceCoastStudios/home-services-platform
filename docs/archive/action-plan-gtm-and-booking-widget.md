@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-07-15.** Both tracks in this plan are complete (Track B booking widget shipped 2026-05-30; Track A outreach assets ready). Pricing references below are the retired Starter/Professional tiers, superseded by single-tier Launchpad pricing on 2026-06-10 (see CLAUDE.md Section 4). Still-useful content retained here: the A6.5 end-to-end demo readiness checklist and the demo-call script notes. Open items (A6.5 test, Track A outreach) are tracked in `docs/roadmap.md`.
+
 # Launchpad by Space Coast Studios — Action Plan: First Client (GTM)
 
 *Created 2026-05-29 · Updated 2026-06-01 · Owner: Ryan*

@@ -2,7 +2,7 @@
 
 > **Read this file at the start of every session before doing any work.**
 > This is the single source of truth for project context, architecture, features, patterns, and status.
-> Last substantive update: 2026-07-01 (Dashboard theming completed for screenshot-readiness: light/dark toggle + per-business brand color, column sorting and Active/History split on Appointments, dark-mode legibility fixes across all pages including form fields and selected-row states, muted-text contrast tuned. See Section 18.)
+> Last substantive update: 2026-07-15 (Documentation consolidation + platform audit: README slimmed to a pointer doc, GTM action plan archived, founder onboarding updated to single-tier pricing, SMS agent upgraded to claude-sonnet-5, startup validation covers both models, dead deps removed. See docs/activity-log.md.)
 
 > **Git workflow reminder (Cowork sandbox):** In **Cowork** (this environment), Claude **cannot** run `git add`, `git commit`, or `git push` from bash -- the Linux sandbox mounts the Windows filesystem and creates lock files (`.git/HEAD.lock`, `.git/index.lock`) that cannot be removed from the sandbox, breaking subsequent commits. **In Cowork sessions: all git commands must be run by Ryan in his terminal.** Provide each command on its own line (no `&&` chaining -- PowerShell doesn't support it for copy-paste). Format:
 > ```
@@ -194,7 +194,7 @@ git push
 - **SQLAlchemy 2.x** (ORM with `Mapped` / `mapped_column` syntax)
 - **PostgreSQL 18** via `psycopg2`
 - **APScheduler** (BackgroundScheduler, runs in-process — no separate worker)
-- **Stripe Python SDK** (`stripe==11.1.0`)
+- **Stripe Python SDK** (`stripe==15.3.0` -- upgraded Q3 2026; v15 dropped StripeObject dict inheritance, see activity log 2026-07-01)
 - **Twilio** for SMS (A2P 10DLC)
 - **SendGrid** for email
 - **Anthropic Python SDK** for AI responses (`claude-haiku-4-5-20251001` model — see model maintenance note below)
@@ -240,7 +240,7 @@ Set on the **api component** in DigitalOcean App Platform. Sensitive values must
 | `JWT_SECRET_KEY` | ✅ | JWT signing key |
 | `JWT_ALGORITHM` | — | Default: `HS256` |
 | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | — | Default: `60` |
-| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | — | Default: `30` |
+| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | — | Default: `7` (config.py default; set DO env var to override) |
 | `TWILIO_ACCOUNT_SID` | ✅ | Twilio account SID |
 | `TWILIO_AUTH_TOKEN` | ✅ | Twilio auth token + webhook validation |
 | `TWILIO_PHONE_NUMBER` | ✅ | Default Twilio sending number (E.164) |
@@ -249,7 +249,7 @@ Set on the **api component** in DigitalOcean App Platform. Sensitive values must
 | `FROM_NAME` | — | Default sender name (`Space Coast Studios`) |
 | `ANTHROPIC_API_KEY` | ✅ | Claude API — SMS booking agent + contact AI responder |
 | `LLM_MODEL` | — | Default: `claude-haiku-4-5-20251001` — used by contact form auto-responder |
-| `SMS_AGENT_MODEL` | — | Default: `claude-sonnet-4-6` — used by SMS booking agent (needs stronger reasoning for multi-turn context) |
+| `SMS_AGENT_MODEL` | — | Default: `claude-sonnet-5` — used by SMS booking agent (needs stronger reasoning for multi-turn context) |
 | `STRIPE_SECRET_KEY` | ✅ | Stripe live secret key (`sk_live_...`) |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | Stripe webhook signing secret (`whsec_...`) |
 | `STRIPE_PRICE_LAUNCHPAD_SETUP` | ✅ | Stripe price ID — Launchpad setup ($999). Created by `scripts/create_launchpad_prices.py` |
@@ -503,7 +503,7 @@ These are also accessible via the Developer Tools panel in the dashboard Setting
 ## 14. AI Systems
 
 ### SMS Booking Agent (`services/sms_agent.py`)
-- Model: set by `SMS_AGENT_MODEL` env var (default `claude-sonnet-4-6`) via Anthropic API with `tool_use`
+- Model: set by `SMS_AGENT_MODEL` env var (default `claude-sonnet-5`) via Anthropic API with `tool_use`
 - Runs up to **5 tool-call iterations** per inbound message
 - Maintains last **20 messages** of conversation history per thread
 - **4 Tools:** `check_availability`, `create_booking`, `escalate_to_human`, `emergency_dispatch`
@@ -548,7 +548,7 @@ Sending both channels when one was chosen would be noisy and produce mismatched 
 #### SMS Body Construction
 Old behavior grabbed only the first paragraph (which was the greeting "Hi Name,") → SMS was always just the greeting. Fixed:
 - Splits reply into paragraphs, detects and skips greeting line (short line ending with comma)
-- Flattens remaining paragraphs, caps at 300 characters (~2 SMS segments)
+- Flattens remaining paragraphs, caps at 480 characters (~3 SMS segments; raised from 300 on 2026-05-29)
 - Logs character count on send
 
 ---
@@ -743,7 +743,7 @@ Pick the cheapest model that reliably handles the task. Upgrade only when a simp
 | Model | When to use | SCS example |
 |---|---|---|
 | `claude-haiku-4-5-20251001` | Single-turn responses, classification, summarization, high-volume tasks where cost matters | Contact form auto-responder, urgency detection on contact form, AI-generated analytics summaries |
-| `claude-sonnet-4-6` | Multi-turn conversations, tool use with several steps, tasks requiring judgment or complex reasoning | SMS booking agent (multi-turn + 4 tools), quote/estimate generation |
+| `claude-sonnet-5` | Multi-turn conversations, tool use with several steps, tasks requiring judgment or complex reasoning | SMS booking agent (multi-turn + 4 tools), quote/estimate generation |
 | Opus | Not needed for any current SCS use case — only reach for it if a task repeatedly fails on Sonnet | — |
 
 **Starting point:** single-turn / high-volume → try Haiku first; multi-turn / tool use → try Sonnet first. Test on the simpler model and only upgrade if the output quality isn't there. Either model can surprise you — Haiku handles more than you'd expect, and sometimes a task that looks complex is fine on Haiku once you see it in practice.
@@ -752,7 +752,7 @@ Pick the cheapest model that reliably handles the task. Upgrade only when a simp
 
 `LLM_MODEL` is set to `claude-haiku-4-5-20251001` in both `backend/app/config.py` (default fallback) and the DigitalOcean App-Level Environment Variables (production value).
 
-`SMS_AGENT_MODEL` is set to `claude-sonnet-4-6` in `config.py` (override via DO env var `SMS_AGENT_MODEL`).
+`SMS_AGENT_MODEL` is set to `claude-sonnet-5` in `config.py` (override via DO env var `SMS_AGENT_MODEL`). Upgraded from `claude-sonnet-4-6` on 2026-07-15: Sonnet 5 is the official drop-in replacement, same price ($2/$10 per Mtok intro through 2026-08-31, then $3/$15). Note: Sonnet 5 has adaptive thinking on by default and rejects non-default sampling parameters (we set none). Startup validation now checks BOTH `LLM_MODEL` and `SMS_AGENT_MODEL`.
 
 These models are used by:
 - **Contact form auto-responder** (`services/contact_responder.py`) — uses `LLM_MODEL` (Haiku): single-turn, high volume
@@ -828,11 +828,11 @@ Anthropic publishes deprecation notices 3–6 months in advance. Check https://d
 
 ## 26. Client Services Agreement
 
-**Files:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`) + `Test Project/SCS-Founding-Client-Pricing-Addendum.docx`
+**Files:** `Test Project/SCS-Client-Services-Agreement-v6-Final.docx` (authoritative, client-ready) + `Test Project/SCS-Founding-Client-Pricing-Addendum.docx`. Superseded drafts (v1-v5) are in `Test Project/archive/`.
 
 **Founding Client Pricing Addendum:** A separate signed addendum for the 5 founding clients. Supersedes Schedule A pricing for the promotional period. Key terms (updated 2026-06-10 for single-tier pricing): $497 setup + $149/mo for months 1-3, then auto-transition to the standard rate ($299/mo). 14-day written notice required before the transition date -- calendar this at onboarding (~2.5 months after go-live). Non-transferable, one-time use, capped at 5 clients. Both the CSA and this addendum must be signed for founding clients.
 
-**File:** `Test Project/SCS-Client-Services-Agreement-Template.docx` (and `.pdf`)
+**File:** `Test Project/SCS-Client-Services-Agreement-v6-Final.docx`
 
 **Version:** v6 (redline from Anjali Sareen received and accepted 2026-07-01). 14 sections:
 1. Services, 2. Fees & Payment, 3. Term, 4. Client Responsibilities, 5. Termination, 6. IP, 7. Confidentiality, 8. Support, 9. Limitation of Liability, 10. Indemnification, 11. Warranties, **12. AI Services**, 13. Governing Law & Disputes, 14. General Provisions
@@ -890,7 +890,7 @@ See `docs/founder-client-onboarding.md`.
 - **`customer_creation` not valid** — only valid in `payment` mode, not `subscription` mode
 - **Missing recurring price** — Stripe requires at least one recurring price in subscription mode; always include both setup (one-time) and monthly (recurring) line items
 - **Email blank after provisioning** — customer email is in `customer_details.email` in the webhook payload, not top-level `customer_email`
-- **`stripe` module not found** — ensure `stripe==11.1.0` in `requirements.txt`
+- **`stripe` module not found** — ensure `stripe==15.3.0` in `requirements.txt`
 
 ### Deployment / Backend
 - **DO env vars** — all Stripe keys must be on the **api component**, not app-level env vars
@@ -943,7 +943,7 @@ $result.url  # open in browser — $2 total, refund immediately after
 > **After every session:** append a dated entry there -- what was built, changed, or decided.
 > Do NOT add session history here.
 
-**Most recent update:** 2026-07-02 (CSA v6 finalized and Schedule A updated to single Launchpad tier; Twilio number assignments confirmed; Tailor Brands cancelled/Northwest Registered Agent engaged. See `docs/activity-log.md` for full details.)
+**Most recent update:** 2026-07-15 (Documentation consolidation + platform audit; SMS agent upgraded to claude-sonnet-5; activity log truncation repaired. See `docs/activity-log.md` for full details.)
 
 **Key recent history:**
 - 2026-07-01: Dashboard theming (see above) -- see `docs/activity-log.md` for the full multi-entry breakdown of this session
