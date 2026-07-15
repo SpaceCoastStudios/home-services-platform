@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- UNLISTED PAGE - do not link from nav, footer, or sitemap. Landing page for the demo review-request SMS link. Set as google_review_url on demo tenants only. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <title>You Found the Review Request - Launchpad by Space Coast Studios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:#0f172a; --navy2:#1e293b; --orange:#f97316; --orange2:#ea6c0a;
+      --blue:#2563eb; --slate:#64748b; --light:#f8fafc; --white:#fff; --border:#e2e8f0; --radius:14px;
+    }
+    body { font-family:'Inter',sans-serif; color:var(--navy); background:var(--light); line-height:1.6; -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column; }
+    .brand-bar { background:var(--navy); color:#fff; text-align:center; font-size:0.8rem; font-weight:600; padding:8px 16px; letter-spacing:0.02em; }
+    .brand-bar span { color:var(--orange); }
+    main { flex:1; display:flex; align-items:center; justify-content:center; padding:32px 16px 48px; }
+    .card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 8px 30px rgba(15,23,42,0.08); max-width:440px; width:100%; padding:32px 26px; text-align:center; }
+    .stars { color:#f59e0b; font-size:1.5rem; letter-spacing:4px; margin-bottom:14px; }
+    h1 { font-size:1.45rem; font-weight:800; letter-spacing:-0.01em; line-height:1.25; margin-bottom:10px; }
+    .lede { color:var(--slate); font-size:0.95rem; margin-bottom:18px; }
+    .info { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 16px; font-size:0.9rem; color:#1e40af; text-align:left; margin-bottom:18px; }
+    .info strong { color:#1e3a8a; }
+    .mock { background:var(--light); border:1px solid var(--border); border-radius:10px; padding:14px 16px; text-align:left; margin-bottom:22px; }
+    .mock .cap { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--slate); margin-bottom:10px; }
+    .mock .row { display:flex; align-items:center; gap:10px; }
+    .mock .avatar { width:34px; height:34px; border-radius:50%; background:#e2e8f0; color:var(--navy2); font-weight:700; font-size:0.8rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .mock .biz { font-weight:700; font-size:0.9rem; }
+    .mock .sub { font-size:0.78rem; color:var(--slate); }
+    .mock .greystars { color:#cbd5e1; font-size:1.15rem; letter-spacing:6px; margin-top:8px; }
+    .btn { display:block; width:100%; padding:13px 18px; border-radius:10px; font-weight:700; font-size:0.95rem; text-decoration:none; margin-bottom:10px; transition:background 0.15s ease; }
+    .btn-primary { background:var(--orange); color:#fff; }
+    .btn-primary:hover { background:var(--orange2); }
+    .btn-secondary { background:var(--white); color:var(--navy); border:1px solid var(--border); }
+    .btn-secondary:hover { background:var(--light); }
+    footer { text-align:center; font-size:0.75rem; color:var(--slate); padding:0 16px 26px; }
+    footer a { color:var(--slate); }
+  </style>
+</head>
+<body>
+  <div class="brand-bar">LAUNCHPAD <span>by Space Coast Studios</span></div>
+  <main>
+    <div class="card">
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <h1>That text you just tapped? Automatic.</h1>
+      <p class="lede">The moment a job is marked complete, your customer gets that review request. No app to open, nothing for you or your techs to remember.</p>
+      <div class="info"><strong>On your platform, this link goes straight to your Google review page</strong>, so your happiest customers land one tap away from leaving you five stars.</div>
+      <div class="mock">
+        <div class="cap">What your customer would see</div>
+        <div class="row">
+          <div class="avatar">YB</div>
+          <div>
+            <div class="biz">Your Business Name</div>
+            <div class="sub">Rate and review on Google</div>
+          </div>
+        </div>
+        <div class="greystars">&#9734;&#9734;&#9734;&#9734;&#9734;</div>
+      </div>
+      <a class="btn btn-primary" href="https://spacecoaststudios.com/#contact">Get this for your business</a>
+      <a class="btn btn-secondary" id="back-btn" href="https://spacecoaststudios.com/pool.html">Back to the demo</a>
+    </div>
+  </main>
+  <footer>Launchpad by Space Coast Studios &middot; This page is part of a product demo. Review requests on live client platforms link to the client&rsquo;s own Google review page.</footer>
+  <script>
+    (function () {
+      var from = new URLSearchParams(window.location.search).get('from');
+      if (from === 'demo') {
+        document.getElementById('back-btn').href = 'https://spacecoaststudios.com/demo.html';
+      }
+    })();
+  </script>
+</body>
+</html>
