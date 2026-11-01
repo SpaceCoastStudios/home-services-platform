@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     # LLM (AI Agent) — Anthropic only (unused OpenAI config removed 2026-07-15)
     ANTHROPIC_API_KEY: Optional[str] = None
     LLM_MODEL: str = "claude-haiku-4-5-20251001"  # Contact form responder
-    SMS_AGENT_MODEL: str = "claude-sonnet-5"       # SMS booking agent (upgraded from claude-sonnet-4-6, 2026-07-15)
+    SMS_AGENT_MODEL: str = "claude-sonnet-5-5"     # SMS booking agent (upgraded from claude-sonnet-5, 2026-10-01)
 
     # Stripe
     STRIPE_SECRET_KEY: Optional[str] = None

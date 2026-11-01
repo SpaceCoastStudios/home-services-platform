@@ -8,6 +8,11 @@
 ## 30. Activity Log
 
 ### Features Built by Session
+**2026-10-01 (automated quarterly LLM model check):**
+- `SMS_AGENT_MODEL` default in `backend/app/config.py` bumped `claude-sonnet-5` -> `claude-sonnet-5-5` (latest Sonnet, Active, retirement not before 2027-09-28; listed at $2/$10 per MTok). `claude-sonnet-5` itself is still Active (not before 2027-06-30), so this is an upgrade, not an outage fix.
+- `LLM_MODEL` unchanged: `claude-haiku-4-5-20251001` is still the latest Haiku and Active, BUT its tentative retirement is "not sooner than October 15, 2026". No newer Haiku exists yet. Watch for a deprecation email; fallback options if it is deprecated: `claude-sonnet-5-5` (2x cost) for the contact responder.
+- Not updated (left for Ryan): DO env var `SMS_AGENT_MODEL`, `backend/.env.example` line 22, and CLAUDE.md sections 8/14/22 which still say `claude-sonnet-5`.
+
 **2026-07-15 (session 2: pool outreach prep + review-demo landing page):**
 - **Top-10 pool prospect list pulled** from `SCS Prospect Tracker Updated.xlsx` (Pool Service tab: 15 High of 19). Ranked for cold email by review count + feature fit: Stanton (203 rev), Happy Pool and Spa (143), Mirage (119, advertises 24/7 call-or-text: strongest SMS-agent fit), AAA (93), Island Pool Care (90, owner Trey Hill known), Royal (83), Brevard Pool Care (61), Blue Ocean State (37), Azul (29), Mr. Bluu (9, emergency + weekly/monthly fit). No-email High prospects (form/phone only): Breezy (266), 365 Pools (106), Ben\'s Ocean Blue (99), Central Florida Pools (88). Skip: Integrity (on Jobber).
 - **Cold email sequence updated** (`Test Project/SCS Cold Email Sequence.docx`): all 53 em dashes removed with contextual punctuation (standing style rule); review stamp added to header (2026-07-15, pricing/links/claims verified current); paperwork note added to demo-call honesty notes (CSA v6 Final + Founding Addendum, both signed, calendar the 14-day transition notice). Prior version archived to `Test Project/archive/`. Content was otherwise already current from the 2026-06-10 single-tier update.
